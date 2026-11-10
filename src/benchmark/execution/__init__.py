@@ -2,12 +2,19 @@
 File: __init__.py
 
 Description:
-Execution services for Ollama access, model metadata, and lifecycle management.
+Execution services for Ollama access, model metadata, lifecycle management, and streaming inference.
 
 Responsibilities:
 - Export the public execution API.
 """
 
+from benchmark.execution.engine import (
+    CancellationToken,
+    InferenceBatchResult,
+    InferenceEngine,
+    InferenceRunner,
+    JsonlResponseWriter,
+)
 from benchmark.execution.metadata import (
     CompatibilityAssessment,
     LoadedModelSnapshot,
@@ -31,9 +38,15 @@ from benchmark.execution.metadata import (
 )
 from benchmark.execution.ollama_client import OllamaClient, PullResult
 from benchmark.execution.registry import ModelManager, RegisteredModel, normalize_tag
+from benchmark.execution.streaming import iter_chat_chunks
 
 __all__ = [
+    "CancellationToken",
     "CompatibilityAssessment",
+    "InferenceBatchResult",
+    "InferenceEngine",
+    "InferenceRunner",
+    "JsonlResponseWriter",
     "LoadedModelSnapshot",
     "ModelInspection",
     "ModelManager",
@@ -54,6 +67,7 @@ __all__ = [
     "estimate_kv_cache_bytes",
     "format_bytes",
     "format_pull_event",
+    "iter_chat_chunks",
     "normalize_tag",
     "read_snapshot",
     "write_snapshot",

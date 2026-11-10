@@ -1,0 +1,756 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local-llm-benchmark.local/schemas/benchmark_item.schema.json",
+  "title": "DatasetItem",
+  "description": "One validated quality benchmark item.",
+  "$defs": {
+    "BulletCountConstraint": {
+      "additionalProperties": false,
+      "description": "Require an exact number of bullet lines.",
+      "properties": {
+        "type": {
+          "const": "bullet_count",
+          "title": "Type",
+          "type": "string"
+        },
+        "count": {
+          "minimum": 1,
+          "title": "Count",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "type",
+        "count"
+      ],
+      "title": "BulletCountConstraint",
+      "type": "object"
+    },
+    "Category": {
+      "description": "Benchmark quality categories.",
+      "enum": [
+        "general_knowledge",
+        "logical_reasoning",
+        "mathematical_reasoning",
+        "coding",
+        "instruction_following",
+        "structured_json",
+        "summarization"
+      ],
+      "title": "Category",
+      "type": "string"
+    },
+    "CodeTestCase": {
+      "additionalProperties": false,
+      "description": "One authored unit test for a coding item.",
+      "properties": {
+        "name": {
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "args": {
+          "items": {},
+          "title": "Args",
+          "type": "array"
+        },
+        "kwargs": {
+          "additionalProperties": true,
+          "title": "Kwargs",
+          "type": "object"
+        },
+        "expected": {
+          "title": "Expected"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        }
+      },
+      "required": [
+        "name",
+        "expected"
+      ],
+      "title": "CodeTestCase",
+      "type": "object"
+    },
+    "ContainsAllConstraint": {
+      "additionalProperties": false,
+      "description": "Require all listed terms to appear.",
+      "properties": {
+        "type": {
+          "const": "contains_all",
+          "title": "Type",
+          "type": "string"
+        },
+        "terms": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Terms",
+          "type": "array"
+        }
+      },
+      "required": [
+        "type",
+        "terms"
+      ],
+      "title": "ContainsAllConstraint",
+      "type": "object"
+    },
+    "Difficulty": {
+      "description": "Item difficulty labels.",
+      "enum": [
+        "easy",
+        "medium",
+        "hard"
+      ],
+      "title": "Difficulty",
+      "type": "string"
+    },
+    "EachLineContainsConstraint": {
+      "additionalProperties": false,
+      "description": "Require every non-empty line to contain text.",
+      "properties": {
+        "type": {
+          "const": "each_line_contains",
+          "title": "Type",
+          "type": "string"
+        },
+        "text": {
+          "minLength": 1,
+          "title": "Text",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "text"
+      ],
+      "title": "EachLineContainsConstraint",
+      "type": "object"
+    },
+    "EachLineEndsWithConstraint": {
+      "additionalProperties": false,
+      "description": "Require every non-empty line to end with text.",
+      "properties": {
+        "type": {
+          "const": "each_line_ends_with",
+          "title": "Type",
+          "type": "string"
+        },
+        "text": {
+          "minLength": 1,
+          "title": "Text",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "text"
+      ],
+      "title": "EachLineEndsWithConstraint",
+      "type": "object"
+    },
+    "EachLineStartsWithConstraint": {
+      "additionalProperties": false,
+      "description": "Require every non-empty line to start with text.",
+      "properties": {
+        "type": {
+          "const": "each_line_starts_with",
+          "title": "Type",
+          "type": "string"
+        },
+        "text": {
+          "minLength": 1,
+          "title": "Text",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "text"
+      ],
+      "title": "EachLineStartsWithConstraint",
+      "type": "object"
+    },
+    "EndsWithConstraint": {
+      "additionalProperties": false,
+      "description": "Require a response suffix.",
+      "properties": {
+        "type": {
+          "const": "ends_with",
+          "title": "Type",
+          "type": "string"
+        },
+        "text": {
+          "minLength": 1,
+          "title": "Text",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "text"
+      ],
+      "title": "EndsWithConstraint",
+      "type": "object"
+    },
+    "EvaluationType": {
+      "description": "Supported deterministic evaluation methods.",
+      "enum": [
+        "exact_match",
+        "numeric",
+        "code_tests",
+        "json_schema",
+        "instruction_constraints",
+        "reference_overlap",
+        "refusal_check",
+        "composite"
+      ],
+      "title": "EvaluationType",
+      "type": "string"
+    },
+    "ExactTextConstraint": {
+      "additionalProperties": false,
+      "description": "Require an exact response string.",
+      "properties": {
+        "type": {
+          "const": "exact_text",
+          "title": "Type",
+          "type": "string"
+        },
+        "text": {
+          "minLength": 1,
+          "title": "Text",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "text"
+      ],
+      "title": "ExactTextConstraint",
+      "type": "object"
+    },
+    "ForbiddenPhraseConstraint": {
+      "additionalProperties": false,
+      "description": "Forbid a case-insensitive phrase.",
+      "properties": {
+        "type": {
+          "const": "forbidden_phrase",
+          "title": "Type",
+          "type": "string"
+        },
+        "phrase": {
+          "minLength": 1,
+          "title": "Phrase",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "phrase"
+      ],
+      "title": "ForbiddenPhraseConstraint",
+      "type": "object"
+    },
+    "LineCountConstraint": {
+      "additionalProperties": false,
+      "description": "Require an exact number of non-empty lines.",
+      "properties": {
+        "type": {
+          "const": "line_count",
+          "title": "Type",
+          "type": "string"
+        },
+        "count": {
+          "minimum": 1,
+          "title": "Count",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "type",
+        "count"
+      ],
+      "title": "LineCountConstraint",
+      "type": "object"
+    },
+    "LowercaseConstraint": {
+      "additionalProperties": false,
+      "description": "Require lowercase alphabetic characters.",
+      "properties": {
+        "type": {
+          "const": "lowercase",
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "title": "LowercaseConstraint",
+      "type": "object"
+    },
+    "OccurrenceCountConstraint": {
+      "additionalProperties": false,
+      "description": "Require an exact phrase occurrence count.",
+      "properties": {
+        "type": {
+          "const": "occurrence_count",
+          "title": "Type",
+          "type": "string"
+        },
+        "phrase": {
+          "minLength": 1,
+          "title": "Phrase",
+          "type": "string"
+        },
+        "count": {
+          "minimum": 0,
+          "title": "Count",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "type",
+        "phrase",
+        "count"
+      ],
+      "title": "OccurrenceCountConstraint",
+      "type": "object"
+    },
+    "OrderedTermsConstraint": {
+      "additionalProperties": false,
+      "description": "Require listed terms to appear in order.",
+      "properties": {
+        "type": {
+          "const": "ordered_terms",
+          "title": "Type",
+          "type": "string"
+        },
+        "terms": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Terms",
+          "type": "array"
+        }
+      },
+      "required": [
+        "type",
+        "terms"
+      ],
+      "title": "OrderedTermsConstraint",
+      "type": "object"
+    },
+    "RequiredPhraseConstraint": {
+      "additionalProperties": false,
+      "description": "Require a case-insensitive phrase.",
+      "properties": {
+        "type": {
+          "const": "required_phrase",
+          "title": "Type",
+          "type": "string"
+        },
+        "phrase": {
+          "minLength": 1,
+          "title": "Phrase",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "phrase"
+      ],
+      "title": "RequiredPhraseConstraint",
+      "type": "object"
+    },
+    "SentenceCountConstraint": {
+      "additionalProperties": false,
+      "description": "Require a sentence count within an inclusive range.",
+      "properties": {
+        "type": {
+          "const": "sentence_count",
+          "title": "Type",
+          "type": "string"
+        },
+        "minimum": {
+          "minimum": 1,
+          "title": "Minimum",
+          "type": "integer"
+        },
+        "maximum": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Maximum"
+        }
+      },
+      "required": [
+        "type",
+        "minimum"
+      ],
+      "title": "SentenceCountConstraint",
+      "type": "object"
+    },
+    "StartsWithConstraint": {
+      "additionalProperties": false,
+      "description": "Require a response prefix.",
+      "properties": {
+        "type": {
+          "const": "starts_with",
+          "title": "Type",
+          "type": "string"
+        },
+        "text": {
+          "minLength": 1,
+          "title": "Text",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "text"
+      ],
+      "title": "StartsWithConstraint",
+      "type": "object"
+    },
+    "WordCountConstraint": {
+      "additionalProperties": false,
+      "description": "Require a word count within an inclusive range.",
+      "properties": {
+        "type": {
+          "const": "word_count",
+          "title": "Type",
+          "type": "string"
+        },
+        "minimum": {
+          "minimum": 1,
+          "title": "Minimum",
+          "type": "integer"
+        },
+        "maximum": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Maximum"
+        }
+      },
+      "required": [
+        "type",
+        "minimum"
+      ],
+      "title": "WordCountConstraint",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "pattern": "^[a-z]{2,4}-[0-9]{3}$",
+      "title": "Id",
+      "type": "string"
+    },
+    "category": {
+      "$ref": "#/$defs/Category"
+    },
+    "difficulty": {
+      "$ref": "#/$defs/Difficulty"
+    },
+    "prompt": {
+      "minLength": 20,
+      "title": "Prompt",
+      "type": "string"
+    },
+    "system_instruction": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "System Instruction"
+    },
+    "expected_answer": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Expected Answer"
+    },
+    "evaluation_type": {
+      "$ref": "#/$defs/EvaluationType"
+    },
+    "reference_answer": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Reference Answer"
+    },
+    "test_cases": {
+      "items": {
+        "$ref": "#/$defs/CodeTestCase"
+      },
+      "title": "Test Cases",
+      "type": "array"
+    },
+    "json_schema": {
+      "anyOf": [
+        {
+          "additionalProperties": true,
+          "type": "object"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Json Schema"
+    },
+    "required_constraints": {
+      "items": {
+        "discriminator": {
+          "mapping": {
+            "bullet_count": "#/$defs/BulletCountConstraint",
+            "contains_all": "#/$defs/ContainsAllConstraint",
+            "each_line_contains": "#/$defs/EachLineContainsConstraint",
+            "each_line_ends_with": "#/$defs/EachLineEndsWithConstraint",
+            "each_line_starts_with": "#/$defs/EachLineStartsWithConstraint",
+            "ends_with": "#/$defs/EndsWithConstraint",
+            "exact_text": "#/$defs/ExactTextConstraint",
+            "forbidden_phrase": "#/$defs/ForbiddenPhraseConstraint",
+            "line_count": "#/$defs/LineCountConstraint",
+            "lowercase": "#/$defs/LowercaseConstraint",
+            "occurrence_count": "#/$defs/OccurrenceCountConstraint",
+            "ordered_terms": "#/$defs/OrderedTermsConstraint",
+            "required_phrase": "#/$defs/RequiredPhraseConstraint",
+            "sentence_count": "#/$defs/SentenceCountConstraint",
+            "starts_with": "#/$defs/StartsWithConstraint",
+            "word_count": "#/$defs/WordCountConstraint"
+          },
+          "propertyName": "type"
+        },
+        "oneOf": [
+          {
+            "$ref": "#/$defs/WordCountConstraint"
+          },
+          {
+            "$ref": "#/$defs/SentenceCountConstraint"
+          },
+          {
+            "$ref": "#/$defs/BulletCountConstraint"
+          },
+          {
+            "$ref": "#/$defs/LineCountConstraint"
+          },
+          {
+            "$ref": "#/$defs/RequiredPhraseConstraint"
+          },
+          {
+            "$ref": "#/$defs/ForbiddenPhraseConstraint"
+          },
+          {
+            "$ref": "#/$defs/OccurrenceCountConstraint"
+          },
+          {
+            "$ref": "#/$defs/StartsWithConstraint"
+          },
+          {
+            "$ref": "#/$defs/EndsWithConstraint"
+          },
+          {
+            "$ref": "#/$defs/LowercaseConstraint"
+          },
+          {
+            "$ref": "#/$defs/EachLineStartsWithConstraint"
+          },
+          {
+            "$ref": "#/$defs/EachLineEndsWithConstraint"
+          },
+          {
+            "$ref": "#/$defs/EachLineContainsConstraint"
+          },
+          {
+            "$ref": "#/$defs/ContainsAllConstraint"
+          },
+          {
+            "$ref": "#/$defs/OrderedTermsConstraint"
+          },
+          {
+            "$ref": "#/$defs/ExactTextConstraint"
+          }
+        ]
+      },
+      "title": "Required Constraints",
+      "type": "array"
+    },
+    "maximum_output_tokens": {
+      "default": 512,
+      "maximum": 4096,
+      "minimum": 1,
+      "title": "Maximum Output Tokens",
+      "type": "integer"
+    },
+    "tags": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Tags",
+      "type": "array"
+    },
+    "is_unanswerable": {
+      "default": false,
+      "title": "Is Unanswerable",
+      "type": "boolean"
+    },
+    "judge_eligible": {
+      "default": false,
+      "title": "Judge Eligible",
+      "type": "boolean"
+    },
+    "max_score": {
+      "default": 1.0,
+      "exclusiveMinimum": 0.0,
+      "title": "Max Score",
+      "type": "number"
+    },
+    "source": {
+      "default": "authored",
+      "minLength": 1,
+      "title": "Source",
+      "type": "string"
+    },
+    "notes": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Notes"
+    },
+    "accepted_answers": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Accepted Answers",
+      "type": "array"
+    },
+    "key_facts": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Key Facts",
+      "type": "array"
+    },
+    "forbidden_claims": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Forbidden Claims",
+      "type": "array"
+    },
+    "function_name": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Function Name"
+    },
+    "function_signature": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Function Signature"
+    },
+    "numeric_tolerance": {
+      "anyOf": [
+        {
+          "minimum": 0.0,
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Numeric Tolerance"
+    },
+    "expected_unit": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Expected Unit"
+    }
+  },
+  "required": [
+    "id",
+    "category",
+    "difficulty",
+    "prompt",
+    "evaluation_type"
+  ],
+  "type": "object"
+}

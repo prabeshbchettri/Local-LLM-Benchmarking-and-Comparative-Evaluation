@@ -12,6 +12,7 @@ Responsibilities:
 
 from __future__ import annotations
 
+import shutil
 from pathlib import Path
 
 import pytest
@@ -47,6 +48,22 @@ def test_health_check_passes_with_warnings(temp_settings: AppSettings) -> None:
     )
     assert any(check.name == "disk_space" for check in report.checks)
     assert not report.failures
+
+
+def test_health_check_reports_valid_dataset(
+    temp_settings: AppSettings,
+    dataset_path: Path,
+) -> None:
+    initialize_application(temp_settings)
+    destination = temp_settings.benchmark.dataset_path
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(dataset_path, destination)
+    report = run_health_check(settings=temp_settings)
+    reset_logging()
+    assert report.ok
+    dataset_check = next(check for check in report.checks if check.name == "dataset_file")
+    assert dataset_check.status == "ok"
+    assert "100 items" in dataset_check.detail
 
 
 def test_health_check_reports_missing_config_dir(tmp_path: Path) -> None:

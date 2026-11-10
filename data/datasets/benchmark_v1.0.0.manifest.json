@@ -1,0 +1,11 @@
+{
+  "content_sha256": "ceafe917235213c710da9e3b6a1ceecb86ba519b214581f683191c51358e46f1",
+  "created_at": "2026-11-10T04:43:49Z",
+  "description": "A balanced 100-item local LLM quality benchmark covering general knowledge, logical reasoning, mathematical reasoning, coding, instruction following, structured JSON, and summarization.",
+  "format": "jsonl",
+  "item_count": 100,
+  "name": "benchmark-v1.0.0",
+  "random_seed": 42,
+  "schema_version": "1.0.0",
+  "version": "1.0.0"
+}

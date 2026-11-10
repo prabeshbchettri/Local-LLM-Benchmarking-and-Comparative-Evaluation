@@ -1,0 +1,75 @@
+{
+  "name": "performance-v1.0.0",
+  "version": "1.0.0",
+  "schema_version": "1.0.0",
+  "created_at": "2026-11-10T04:43:49Z",
+  "random_seed": 42,
+  "repeats": 5,
+  "description": "Nine fixed prompts for throughput, latency, and output-length measurement.",
+  "content_sha256": "ab2a2e522bb521458b43acb25545765fdb5988c7a7dea2a86155b6bc9d579099",
+  "prompts": [
+    {
+      "id": "P1",
+      "group": "short",
+      "prompt": "Summarize the following passage in about 60 words: Honeybees live in large colonies and communicate through movement and scent.",
+      "target_output_words": 60,
+      "maximum_output_tokens": 128
+    },
+    {
+      "id": "P2",
+      "group": "short",
+      "prompt": "Summarize the following passage in about 60 words: A small wooden boat drifts across a quiet lake at sunrise.",
+      "target_output_words": 60,
+      "maximum_output_tokens": 128
+    },
+    {
+      "id": "P3",
+      "group": "short",
+      "prompt": "Summarize the following passage in about 60 words: Regular exercise can improve physical health, mood, and sleep quality.",
+      "target_output_words": 60,
+      "maximum_output_tokens": 128
+    },
+    {
+      "id": "P4",
+      "group": "medium",
+      "prompt": "Summarize the following passage in about 120 words: The water cycle moves water between the ocean, atmosphere, and land. Heat from the sun causes water to evaporate from oceans, lakes, and soil. Water vapor rises, cools, and condenses into clouds. Precipitation returns water to the surface, where it flows into rivers, soaks into the ground, or is stored in ice and snow. Some water is taken up by plants and released through transpiration. The cycle has no true beginning or end, and the same water can move through it repeatedly over millions of years. Human activity can affect the cycle through irrigation, deforestation, urbanization, and climate change.",
+      "target_output_words": 120,
+      "maximum_output_tokens": 256
+    },
+    {
+      "id": "P5",
+      "group": "medium",
+      "prompt": "Summarize the following passage in about 120 words: Urban trees provide shade that lowers surface temperatures and reduces the energy needed for cooling. Their roots help absorb stormwater, which can lessen flooding during heavy rain. Trees also improve air quality by trapping particulate matter and offer habitat for birds and insects. Neighborhoods with mature trees often have lower summer temperatures and more pleasant walking conditions. However, young trees require regular watering and maintenance to survive in dense cities. Species selection matters because some trees tolerate drought and pollution better than others. Municipal programs must balance planting goals with long-term care budgets.",
+      "target_output_words": 120,
+      "maximum_output_tokens": 256
+    },
+    {
+      "id": "P6",
+      "group": "medium",
+      "prompt": "Summarize the following passage in about 120 words: Remote work can reduce commuting time and give employees more flexibility over their schedules. It can also widen hiring pools because companies are no longer limited to local candidates. At the same time, remote employees may report isolation and difficulty separating work from personal life. Organizations often address these issues with regular check-ins, clear communication norms, and occasional in-person meetings. Hybrid arrangements attempt to combine the benefits of focused home work with the collaboration and social contact of an office. The best balance depends on the tasks, team maturity, and the availability of reliable technology.",
+      "target_output_words": 120,
+      "maximum_output_tokens": 256
+    },
+    {
+      "id": "P7",
+      "group": "long",
+      "prompt": "Summarize the following passage in about 200 words: The printing press with movable metal type was developed in Europe in the middle of the fifteenth century, most famously by Johannes Gutenberg in Mainz. Gutenberg's workshop combined a durable metal alloy for individual letters, oil-based ink, a modified wine press, and a system for arranging and reusing type. The result was a dramatic reduction in the cost and time required to produce books. Before the press, manuscripts were copied by hand, often by scribes in monasteries, and a single Bible could take months or years to complete. Printed books were still expensive, but they could be produced in hundreds or thousands of copies and distributed widely. The technology spread rapidly across Europe, with presses established in major cities within decades. Printers published religious texts, legal documents, scientific works, pamphlets, and news sheets. The availability of identical copies made it easier for scholars to compare texts, cite passages, and build on one another's work. It also supported the growth of literacy and vernacular languages, because books could be printed in local languages rather than only Latin. Religious reform movements used printed pamphlets to spread their ideas, and governments and churches tried to control the new medium through licensing and censorship. The printing press did not create the Renaissance, the Reformation, or the Scientific Revolution by itself, but it accelerated the circulation of ideas and made challenges to established authority easier to distribute. Over time, improvements in type casting, paper making, and press design increased output further. The basic principles of movable type remained influential for centuries, until industrial printing methods and later digital technologies transformed the field again. Historians often describe the press as one of the most important communication technologies in world history because it changed who could produce, own, and debate written knowledge. It also created new professions and businesses, including type founders, paper makers, printers, booksellers, and editors. Censorship became more difficult as presses multiplied, although authorities continued to regulate what could be printed. The availability of cheap pamphlets and broadsheets encouraged public debate and helped spread news across long distances. In the centuries that followed, newspapers and periodicals built on the same basic model of multiplying text for a wide audience. The press also changed the relationship between authors and readers, because a writer could reach many people without being physically present. These changes did not happen evenly or overnight, and access to printed material remained unequal for a long time, but the long-term effects were profound.",
+      "target_output_words": 200,
+      "maximum_output_tokens": 512
+    },
+    {
+      "id": "P8",
+      "group": "long",
+      "prompt": "Summarize the following passage in about 200 words: Coral reefs are among the most biologically diverse ecosystems in the ocean. They are built by colonies of tiny animals called polyps, which secrete calcium carbonate skeletons. Over long periods, these skeletons accumulate and form complex structures that provide shelter for fish, crustaceans, mollusks, and many other organisms. Reef-building corals live in shallow tropical waters and depend on a symbiotic relationship with microscopic algae called zooxanthellae. The algae live inside coral tissues and produce sugars through photosynthesis, supplying much of the coral's energy. In return, the coral provides shelter and nutrients. This relationship is sensitive to temperature, light, and water chemistry. When water becomes too warm, corals expel their algae and lose their color, a phenomenon called bleaching. Bleached corals are not immediately dead, but they are stressed and may die if conditions do not improve. Ocean acidification, pollution, destructive fishing, and coastal development add further pressure. Reefs also protect coastlines from waves and support tourism and fisheries. Conservation efforts include marine protected areas, restoration projects, reduced runoff, and global action to limit greenhouse gas emissions. Scientists monitor reef health by surveying coral cover, fish populations, and signs of disease. Some projects grow coral fragments in nurseries and transplant them onto damaged reefs, although restoration cannot replace the scale of a healthy natural reef. Local communities can help by reducing fertilizer runoff, avoiding damaging fishing methods, and supporting sustainable tourism. Because reefs grow slowly, recovery after a severe disturbance can take decades. The combination of warming water and local stressors makes reefs especially vulnerable, and many reefs around the world have experienced repeated bleaching events. The fate of coral reefs depends on both global climate policy and local management, and scientists continue to study which species and locations are most likely to survive. The diversity of reef ecosystems also offers potential benefits for medicine and biotechnology, because many reef organisms produce unusual chemical compounds. Protecting reefs is therefore both an ecological and an economic concern. Reef fisheries provide food and income for millions of people, and reef-associated tourism supports local economies. Mangroves and seagrass beds near reefs also store carbon and protect shorelines. Effective management often requires cooperation across local, national, and international levels because pollution and warming do not respect boundaries. Researchers use satellites, underwater sensors, and volunteer surveys to track changes over time. Some corals appear more heat-tolerant than others, raising hopes that targeted protection or assisted evolution could help reefs adapt, but these approaches remain controversial and cannot substitute for reducing emissions. Public education and community stewardship are also important because many threats originate on land. The future of coral reefs will depend on the choices societies make about energy, land use, and coastal development.",
+      "target_output_words": 200,
+      "maximum_output_tokens": 512
+    },
+    {
+      "id": "P9",
+      "group": "long",
+      "prompt": "Summarize the following passage in about 200 words: The Industrial Revolution began in Britain in the late eighteenth century and spread across Europe and North America. Mechanized textile production, steam power, and railways transformed manufacturing and transportation. Cities grew rapidly as workers moved from farms to factories. The period brought rising productivity and new consumer goods, but also crowded housing, dangerous working conditions, and pollution. Early factories often relied on water power, which limited where they could be located. The development of practical steam engines allowed factories to operate in cities and near coal supplies. Textile machinery such as the spinning jenny and the power loom increased output per worker. Railways reduced the cost of moving raw materials and finished goods, while telegraphy improved communication. These changes encouraged the growth of banks, insurance companies, and joint-stock corporations. Governments gradually changed laws governing trade, labor, and public health. Reformers documented child labor, long hours, and unsafe machinery, leading to factory acts and inspections. The second half of the nineteenth century brought steel, chemicals, electricity, and the internal combustion engine, which created new industries and new forms of transport. Living standards eventually rose for many people, but the benefits were uneven and the transition caused serious social disruption. Historians continue to debate how quickly wages improved and how much workers shared in the gains from industrialization. The revolution also increased the use of fossil fuels, setting the stage for modern environmental challenges. It changed the rhythm of daily life, the structure of families, and the relationship between cities and countryside. The period did not affect every region in the same way, and industrialization in some countries depended on resources and labor drawn from colonies and global trade networks. Its legacies include modern manufacturing, mass consumption, organized labor, public education, and debates over how to manage technological change. The revolution also changed the scale of cities and the design of housing, sanitation, and public services. Rapid urbanization overwhelmed existing infrastructure, and outbreaks of disease prompted reforms in water supply and waste removal. Labor movements organized to demand shorter hours, safer workplaces, and the right to bargain collectively. Compulsory education expanded in part to prepare children for industrial work and citizenship. Mass production lowered the cost of clothing, furniture, and household goods, helping to create modern consumer culture. At the same time, industrialization contributed to air and water pollution, resource extraction, and the growth of empires that sought raw materials and markets. These global connections meant that the benefits and costs of industrial growth were distributed unevenly across regions and social classes. Debates about regulation, inequality, and environmental protection that began during this period remain relevant today.",
+      "target_output_words": 200,
+      "maximum_output_tokens": 512
+    }
+  ]
+}

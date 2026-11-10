@@ -4,10 +4,10 @@
 
 | Field | Value |
 |---|---|
-| Document version | 1.0.0 |
-| Status | Phase 00 baseline |
+| Document version | 1.2.0 |
+| Status | Phase 03 dataset and Phase 04 inference engine implemented (pending approval) |
 | Date | 2026-11-10 |
-| Related documents | `PROJECT_REQUIREMENTS.md`, `METRICS_DEFINITIONS.md`, `ARCHITECTURE.md` |
+| Related documents | `PROJECT_REQUIREMENTS.md`, `METRICS_DEFINITIONS.md`, `ARCHITECTURE.md`, `DATASET_GUIDE.md` |
 
 ---
 
@@ -138,44 +138,59 @@ The primary judge shares the Qwen family with one candidate, and the optional cr
 
 - Dataset name: `benchmark-v1.0.0`.
 - Total items: exactly 100.
-- Format: JSONL with one validated item per line, plus a version manifest containing the SHA-256 content hash.
+- Canonical format: `data/datasets/benchmark_v1.json`, a versioned container with dataset metadata, `content_sha256`, and an `items` array.
+- Compatibility export: `data/datasets/benchmark_v1.0.0.jsonl` with one validated item per line, plus `benchmark_v1.0.0.manifest.json` containing dataset metadata and the SHA-256 content hash.
+- The JSON file is the source of truth; the JSONL export is generated deterministically and validated through the same Pydantic models.
 - Any content change creates a new version. Items are never edited in place during an experiment.
 
 ### 5.2 Category distribution
 
 | Category | Items | Difficulty mix (easy / medium / hard) | Primary evaluation |
 |---|---:|---|---|
-| General knowledge | 15 | 5 / 7 / 3 | Reference key-fact matching; optional judge |
-| Logical reasoning | 15 | 4 / 7 / 4 | Final-answer exact match; optional judge for reasoning |
-| Mathematical reasoning | 15 | 4 / 7 / 4 | Numeric validation with tolerance |
+| General knowledge | 15 | 5 / 7 / 3 | Exact match, plus refusal checks for unanswerable items |
+| Logical reasoning | 15 | 4 / 7 / 4 | Final-answer exact match, plus one refusal check |
+| Mathematical reasoning | 15 | 5 / 7 / 3 | Numeric validation with tolerance |
 | Coding | 15 | 4 / 7 / 4 | Executed unit tests |
 | Instruction following | 15 | 5 / 7 / 3 | Constraint checks |
 | Structured JSON generation | 15 | 5 / 7 / 3 | JSON parse plus schema validation |
-| Summarization | 10 | 3 / 5 / 2 | Reference overlap plus key-fact coverage; judge for quality |
+| Summarization | 10 | 2 / 5 / 3 | Reference overlap plus key-fact coverage; judge for quality |
 | **Total** | **100** | **30 / 47 / 23** | |
 
-The difficulty mix is a target. The final authored dataset must report its actual distribution.
+The table reports the authored distribution, which the dataset model enforces.
 
 ### 5.3 Item schema
 
-Every item contains:
+The dataset container stores `name`, `version`, `schema_version`, `created_at`, `random_seed`, `description`, `content_sha256`, and `items`. Every item contains:
 
-| Field | Type | Required | Meaning |
+| Field | Type | Default | Meaning |
 |---|---|---|---|
-| `item_id` | string | yes | Stable unique identifier, e.g. `gk-001` |
-| `category` | enum | yes | One of the seven categories |
-| `difficulty` | enum | yes | `easy`, `medium`, `hard` |
-| `prompt` | string | yes | Exact user prompt sent to every model |
-| `expected_answer` | string or null | yes | Canonical answer or reference |
-| `evaluation_method` | enum | yes | Primary evaluator identifier |
-| `evaluation_config` | object | yes | Tolerances, schema, constraints, test cases, keywords |
-| `reference` | string or null | no | Longer reference used by overlap or judge |
-| `is_unanswerable` | boolean | yes | True for hallucination-resistance items |
-| `judge_eligible` | boolean | yes | Whether subjective judging applies |
-| `max_score` | number | yes | Maximum points for the item |
-| `tags` | list of strings | no | Topic tags for analysis |
-| `notes` | string | no | Author notes, not shown to models |
-| `source` | string | yes | `authored`, or a licensed source with attribution |
+| `id` | string | required | Stable unique identifier with a category prefix, e.g. `gk-001` |
+| `category` | enum | required | One of the seven categories |
+| `difficulty` | enum | required | `easy`, `medium`, `hard` |
+| `prompt` | string | required | Exact user prompt sent to every model (minimum 20 characters) |
+| `system_instruction` | string or null | `null` | Optional system message |
+| `expected_answer` | string or null | `null` | Canonical answer for exact/numeric methods |
+| `evaluation_type` | enum | required | Primary evaluator identifier |
+| `reference_answer` | string or null | `null` | Reference used by code, JSON, overlap, refusal, or judge evaluation |
+| `test_cases` | list of objects | `[]` | Authored unit tests for coding items |
+| `json_schema` | object or null | `null` | JSON Schema for structured JSON items |
+| `required_constraints` | list of objects | `[]` | Deterministic instruction constraints |
+| `maximum_output_tokens` | integer | `512` | Per-item generation cap (1–4096) |
+| `tags` | list of strings | `[]` | Topic tags for analysis |
+| `is_unanswerable` | boolean | `false` | True for hallucination-resistance items |
+| `judge_eligible` | boolean | `false` | Whether subjective judging applies |
+| `max_score` | number | `1.0` | Maximum points for the item |
+| `source` | string | `"authored"` | `authored`, or a licensed source with attribution |
+| `notes` | string or null | `null` | Author notes, not shown to models |
+| `accepted_answers` | list of strings | `[]` | Additional accepted exact-match answers |
+| `key_facts` | list of strings | `[]` | Required facts for reference-overlap scoring |
+| `forbidden_claims` | list of strings | `[]` | Claims that invalidate a refusal response |
+| `function_name` | string or null | `null` | Required function name for coding items |
+| `function_signature` | string or null | `null` | Required function signature for coding items |
+| `numeric_tolerance` | number or null | `null` | Absolute tolerance for numeric evaluation |
+| `expected_unit` | string or null | `null` | Expected unit for numeric evaluation |
+
+Method-specific requirements are enforced by the model: exact-match and numeric items require `expected_answer`; coding items require `function_name`, `function_signature`, `test_cases`, and `reference_answer`; JSON items require `json_schema` and `reference_answer`; instruction items require `required_constraints`; reference-overlap items require `reference_answer` and `key_facts`; refusal items require `reference_answer`, `forbidden_claims`, and `is_unanswerable`. The `evaluation_config()` method derives the evaluator configuration; there is no stored `evaluation_config` field.
 
 ### 5.4 Evaluation method identifiers
 
@@ -188,19 +203,19 @@ Every item contains:
 - `refusal_check`
 - `composite`
 
-The dataset loader rejects unknown identifiers.
+The dataset loader rejects unknown identifiers. Authored evaluation-type counts: `exact_match` 27, `numeric` 14, `code_tests` 15, `instruction_constraints` 14, `json_schema` 15, `reference_overlap` 9, `refusal_check` 6, `composite` 0.
 
 ### 5.5 Unanswerable items
 
-Unanswerable items are embedded inside existing categories and replace answerable items; they do not increase the total count. Proposed distribution:
+Unanswerable items are embedded inside existing categories and replace answerable items; they do not increase the total count. Authored distribution:
 
-| Category | Unanswerable items | Scenario |
+| Category | Count | Scenario |
 |---|---:|---|
-| General knowledge | 2 | Fictional entity and a fact that cannot be verified locally |
-| Logical reasoning | 1 | Insufficient premises to determine the answer |
-| Mathematical reasoning | 1 | Ill-posed problem with missing data |
-| Instruction following | 1 | Request that conflicts with a stated constraint |
-| Summarization | 1 | Source text too short or ambiguous to support the requested summary |
+| General knowledge | 2 | `gk-008` asks for the population of the fictional city of Eldoria in Valoria; `gk-014` asks for an exact historical population of the fictional village of Veyra. |
+| Logical reasoning | 1 | `lr-014` gives insufficient premises to decide whether the pet is a cat. |
+| Mathematical reasoning | 1 | `mr-014` gives a rectangle's area but not enough information to determine its length. |
+| Instruction following | 1 | `if-013` asks for an exact population of the fictional city of Noria in exactly five words. |
+| Summarization | 1 | `sum-009` asks for findings from a nonexistent 2026 clinical trial of the fictional drug Neuroclear. |
 | **Total** | **6** | |
 
 Expected behavior:
@@ -222,7 +237,7 @@ Scoring:
 - Keep prompts self-contained and unambiguous.
 - State the required output format explicitly in the prompt when format matters.
 - Avoid prompts that require tools, browsing, or external files.
-- Coding items must specify the function name, signature, input assumptions, and Python version (3.13).
+- Coding items must specify the function name, signature, and input assumptions; the evaluation environment uses Python 3.13.
 - JSON items must include a complete schema or an unambiguous example and must forbid extra keys unless explicitly allowed.
 - Summarization items must include the source text in the prompt and state the length constraint.
 - Include the answer or a reference for every answerable item.
@@ -324,7 +339,7 @@ One pass is used because temperature 0 makes repeated quality passes largely red
 | Property | Value |
 |---|---|
 | Purpose | Measure stable latency and throughput |
-| Prompts | 9 fixed performance prompts: 3 short (~20 tokens), 3 medium (~150 tokens), 3 long (~600 tokens) |
+| Prompts | 9 fixed performance prompts: 3 short (18–19 words, ~25 tokens), 3 medium (101–107 words, ~140 tokens), 3 long (419–456 words, ~550–600 tokens) |
 | Repeats per prompt | 5 |
 | Temperature | 0.0 |
 | Model state | Warm, after one discarded warm-up; P runs before Q |
@@ -451,13 +466,14 @@ Warm-up is performed once per model run, not once per item. The warm-up prompt a
 
 ### 10.1 Client timing
 
-- `t0`: immediately before issuing the HTTP request, using `time.perf_counter()`.
+- `t0`: immediately before issuing the HTTP request, using `time.perf_counter_ns()`.
 - `t_first`: arrival of the first stream chunk containing non-empty content.
 - `t_last`: arrival of the final chunk with `done = true`.
 - `TTFT = t_first − t0`.
 - `total_latency = t_last − t0`.
 - UTC wall-clock timestamps are stored for auditing; monotonic values are used for durations.
 - Empty content chunks, role-only chunks, and metadata-only chunks do not count as the first token.
+- Phase 04 records the first non-empty content chunk as `t_first`; the final `done = true` chunk supplies `t_last` and raw Ollama metadata.
 
 ### 10.2 Ollama runtime timing
 
@@ -486,6 +502,15 @@ These are stored in nanoseconds and converted to seconds for analysis. They desc
 - Judge requests from candidate performance metrics.
 - Requests that failed before any response, from latency and throughput aggregates, while still counting them in reliability.
 - Retried requests, if any are explicitly enabled for non-benchmark purposes.
+
+### 10.5 Phase 04 implementation notes
+
+- The interim response log is append-only JSONL under `data/results/` until Phase 07 storage exists.
+- Each record captures experiment, model, prompt, repetition, warm-up and cold-start flags, status, response text, finish reason, client timing, token metrics, generation options, Ollama metadata, and error details.
+- Prompt and output token rates are calculated from the matching Ollama token count and duration; they are not inferred from text length.
+- Warm-up records are stored and marked but excluded from measured summaries.
+- `benchmark infer` defaults to the first configured candidate and five ordered dataset items; explicit `--model` and `--item` selections are required for targeted runs.
+- A five-question smoke with `llama3.1:8b` produced all-success records in experiment `20261110T052647Z-afd1e4d4`; it is engineering validation, not a comparative result.
 
 ---
 

@@ -132,6 +132,24 @@ class OllamaChatResponse(OllamaSchema):
     eval_duration: int | None = None
 
 
+class OllamaChatChunk(OllamaSchema):
+    """One NDJSON chunk from a streaming /api/chat response."""
+
+    model: str = ""
+    created_at: str | None = None
+    message: OllamaChatMessage | None = None
+    done: bool = False
+    done_reason: str | None = None
+    total_duration: int | None = None
+    load_duration: int | None = None
+    prompt_eval_count: int | None = None
+    prompt_eval_duration: int | None = None
+    eval_count: int | None = None
+    eval_duration: int | None = None
+    error: str | None = None
+    raw: dict[str, Any] = Field(default_factory=dict, exclude=True)
+
+
 class OllamaGenerateResponse(OllamaSchema):
     """A non-streaming response from /api/generate used for lifecycle calls."""
 

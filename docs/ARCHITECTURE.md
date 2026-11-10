@@ -4,10 +4,10 @@
 
 | Field | Value |
 |---|---|
-| Document version | 1.1.0 |
-| Status | Phase 02 implemented (pending approval) |
+| Document version | 1.3.0 |
+| Status | Phase 04 implemented (pending approval) |
 | Date | 2026-11-10 |
-| Related documents | `PROJECT_REQUIREMENTS.md`, `EXPERIMENTAL_METHODOLOGY.md`, `METRICS_DEFINITIONS.md` |
+| Related documents | `PROJECT_REQUIREMENTS.md`, `EXPERIMENTAL_METHODOLOGY.md`, `METRICS_DEFINITIONS.md`, `DATASET_GUIDE.md` |
 
 ---
 
@@ -62,7 +62,7 @@ The dashboard is a read-mostly client. Long experiments run in a separate CLI pr
 
 ---
 
-## 4. Planned repository structure
+## 4. Repository structure (implemented through Phase 04)
 
 ```text
 Local LLM Benchmarking and Comparative Evaluation/
@@ -72,7 +72,9 @@ Local LLM Benchmarking and Comparative Evaluation/
 │   └── evaluation.yaml
 ├── data/
 │   ├── datasets/
+│   │   ├── benchmark_v1.json
 │   │   ├── benchmark_v1.0.0.jsonl
+│   │   ├── benchmark_v1.0.0.manifest.json
 │   │   ├── probes/
 │   │   │   ├── performance_v1.0.0.json
 │   │   │   └── consistency_v1.0.0.json
@@ -84,6 +86,7 @@ Local LLM Benchmarking and Comparative Evaluation/
 │   ├── PROJECT_REQUIREMENTS.md
 │   ├── EXPERIMENTAL_METHODOLOGY.md
 │   ├── METRICS_DEFINITIONS.md
+│   ├── DATASET_GUIDE.md
 │   ├── ARCHITECTURE.md
 │   └── DEVELOPMENT_ROADMAP.md
 ├── scripts/
@@ -194,6 +197,8 @@ Local LLM Benchmarking and Comparative Evaluation/
 └── README.md
 ```
 
+Phase 04 adds `src/benchmark/models/inference.py` for response, timing, token, and run-summary schemas; `src/benchmark/execution/streaming.py` for NDJSON chat-chunk parsing; and `src/benchmark/execution/engine.py` for request execution, batch controls, cancellation, and interim JSONL logging.
+
 ### 4.1 Structure rules
 
 - Files are created only when they have a clear responsibility.
@@ -259,14 +264,17 @@ Workload profile weights are introduced in Phase 08 as an additive section of `b
 
 **Responsibilities:**
 
-- Load and validate the 100-item quality dataset.
+- Load and validate the canonical 100-item JSON dataset at `data/datasets/benchmark_v1.json`.
+- Load the compatibility JSONL export plus its sidecar manifest, and validate both through the same models.
 - Load versioned performance and consistency probes.
-- Enforce category counts, unique IDs, required fields, and evaluation-method validity.
-- Compute SHA-256 content hashes.
-- Provide deterministic item ordering with a seed.
+- Enforce category, difficulty, unanswerable, evaluation-type, unique-ID, and prompt-uniqueness rules.
+- Validate every item-defined JSON Schema and its reference JSON document.
+- Compute canonical SHA-256 content hashes over sorted item payloads.
+- Provide deterministic item ordering with seed 42.
 - Refuse to run with an unvalidated or changed dataset.
+- Generate the item JSON Schema artifact from the Pydantic model.
 
-**Schema choice:** Pydantic models for dataset items and configuration. JSON Schema validation for model-generated structured outputs uses the `jsonschema` library, because the benchmark needs to validate arbitrary item-defined schemas that are not known at code-writing time.
+**Schema choice:** Pydantic models for dataset items and configuration. JSON Schema validation for item-defined structured outputs uses the `jsonschema` library, because the benchmark needs to validate arbitrary schemas that are not known at code-writing time. The canonical dataset is JSON; the JSONL export is a deterministic compatibility artifact, not the source of truth.
 
 ### 5.5 Experiment orchestrator (`benchmark.execution.orchestrator`)
 
@@ -310,6 +318,11 @@ stateDiagram-v2
 - Enforce timeouts.
 - Return a structured result object for storage.
 - Never retry candidate requests by default.
+- Execute selected models and prompts sequentially with warm-up, repeats, and cold-start unload controls.
+- Distinguish success, empty, timeout, error, and cancelled outcomes.
+- Support cooperative cancellation and graceful keyboard interruption.
+- Append interim response records to JSONL until Phase 07 storage exists.
+- Use `benchmark.execution.streaming` for NDJSON parsing and `benchmark.execution.timing` for formulas.
 
 ### 5.7 Hardware monitor (`benchmark.monitoring`)
 
@@ -393,7 +406,7 @@ stateDiagram-v2
 |---|---|
 | `preflight.py` | Check Python, dependencies, configuration, runtime directories, disk space, and Ollama connectivity |
 | `pull_models.py` | Explicitly pull missing configured models with progress; requires `--yes` |
-| `validate_dataset.py` | Validate dataset counts, schema, and hash |
+| `validate_dataset.py` | Validate dataset counts, item schemas, content hash, and probes |
 | `run_experiment.py` | Execute a warm, cold, or smoke experiment |
 | `generate_report.py` | Export reports for a completed run |
 
@@ -537,7 +550,7 @@ Experimental settings are snapshotted and hashed. Changing a setting creates a n
 
 ## 9. Dependency plan
 
-Runtime dependencies (implemented through Phase 02 plus planned later additions):
+Runtime dependencies (implemented through Phase 04 plus planned later additions):
 
 | Dependency | Purpose | Why not a simpler alternative |
 |---|---|---|
@@ -571,7 +584,7 @@ Not used:
 
 Dependency management: a single `pyproject.toml` with pinned versions and a `dev` optional dependency group. Installation: `python -m pip install -e ".[dev]"`.
 
-Phase 01 installs only `pydantic`, `PyYAML`, and `pytest`. The remaining runtime and development dependencies are added, pinned, and tested in the phases that first use them.
+Phase 01 installs `pydantic`, `PyYAML`, and `pytest`; Phase 02 adds `httpx`; Phase 03 adds `jsonschema`; Phase 04 adds no new runtime dependencies. Remaining runtime and development dependencies are added, pinned, and tested in the phases that first use them.
 
 ---
 

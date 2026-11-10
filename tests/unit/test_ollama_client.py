@@ -192,6 +192,76 @@ def test_chat_payload_and_response() -> None:
     assert response.eval_count == 2
 
 
+def test_stream_chat_payload_and_chunks() -> None:
+    def handler(request: httpx.Request) -> httpx.Response:
+        assert request.url.path == "/api/chat"
+        payload = json.loads(request.content)
+        assert payload["model"] == "llama3.1:8b"
+        assert payload["stream"] is True
+        assert payload["messages"] == [{"role": "user", "content": "Say OK"}]
+        assert payload["options"]["num_predict"] == 8
+        content = (
+            b'{"model":"llama3.1:8b","message":{"role":"assistant","content":""},"done":false}\n'
+            b'{"model":"llama3.1:8b","message":{"role":"assistant","content":"O"},"done":false}\n'
+            b'{"model":"llama3.1:8b","message":{"role":"assistant","content":"K"},'
+            b'"done":true,"done_reason":"stop","eval_count":2,"eval_duration":1000000000}\n'
+        )
+        return httpx.Response(200, content=content)
+
+    client = _client(handler)
+    try:
+        chunks = list(
+            client.stream_chat(
+                "llama3.1:8b",
+                [{"role": "user", "content": "Say OK"}],
+                options={"num_predict": 8},
+                keep_alive="30m",
+            )
+        )
+    finally:
+        client.close()
+    assert [chunk.message.content for chunk in chunks if chunk.message] == ["", "O", "K"]
+    assert chunks[-1].done is True
+    assert chunks[-1].eval_count == 2
+    assert chunks[-1].raw["done_reason"] == "stop"
+
+
+def test_stream_chat_malformed_json_raises() -> None:
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, content=b'{"done":false}\nnot json\n')
+
+    client = _client(handler)
+    try:
+        with pytest.raises(OllamaResponseError, match="invalid chat stream chunk"):
+            list(client.stream_chat("llama3.1:8b", [{"role": "user", "content": "hi"}]))
+    finally:
+        client.close()
+
+
+def test_stream_chat_error_event_raises() -> None:
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, content=b'{"error":"model crashed"}\n')
+
+    client = _client(handler)
+    try:
+        with pytest.raises(OllamaResponseError, match="model crashed"):
+            list(client.stream_chat("llama3.1:8b", [{"role": "user", "content": "hi"}]))
+    finally:
+        client.close()
+
+
+def test_stream_chat_timeout_is_typed() -> None:
+    def handler(request: httpx.Request) -> httpx.Response:
+        raise httpx.ReadTimeout("timed out", request=request)
+
+    client = _client(handler)
+    try:
+        with pytest.raises(OllamaTimeoutError):
+            list(client.stream_chat("llama3.1:8b", [{"role": "user", "content": "hi"}]))
+    finally:
+        client.close()
+
+
 def test_pull_stream_forwards_progress() -> None:
     def handler(request: httpx.Request) -> httpx.Response:
         assert request.url.path == "/api/pull"

@@ -503,9 +503,9 @@ The project is accepted only when all of the following are true:
 4. Confirm whether `/api/chat` is used for all candidate prompts (proposed) or `/api/generate` for selected tasks.
 5. Decide whether code evaluation runs under the normal user account with best-effort isolation or under a dedicated low-privilege account/VM for final experiments.
 6. Confirm that GPU power draw and CPU temperature are treated as unavailable unless a reliable sensor is detected.
-7. Confirm in Phase 01 that `jsonschema` supports Python 3.13 and pin it. The architecture uses `jsonschema` for arbitrary item-defined JSON Schemas; Pydantic handles configuration and dataset-item models.
+7. Resolved in Phase 03: `jsonschema==4.25.1` is installed and verified on Python 3.13.5, and is pinned in `pyproject.toml`. It validates arbitrary item-defined JSON Schemas; Pydantic handles configuration and dataset-item models.
 8. Confirm the exact pinned dependency versions in Phase 01.
-9. Confirm the dataset authoring sources and the final distribution of unanswerable items.
+9. Resolved in Phase 03: all items are original and authored for this project. The six unanswerable items are `gk-008`, `gk-014`, `lr-014`, `mr-014`, `if-013`, and `sum-009`, distributed 2/1/1/1/1 across general knowledge, logical reasoning, mathematical reasoning, instruction following, and summarization.
 10. Confirm the report template design and whether PDF fonts need bundling.
 
 ---

@@ -16,13 +16,23 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Sequence
+from uuid import uuid4
 
 from benchmark.core.config import AppSettings, load_settings
 from benchmark.core.exceptions import BenchmarkError
 from benchmark.core.health import render_health_report, run_health_check
 from benchmark.core.startup import initialize_application
+from benchmark.dataset.loader import load_dataset, ordered_items
+from benchmark.dataset.models import BenchmarkDataset
+from benchmark.execution.engine import (
+    CancellationToken,
+    InferenceEngine,
+    InferenceRunner,
+    JsonlResponseWriter,
+)
 from benchmark.execution.metadata import (
     CompatibilityAssessment,
     ModelInspection,
@@ -32,6 +42,7 @@ from benchmark.execution.metadata import (
     format_pull_event,
 )
 from benchmark.execution.registry import ModelManager
+from benchmark.models.inference import InferenceProfile, PromptSpec, ResponseRecord, RunSummary
 from benchmark.models.ollama import OllamaPullEvent
 
 
@@ -172,6 +183,85 @@ def build_parser() -> argparse.ArgumentParser:
     _add_config_dir(select_parser)
     select_parser.add_argument("identifier", help="Model tag, display name, or role keyword.")
     _add_json(select_parser)
+
+    infer_parser = subparsers.add_parser(
+        "infer",
+        help="Run streaming inference over selected dataset items and log response records.",
+    )
+    _add_config_dir(infer_parser)
+    infer_parser.add_argument(
+        "--model",
+        action="append",
+        dest="models",
+        default=None,
+        help="Model tag, display name, or role keyword; repeatable. Defaults to the first candidate.",
+    )
+    infer_parser.add_argument(
+        "--item",
+        action="append",
+        dest="items",
+        default=None,
+        help="Dataset item ID to run; repeatable. Overrides ordered selection.",
+    )
+    selection = infer_parser.add_mutually_exclusive_group()
+    selection.add_argument(
+        "--limit",
+        type=int,
+        default=None,
+        help="Maximum number of ordered dataset items; defaults to 5.",
+    )
+    selection.add_argument(
+        "--all",
+        action="store_true",
+        help="Run every dataset item.",
+    )
+    infer_parser.add_argument(
+        "--repeats",
+        type=int,
+        default=1,
+        help="Measured repetitions per item; defaults to 1.",
+    )
+    infer_parser.add_argument(
+        "--warmup",
+        type=int,
+        default=None,
+        help="Warm-up requests per model; defaults to the configured value.",
+    )
+    infer_parser.add_argument(
+        "--profile",
+        choices=[profile.value for profile in InferenceProfile],
+        default=InferenceProfile.SMOKE.value,
+        help="Inference profile label stored with each record.",
+    )
+    infer_parser.add_argument(
+        "--cold-start",
+        action="store_true",
+        help="Unload before each measured request and use keep_alive=0.",
+    )
+    infer_parser.add_argument(
+        "--max-tokens",
+        type=int,
+        default=None,
+        help="Optional lower output cap; never exceeds the item or configured cap.",
+    )
+    infer_parser.add_argument(
+        "--cooldown",
+        type=float,
+        default=0.0,
+        help="Seconds to wait between models; defaults to 0 for smoke runs.",
+    )
+    infer_parser.add_argument(
+        "--no-unload",
+        action="store_true",
+        help="Leave the model loaded after its run.",
+    )
+    infer_parser.add_argument(
+        "--output",
+        type=Path,
+        default=None,
+        help="JSONL output path; defaults to data/results/inference_<experiment>.jsonl.",
+    )
+    _add_json(infer_parser)
     return parser
 
 
@@ -260,6 +350,150 @@ def _inspection_text(inspection: ModelInspection) -> str:
 
 def _progress(event: OllamaPullEvent) -> None:
     print(format_pull_event(event), flush=True)
+
+
+def _new_experiment_id() -> str:
+    return f"{datetime.now(timezone.utc):%Y%m%dT%H%M%SZ}-{uuid4().hex[:8]}"
+
+
+def _select_prompts(
+    dataset: BenchmarkDataset,
+    args: argparse.Namespace,
+    settings: AppSettings,
+) -> list[PromptSpec]:
+    if args.limit is not None and args.limit < 1:
+        raise BenchmarkError("--limit must be at least 1")
+    if args.max_tokens is not None and args.max_tokens < 1:
+        raise BenchmarkError("--max-tokens must be at least 1")
+    by_id = {item.id: item for item in dataset.items}
+    if args.items:
+        selected = []
+        seen: set[str] = set()
+        for item_id in args.items:
+            if item_id in seen:
+                raise BenchmarkError(f"Duplicate dataset item selected: {item_id}")
+            seen.add(item_id)
+            item = by_id.get(item_id)
+            if item is None:
+                raise BenchmarkError(f"Unknown dataset item: {item_id}")
+            selected.append(item)
+    else:
+        selected = ordered_items(dataset, dataset.random_seed)
+        if not args.all:
+            limit = args.limit if args.limit is not None else 5
+            selected = selected[:limit]
+    prompts: list[PromptSpec] = []
+    for item in selected:
+        max_tokens = item.maximum_output_tokens
+        if args.max_tokens is not None:
+            max_tokens = min(max_tokens, args.max_tokens)
+        max_tokens = min(max_tokens, settings.benchmark.num_predict)
+        prompts.append(
+            PromptSpec(
+                item_id=item.id,
+                prompt=item.prompt,
+                system_instruction=item.system_instruction,
+                maximum_output_tokens=max_tokens,
+                category=item.category.value,
+            )
+        )
+    return prompts
+
+
+def _optional_seconds(value: float | None) -> str:
+    return "n/a" if value is None else f"{value:.3f}s"
+
+
+def _optional_rate(value: float | None) -> str:
+    return "n/a" if value is None else f"{value:.2f} tok/s"
+
+
+def _response_line(record: ResponseRecord) -> str:
+    marker = "warmup " if record.is_warmup else ""
+    return (
+        f"[{record.status.value:9}] {marker}{record.model_tag} "
+        f"{record.item_id or '-'} r{record.repetition} | "
+        f"ttft={_optional_seconds(record.timing.ttft_seconds)} "
+        f"total={_optional_seconds(record.timing.total_latency_seconds)} "
+        f"output={_optional_rate(record.tokens.output_tokens_per_second)} "
+        f"chunks={record.stream_chunk_count}"
+    )
+
+
+def _summary_text(summary: RunSummary) -> str:
+    return "\n".join(
+        [
+            f"Experiment: {summary.experiment_id}",
+            f"Profile: {summary.profile.value} | status: {summary.status.value}",
+            f"Models: {', '.join(summary.model_tags)}",
+            (
+                f"Requests: total={summary.total_requests} "
+                f"measured={summary.measured_requests} warmup={summary.warmup_count}"
+            ),
+            (
+                f"Measured status: success={summary.success_count} "
+                f"empty={summary.empty_count} timeout={summary.timeout_count} "
+                f"error={summary.error_count} cancelled={summary.cancelled_count}"
+            ),
+            f"Output: {summary.output_path or 'not written'}",
+        ]
+    )
+
+
+def _handle_infer(args: argparse.Namespace, settings: AppSettings) -> int:
+    if args.repeats < 1:
+        raise BenchmarkError("--repeats must be at least 1")
+    if args.warmup is not None and args.warmup < 0:
+        raise BenchmarkError("--warmup must not be negative")
+    if args.cooldown < 0:
+        raise BenchmarkError("--cooldown must not be negative")
+    dataset = load_dataset(settings.benchmark.dataset_path)
+    prompts = _select_prompts(dataset, args, settings)
+    manager = _create_model_manager(settings)
+    try:
+        model_tags: list[str] = []
+        identifiers = args.models or [settings.models.candidates[0].tag]
+        for identifier in identifiers:
+            registered = manager.resolve(identifier)
+            if registered.spec.tag in model_tags:
+                raise BenchmarkError(f"Duplicate model selected: {registered.spec.tag}")
+            model_tags.append(registered.spec.tag)
+        experiment_id = _new_experiment_id()
+        output = args.output or (
+            settings.benchmark.results_dir / f"inference_{experiment_id}.jsonl"
+        )
+        engine = InferenceEngine(settings, manager.client)
+        runner = InferenceRunner(
+            engine,
+            JsonlResponseWriter(output),
+            manager=manager,
+            cancellation=CancellationToken(),
+        )
+        warmup = (
+            settings.benchmark.warmup_requests if args.warmup is None else args.warmup
+        )
+        result = runner.run(
+            model_tags,
+            prompts,
+            repetitions=args.repeats,
+            warmup_requests=warmup,
+            profile=args.profile,
+            experiment_id=experiment_id,
+            cold_start=args.cold_start,
+            unload_between_models=not args.no_unload,
+            cooldown_seconds=args.cooldown,
+            progress=None if args.json else lambda record: print(
+                _response_line(record),
+                flush=True,
+            ),
+        )
+        if args.json:
+            _print_json(result.summary.model_dump(mode="json"))
+        else:
+            print(_summary_text(result.summary))
+        return 130 if result.summary.status.value == "cancelled" else 0
+    finally:
+        manager.close()
 
 
 def _handle_models(args: argparse.Namespace, settings: AppSettings) -> int:
@@ -414,6 +648,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             return 0 if report.ok else 1
         if args.command == "models":
             return _handle_models(args, settings)
+        if args.command == "infer":
+            return _handle_infer(args, settings)
         raise BenchmarkError(f"Unknown command: {args.command}")
     except BenchmarkError as exc:
         print(f"ERROR: {exc}", file=sys.stderr)

@@ -69,8 +69,8 @@ class BenchmarkSettings(BaseSchema):
     @field_validator("dataset_path")
     @classmethod
     def validate_dataset_path(cls, value: Path) -> Path:
-        if value.suffix.lower() != ".jsonl":
-            raise ValueError("dataset_path must point to a .jsonl file")
+        if value.suffix.lower() not in {".json", ".jsonl"}:
+            raise ValueError("dataset_path must point to a .json or .jsonl file")
         return value
 
 

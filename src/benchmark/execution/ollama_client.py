@@ -14,7 +14,7 @@ Responsibilities:
 from __future__ import annotations
 
 import json
-from collections.abc import Callable, Sequence
+from collections.abc import Callable, Iterator, Sequence
 from dataclasses import dataclass
 from typing import Any, TypeVar
 
@@ -29,7 +29,9 @@ from benchmark.core.exceptions import (
     OllamaResponseError,
     OllamaTimeoutError,
 )
+from benchmark.execution.streaming import iter_chat_chunks
 from benchmark.models.ollama import (
+    OllamaChatChunk,
     OllamaChatResponse,
     OllamaGenerateResponse,
     OllamaLoadedModel,
@@ -230,6 +232,47 @@ class OllamaClient:
             self._request_json("POST", "/api/chat", payload),
             "chat",
         )
+
+    def stream_chat(
+        self,
+        tag: str,
+        messages: Sequence[dict[str, str]],
+        options: dict[str, Any] | None = None,
+        keep_alive: str | int | None = None,
+        timeout: float | None = None,
+    ) -> Iterator[OllamaChatChunk]:
+        """Send a streaming chat request and yield parsed NDJSON chunks."""
+        payload: dict[str, Any] = {
+            "model": tag,
+            "messages": list(messages),
+            "stream": True,
+        }
+        if options is not None:
+            payload["options"] = options
+        if keep_alive is not None:
+            payload["keep_alive"] = keep_alive
+        try:
+            with self._client.stream(
+                "POST",
+                "/api/chat",
+                json=payload,
+                timeout=timeout if timeout is not None else self.timeout_seconds,
+            ) as response:
+                if response.status_code >= 400:
+                    response.read()
+                    raise OllamaHTTPError(
+                        response.status_code,
+                        self._error_detail(response),
+                    )
+                yield from iter_chat_chunks(response.iter_lines(), tag)
+        except httpx.TimeoutException as exc:
+            raise OllamaTimeoutError(f"Ollama chat stream timed out for {tag}") from exc
+        except httpx.ConnectError as exc:
+            raise OllamaConnectionError(
+                f"Could not connect to Ollama at {self.base_url}"
+            ) from exc
+        except httpx.HTTPError as exc:
+            raise OllamaError(f"Ollama chat stream failed for {tag}: {exc}") from exc
 
     def pull_model(
         self,

@@ -32,6 +32,26 @@ def config_dir(project_root: Path) -> Path:
     return project_root / "configs"
 
 
+@pytest.fixture(scope="session")
+def dataset_dir(project_root: Path) -> Path:
+    return project_root / "data" / "datasets"
+
+
+@pytest.fixture(scope="session")
+def dataset_path(dataset_dir: Path) -> Path:
+    return dataset_dir / "benchmark_v1.json"
+
+
+@pytest.fixture(scope="session")
+def performance_probe_path(dataset_dir: Path) -> Path:
+    return dataset_dir / "probes" / "performance_v1.0.0.json"
+
+
+@pytest.fixture(scope="session")
+def consistency_probe_path(dataset_dir: Path) -> Path:
+    return dataset_dir / "probes" / "consistency_v1.0.0.json"
+
+
 @pytest.fixture()
 def settings(config_dir: Path) -> AppSettings:
     return load_settings(config_dir=config_dir)
@@ -45,7 +65,7 @@ def temp_config_dir(tmp_path: Path, config_dir: Path) -> Path:
     data = yaml.safe_load(benchmark_path.read_text(encoding="utf-8"))
     data.update(
         {
-            "dataset_path": str(tmp_path / "data" / "datasets" / "benchmark_v1.0.0.jsonl"),
+            "dataset_path": str(tmp_path / "data" / "datasets" / "benchmark_v1.json"),
             "storage_dir": str(tmp_path / "storage"),
             "results_dir": str(tmp_path / "data" / "results"),
             "exports_dir": str(tmp_path / "data" / "exports"),

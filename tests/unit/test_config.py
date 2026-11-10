@@ -36,7 +36,7 @@ def test_loads_valid_configuration(settings: AppSettings) -> None:
     assert len(settings.models.candidates) == 3
     assert settings.models.judge.tag == "qwen2.5:3b"
     assert settings.benchmark.dataset_path.is_absolute()
-    assert settings.benchmark.dataset_path.name == "benchmark_v1.0.0.jsonl"
+    assert settings.benchmark.dataset_path.name == "benchmark_v1.json"
     assert settings.evaluation.category_judge_weights["summarization"] == 0.40
     assert len(settings.config_hash) == 64
 
@@ -139,6 +139,6 @@ def test_missing_category_weight_raises(temp_config_dir: Path) -> None:
 def test_relative_paths_resolve_against_project_root(tmp_path: Path, config_dir: Path) -> None:
     loaded = load_settings(config_dir=config_dir, project_root=tmp_path)
     assert loaded.benchmark.dataset_path == (
-        tmp_path / "data" / "datasets" / "benchmark_v1.0.0.jsonl"
+        tmp_path / "data" / "datasets" / "benchmark_v1.json"
     ).resolve()
     assert loaded.benchmark.storage_dir == (tmp_path / "storage").resolve()

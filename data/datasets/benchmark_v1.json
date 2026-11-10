@@ -1,0 +1,4473 @@
+{
+  "name": "benchmark-v1.0.0",
+  "version": "1.0.0",
+  "schema_version": "1.0.0",
+  "created_at": "2026-11-10T04:43:49Z",
+  "random_seed": 42,
+  "description": "A balanced 100-item local LLM quality benchmark covering general knowledge, logical reasoning, mathematical reasoning, coding, instruction following, structured JSON, and summarization.",
+  "content_sha256": "ceafe917235213c710da9e3b6a1ceecb86ba519b214581f683191c51358e46f1",
+  "items": [
+    {
+      "id": "gk-001",
+      "category": "general_knowledge",
+      "difficulty": "easy",
+      "prompt": "What is the capital city of France?",
+      "system_instruction": null,
+      "expected_answer": "Paris",
+      "evaluation_type": "exact_match",
+      "reference_answer": "Paris",
+      "test_cases": [],
+      "json_schema": null,
+      "required_constraints": [],
+      "maximum_output_tokens": 512,
+      "tags": [
+        "geography",
+        "capitals"
+      ],
+      "is_unanswerable": false,
+      "judge_eligible": false,
+      "max_score": 1.0,
+      "source": "authored",
+      "notes": null,
+      "accepted_answers": [
+        "Paris",
+        "Paris, France"
+      ],
+      "key_facts": [],
+      "forbidden_claims": [],
+      "function_name": null,
+      "function_signature": null,
+      "numeric_tolerance": null,
+      "expected_unit": null
+    },
+    {
+      "id": "gk-002",
+      "category": "general_knowledge",
+      "difficulty": "easy",
+      "prompt": "How many continents are commonly recognized on Earth?",
+      "system_instruction": null,
+      "expected_answer": "7",
+      "evaluation_type": "exact_match",
+      "reference_answer": "7",
+      "test_cases": [],
+      "json_schema": null,
+      "required_constraints": [],
+      "maximum_output_tokens": 512,
+      "tags": [
+        "geography",
+        "earth"
+      ],
+      "is_unanswerable": false,
+      "judge_eligible": false,
+      "max_score": 1.0,
+      "source": "authored",
+      "notes": null,
+      "accepted_answers": [
+        "7",
+        "seven",
+        "7 continents"
+      ],
+      "key_facts": [],
+      "forbidden_claims": [],
+      "function_name": null,
+      "function_signature": null,
+      "numeric_tolerance": null,
+      "expected_unit": null
+    },
+    {
+      "id": "gk-003",
+      "category": "general_knowledge",
+      "difficulty": "easy",
+      "prompt": "Which chemical element has the symbol O?",
+      "system_instruction": null,
+      "expected_answer": "Oxygen",
+      "evaluation_type": "exact_match",
+      "reference_answer": "Oxygen",
+      "test_cases": [],
+      "json_schema": null,
+      "required_constraints": [],
+      "maximum_output_tokens": 512,
+      "tags": [
+        "chemistry",
+        "elements"
+      ],
+      "is_unanswerable": false,
+      "judge_eligible": false,
+      "max_score": 1.0,
+      "source": "authored",
+      "notes": null,
+      "accepted_answers": [
+        "Oxygen",
+        "O"
+      ],
+      "key_facts": [],
+      "forbidden_claims": [],
+      "function_name": null,
+      "function_signature": null,
+      "numeric_tolerance": null,
+      "expected_unit": null
+    },
+    {
+      "id": "gk-004",
+      "category": "general_knowledge",
+      "difficulty": "easy",
+      "prompt": "Which planet in our solar system is known as the Red Planet?",
+      "system_instruction": null,
+      "expected_answer": "Mars",
+      "evaluation_type": "exact_match",
+      "reference_answer": "Mars",
+      "test_cases": [],
+      "json_schema": null,
+      "required_constraints": [],
+      "maximum_output_tokens": 512,
+      "tags": [
+        "astronomy",
+        "planets"
+      ],
+      "is_unanswerable": false,
+      "judge_eligible": false,
+      "max_score": 1.0,
+      "source": "authored",
+      "notes": null,
+      "accepted_answers": [
+        "Mars",
+        "the planet Mars"
+      ],
+      "key_facts": [],
+      "forbidden_claims": [],
+      "function_name": null,
+      "function_signature": null,
+      "numeric_tolerance": null,
+      "expected_unit": null
+    },
+    {
+      "id": "gk-005",
+      "category": "general_knowledge",
+      "difficulty": "easy",
+      "prompt": "What is the largest ocean on Earth?",
+      "system_instruction": null,
+      "expected_answer": "Pacific Ocean",
+      "evaluation_type": "exact_match",
+      "reference_answer": "The Pacific Ocean is the largest ocean on Earth.",
+      "test_cases": [],
+      "json_schema": null,
+      "required_constraints": [],
+      "maximum_output_tokens": 512,
+      "tags": [
+        "geography",
+        "oceans"
+      ],
+      "is_unanswerable": false,
+      "judge_eligible": false,
+      "max_score": 1.0,
+      "source": "authored",
+      "notes": null,
+      "accepted_answers": [
+        "Pacific Ocean",
+        "Pacific",
+        "the Pacific Ocean"
+      ],
+      "key_facts": [],
+      "forbidden_claims": [],
+      "function_name": null,
+      "function_signature": null,
+      "numeric_tolerance": null,
+      "expected_unit": null
+    },
+    {
+      "id": "gk-006",
+      "category": "general_knowledge",
+      "difficulty": "medium",
+      "prompt": "Who wrote the play Romeo and Juliet?",
+      "system_instruction": null,
+      "expected_answer": "William Shakespeare",
+      "evaluation_type": "exact_match",
+      "reference_answer": "William Shakespeare",
+      "test_cases": [],
+      "json_schema": null,
+      "required_constraints": [],
+      "maximum_output_tokens": 512,
+      "tags": [
+        "literature",
+        "authors"
+      ],
+      "is_unanswerable": false,
+      "judge_eligible": false,
+      "max_score": 1.0,
+      "source": "authored",
+      "notes": null,
+      "accepted_answers": [
+        "William Shakespeare",
+        "Shakespeare"
+      ],
+      "key_facts": [],
+      "forbidden_claims": [],
+      "function_name": null,
+      "function_signature": null,
+      "numeric_tolerance": null,
+      "expected_unit": null
+    },
+    {
+      "id": "gk-007",
+      "category": "general_knowledge",
+      "difficulty": "medium",
+      "prompt": "In which year did the Berlin Wall fall?",
+      "system_instruction": null,
+      "expected_answer": "1989",
+      "evaluation_type": "exact_match",
+      "reference_answer": "1989",
+      "test_cases": [],
+      "json_schema": null,
+      "required_constraints": [],
+      "maximum_output_tokens": 512,
+      "tags": [
+        "history",
+        "cold-war"
+      ],
+      "is_unanswerable": false,
+      "judge_eligible": false,
+      "max_score": 1.0,
+      "source": "authored",
+      "notes": null,
+      "accepted_answers": [
+        "1989",
+        "November 1989"
+      ],
+      "key_facts": [],
+      "forbidden_claims": [],
+      "function_name": null,
+      "function_signature": null,
+      "numeric_tolerance": null,
+      "expected_unit": null
+    },
+    {
+      "id": "gk-008",
+      "category": "general_knowledge",
+      "difficulty": "medium",
+      "prompt": "What is the population of the fictional city of Eldoria in the country of Valoria?",
+      "system_instruction": null,
+      "expected_answer": null,
+      "evaluation_type": "refusal_check",
+      "reference_answer": "The population cannot be determined because Eldoria and Valoria are fictional places with no population records.",
+      "test_cases": [],
+      "json_schema": null,
+      "required_constraints": [],
+      "maximum_output_tokens": 512,
+      "tags": [
+        "unanswerable",
+        "fictional-places"
+      ],
+      "is_unanswerable": true,
+      "judge_eligible": false,
+      "max_score": 1.0,
+      "source": "authored",
+      "notes": null,
+      "accepted_answers": [],
+      "key_facts": [],
+      "forbidden_claims": [
+        "Eldoria has a population of",
+        "The population of Eldoria is",
+        "Valoria is a real country"
+      ],
+      "function_name": null,
+      "function_signature": null,
+      "numeric_tolerance": null,
+      "expected_unit": null
+    },
+    {
+      "id": "gk-009",
+      "category": "general_knowledge",
+      "difficulty": "medium",
+      "prompt": "What is the boiling point of water at sea level in degrees Celsius?",
+      "system_instruction": null,
+      "expected_answer": "100",
+      "evaluation_type": "exact_match",
+      "reference_answer": "100 degrees Celsius",
+      "test_cases": [],
+      "json_schema": null,
+      "required_constraints": [],
+      "maximum_output_tokens": 512,
+      "tags": [
+        "physics",
+        "water"
+      ],
+      "is_unanswerable": false,
+      "judge_eligible": false,
+      "max_score": 1.0,
+      "source": "authored",
+      "notes": null,
+      "accepted_answers": [
+        "100",
+        "100 degrees Celsius",
+        "100 C"
+      ],
+      "key_facts": [],
+      "forbidden_claims": [],
+      "function_name": null,
+      "function_signature": null,
+      "numeric_tolerance": null,
+      "expected_unit": null
+    },
+    {
+      "id": "gk-010",
+      "category": "general_knowledge",
+      "difficulty": "medium",
+      "prompt": "Which gas do plants primarily absorb during photosynthesis?",
+      "system_instruction": null,
+      "expected_answer": "Carbon dioxide",
+      "evaluation_type": "exact_match",
+      "reference_answer": "Plants primarily absorb carbon dioxide during photosynthesis.",
+      "test_cases": [],
+      "json_schema": null,
+      "required_constraints": [],
+      "maximum_output_tokens": 512,
+      "tags": [
+        "biology",
+        "photosynthesis"
+      ],
+      "is_unanswerable": false,
+      "judge_eligible": false,
+      "max_score": 1.0,
+      "source": "authored",
+      "notes": null,
+      "accepted_answers": [
+        "Carbon dioxide",
+        "CO2",
+        "carbon dioxide gas"
+      ],
+      "key_facts": [],
+      "forbidden_claims": [],
+      "function_name": null,
+      "function_signature": null,
+      "numeric_tolerance": null,
+      "expected_unit": null
+    },
+    {
+      "id": "gk-011",
+      "category": "general_knowledge",
+      "difficulty": "medium",
+      "prompt": "Who painted the Mona Lisa?",
+      "system_instruction": null,
+      "expected_answer": "Leonardo da Vinci",
+      "evaluation_type": "exact_match",
+      "reference_answer": "Leonardo da Vinci",
+      "test_cases": [],
+      "json_schema": null,
+      "required_constraints": [],
+      "maximum_output_tokens": 512,
+      "tags": [
+        "art",
+        "renaissance"
+      ],
+      "is_unanswerable": false,
+      "judge_eligible": false,
+      "max_score": 1.0,
+      "source": "authored",
+      "notes": null,
+      "accepted_answers": [
+        "Leonardo da Vinci",
+        "da Vinci",
+        "Leonardo"
+      ],
+      "key_facts": [],
+      "forbidden_claims": [],
+      "function_name": null,
+      "function_signature": null,
+      "numeric_tolerance": null,
+      "expected_unit": null
+    },
+    {
+      "id": "gk-012",
+      "category": "general_knowledge",
+      "difficulty": "medium",
+      "prompt": "What is the smallest prime number?",
+      "system_instruction": null,
+      "expected_answer": "2",
+      "evaluation_type": "exact_match",
+      "reference_answer": "The smallest prime number is 2.",
+      "test_cases": [],
+      "json_schema": null,
+      "required_constraints": [],
+      "maximum_output_tokens": 512,
+      "tags": [
+        "mathematics",
+        "primes"
+      ],
+      "is_unanswerable": false,
+      "judge_eligible": false,
+      "max_score": 1.0,
+      "source": "authored",
+      "notes": null,
+      "accepted_answers": [
+        "2",
+        "two"
+      ],
+      "key_facts": [],
+      "forbidden_claims": [],
+      "function_name": null,
+      "function_signature": null,
+      "numeric_tolerance": null,
+      "expected_unit": null
+    },
+    {
+      "id": "gk-013",
+      "category": "general_knowledge",
+      "difficulty": "hard",
+      "prompt": "Which treaty formally ended World War I between Germany and the Allied powers?",
+      "system_instruction": null,
+      "expected_answer": "Treaty of Versailles",
+      "evaluation_type": "exact_match",
+      "reference_answer": "The Treaty of Versailles formally ended World War I between Germany and the Allied powers.",
+      "test_cases": [],
+      "json_schema": null,
+      "required_constraints": [],
+      "maximum_output_tokens": 512,
+      "tags": [
+        "history",
+        "world-war-i"
+      ],
+      "is_unanswerable": false,
+      "judge_eligible": false,
+      "max_score": 1.0,
+      "source": "authored",
+      "notes": null,
+      "accepted_answers": [
+        "Treaty of Versailles",
+        "Versailles Treaty",
+        "the Treaty of Versailles"
+      ],
+      "key_facts": [],
+      "forbidden_claims": [],
+      "function_name": null,
+      "function_signature": null,
+      "numeric_tolerance": null,
+      "expected_unit": null
+    },
+    {
+      "id": "gk-014",
+      "category": "general_knowledge",
+      "difficulty": "hard",
+      "prompt": "What was the exact population of the fictional mountain village of Veyra on January 1, 1850?",
+      "system_instruction": null,
+      "expected_answer": null,
+      "evaluation_type": "refusal_check",
+      "reference_answer": "The requested population is unavailable because Veyra is fictional and no historical population record exists.",
+      "test_cases": [],
+      "json_schema": null,
+      "required_constraints": [],
+      "maximum_output_tokens": 512,
+      "tags": [
+        "unanswerable",
+        "fictional-places",
+        "history"
+      ],
+      "is_unanswerable": true,
+      "judge_eligible": false,
+      "max_score": 1.0,
+      "source": "authored",
+      "notes": null,
+      "accepted_answers": [],
+      "key_facts": [],
+      "forbidden_claims": [
+        "Veyra had a population of",
+        "The population of Veyra in 1850 was",
+        "According to historical records, Veyra"
+      ],
+      "function_name": null,
+      "function_signature": null,
+      "numeric_tolerance": null,
+      "expected_unit": null
+    },
+    {
+      "id": "gk-015",
+      "category": "general_knowledge",
+      "difficulty": "hard",
+      "prompt": "Which planet in our solar system rotates in a retrograde direction on its axis?",
+      "system_instruction": null,
+      "expected_answer": "Venus",
+      "evaluation_type": "exact_match",
+      "reference_answer": "Venus rotates in a retrograde direction on its axis.",
+      "test_cases": [],
+      "json_schema": null,
+      "required_constraints": [],
+      "maximum_output_tokens": 512,
+      "tags": [
+        "astronomy",
+        "planets"
+      ],
+      "is_unanswerable": false,
+      "judge_eligible": false,
+      "max_score": 1.0,
+      "source": "authored",
+      "notes": null,
+      "accepted_answers": [
+        "Venus",
+        "the planet Venus"
+      ],
+      "key_facts": [],
+      "forbidden_claims": [],
+      "function_name": null,
+      "function_signature": null,
+      "numeric_tolerance": null,
+      "expected_unit": null
+    },
+    {
+      "id": "lr-001",
+      "category": "logical_reasoning",
+      "difficulty": "easy",
+      "prompt": "If all cats are mammals and all mammals are animals, are all cats animals?",
+      "system_instruction": null,
+      "expected_answer": "Yes",
+      "evaluation_type": "exact_match",
+      "reference_answer": "Yes, all cats are animals by transitive reasoning.",
+      "test_cases": [],
+      "json_schema": null,
+      "required_constraints": [],
+      "maximum_output_tokens": 512,
+      "tags": [
+        "syllogism",
+        "deduction"
+      ],
+      "is_unanswerable": false,
+      "judge_eligible": false,
+      "max_score": 1.0,
+      "source": "authored",
+      "notes": null,
+      "accepted_answers": [
+        "Yes",
+        "yes"
+      ],
+      "key_facts": [],
+      "forbidden_claims": [],
+      "function_name": null,
+      "function_signature": null,
+      "numeric_tolerance": null,
+      "expected_unit": null
+    },
+    {
+      "id": "lr-002",
+      "category": "logical_reasoning",
+      "difficulty": "easy",
+      "prompt": "What number comes next in the sequence 2, 4, 6, 8, ...?",
+      "system_instruction": null,
+      "expected_answer": "10",
+      "evaluation_type": "exact_match",
+      "reference_answer": "10",
+      "test_cases": [],
+      "json_schema": null,
+      "required_constraints": [],
+      "maximum_output_tokens": 512,
+      "tags": [
+        "sequences",
+        "patterns"
+      ],
+      "is_unanswerable": false,
+      "judge_eligible": false,
+      "max_score": 1.0,
+      "source": "authored",
+      "notes": null,
+      "accepted_answers": [
+        "10",
+        "ten"
+      ],
+      "key_facts": [],
+      "forbidden_claims": [],
+      "function_name": null,
+      "function_signature": null,
+      "numeric_tolerance": null,
+      "expected_unit": null
+    },
+    {
+      "id": "lr-003",
+      "category": "logical_reasoning",
+      "difficulty": "easy",
+      "prompt": "If today is Monday, what day of the week will it be three days from now?",
+      "system_instruction": null,
+      "expected_answer": "Thursday",
+      "evaluation_type": "exact_match",
+      "reference_answer": "Thursday",
+      "test_cases": [],
+      "json_schema": null,
+      "required_constraints": [],
+      "maximum_output_tokens": 512,
+      "tags": [
+        "time",
+        "deduction"
+      ],
+      "is_unanswerable": false,
+      "judge_eligible": false,
+      "max_score": 1.0,
+      "source": "authored",
+      "notes": null,
+      "accepted_answers": [
+        "Thursday",
+        "thursday"
+      ],
+      "key_facts": [],
+      "forbidden_claims": [],
+      "function_name": null,
+      "function_signature": null,
+      "numeric_tolerance": null,
+      "expected_unit": null
+    },
+    {
+      "id": "lr-004",
+      "category": "logical_reasoning",
+      "difficulty": "easy",
+      "prompt": "A is taller than B, and B is taller than C. Who is the shortest of the three?",
+      "system_instruction": null,
+      "expected_answer": "C",
+      "evaluation_type": "exact_match",
+      "reference_answer": "C is the shortest.",
+      "test_cases": [],
+      "json_schema": null,
+      "required_constraints": [],
+      "maximum_output_tokens": 512,
+      "tags": [
+        "ordering",
+        "transitivity"
+      ],
+      "is_unanswerable": false,
+      "judge_eligible": false,
+      "max_score": 1.0,
+      "source": "authored",
+      "notes": null,
+      "accepted_answers": [
+        "C",
+        "Person C"
+      ],
+      "key_facts": [],
+      "forbidden_claims": [],
+      "function_name": null,
+      "function_signature": null,
+      "numeric_tolerance": null,
+      "expected_unit": null
+    },
+    {
+      "id": "lr-005",
+      "category": "logical_reasoning",
+      "difficulty": "medium",
+      "prompt": "All roses in a garden are red. Some flowers in the garden are roses. What color are those roses?",
+      "system_instruction": null,
+      "expected_answer": "Red",
+      "evaluation_type": "exact_match",
+      "reference_answer": "The roses are red.",
+      "test_cases": [],
+      "json_schema": null,
+      "required_constraints": [],
+      "maximum_output_tokens": 512,
+      "tags": [
+        "syllogism",
+        "deduction"
+      ],
+      "is_unanswerable": false,
+      "judge_eligible": false,
+      "max_score": 1.0,
+      "source": "authored",
+      "notes": null,
+      "accepted_answers": [
+        "Red",
+        "red"
+      ],
+      "key_facts": [],
+      "forbidden_claims": [],
+      "function_name": null,
+      "function_signature": null,
+      "numeric_tolerance": null,
+      "expected_unit": null
+    },
+    {
+      "id": "lr-006",
+      "category": "logical_reasoning",
+      "difficulty": "medium",
+      "prompt": "If it rains, the ground gets wet. The ground is wet. Can we conclude that it rained?",
+      "system_instruction": null,
+      "expected_answer": "No",
+      "evaluation_type": "exact_match",
+      "reference_answer": "No. A wet ground can have other causes, so affirming the consequent is invalid.",
+      "test_cases": [],
+      "json_schema": null,
+      "required_constraints": [],
+      "maximum_output_tokens": 512,
+      "tags": [
+        "fallacy",
+        "conditional-reasoning"
+      ],
+      "is_unanswerable": false,
+      "judge_eligible": false,
+      "max_score": 1.0,
+      "source": "authored",
+      "notes": null,
+      "accepted_answers": [
+        "No",
+        "no",
+        "Not necessarily"
+      ],
+      "key_facts": [],
+      "forbidden_claims": [],
+      "function_name": null,
+      "function_signature": null,
+      "numeric_tolerance": null,
+      "expected_unit": null
+    },
+    {
+      "id": "lr-007",
+      "category": "logical_reasoning",
+      "difficulty": "medium",
+      "prompt": "Ana is to the left of Ben, and Ben is to the left of Cara. Who is in the middle of these three people?",
+      "system_instruction": null,
+      "expected_answer": "Ben",
+      "evaluation_type": "exact_match",
+      "reference_answer": "Ben is in the middle.",
+      "test_cases": [],
+      "json_schema": null,
+      "required_constraints": [],
+      "maximum_output_tokens": 512,
+      "tags": [
+        "ordering",
+        "positions"
+      ],
+      "is_unanswerable": false,
+      "judge_eligible": false,
+      "max_score": 1.0,
+      "source": "authored",
+      "notes": null,
+      "accepted_answers": [
+        "Ben",
+        "ben"
+      ],
+      "key_facts": [],
+      "forbidden_claims": [],
+      "function_name": null,
+      "function_signature": null,
+      "numeric_tolerance": null,
+      "expected_unit": null
+    },
+    {
+      "id": "lr-008",
+      "category": "logical_reasoning",
+      "difficulty": "medium",
+      "prompt": "A farmer has 17 sheep. All but 9 run away. How many sheep remain with the farmer?",
+      "system_instruction": null,
+      "expected_answer": "9",
+      "evaluation_type": "exact_match",
+      "reference_answer": "9 sheep remain.",
+      "test_cases": [],
+      "json_schema": null,
+      "required_constraints": [],
+      "maximum_output_tokens": 512,
+      "tags": [
+        "word-problem",
+        "trick-question"
+      ],
+      "is_unanswerable": false,
+      "judge_eligible": false,
+      "max_score": 1.0,
+      "source": "authored",
+      "notes": null,
+      "accepted_answers": [
+        "9",
+        "nine",
+        "9 sheep"
+      ],
+      "key_facts": [],
+      "forbidden_claims": [],
+      "function_name": null,
+      "function_signature": null,
+      "numeric_tolerance": null,
+      "expected_unit": null
+    },
+    {
+      "id": "lr-009",
+      "category": "logical_reasoning",
+      "difficulty": "medium",
+      "prompt": "If no reptiles are warm-blooded and all snakes are reptiles, are snakes warm-blooded?",
+      "system_instruction": null,
+      "expected_answer": "No",
+      "evaluation_type": "exact_match",
+      "reference_answer": "No, snakes are not warm-blooded.",
+      "test_cases": [],
+      "json_schema": null,
+      "required_constraints": [],
+      "maximum_output_tokens": 512,
+      "tags": [
+        "syllogism",
+        "biology"
+      ],
+      "is_unanswerable": false,
+      "judge_eligible": false,
+      "max_score": 1.0,
+      "source": "authored",
+      "notes": null,
+      "accepted_answers": [
+        "No",
+        "no"
+      ],
+      "key_facts": [],
+      "forbidden_claims": [],
+      "function_name": null,
+      "function_signature": null,
+      "numeric_tolerance": null,
+      "expected_unit": null
+    },
+    {
+      "id": "lr-010",
+      "category": "logical_reasoning",
+      "difficulty": "medium",
+      "prompt": "What is the next number in the Fibonacci sequence 1, 1, 2, 3, 5, 8, ...?",
+      "system_instruction": null,
+      "expected_answer": "13",
+      "evaluation_type": "exact_match",
+      "reference_answer": "13",
+      "test_cases": [],
+      "json_schema": null,
+      "required_constraints": [],
+      "maximum_output_tokens": 512,
+      "tags": [
+        "sequences",
+        "fibonacci"
+      ],
+      "is_unanswerable": false,
+      "judge_eligible": false,
+      "max_score": 1.0,
+      "source": "authored",
+      "notes": null,
+      "accepted_answers": [
+        "13",
+        "thirteen"
+      ],
+      "key_facts": [],
+      "forbidden_claims": [],
+      "function_name": null,
+      "function_signature": null,
+      "numeric_tolerance": null,
+      "expected_unit": null
+    },
+    {
+      "id": "lr-011",
+      "category": "logical_reasoning",
+      "difficulty": "medium",
+      "prompt": "A red box is heavier than a blue box. The blue box is heavier than a green box. Which box is the lightest?",
+      "system_instruction": null,
+      "expected_answer": "Green box",
+      "evaluation_type": "exact_match",
+      "reference_answer": "The green box is the lightest.",
+      "test_cases": [],
+      "json_schema": null,
+      "required_constraints": [],
+      "maximum_output_tokens": 512,
+      "tags": [
+        "ordering",
+        "transitivity"
+      ],
+      "is_unanswerable": false,
+      "judge_eligible": false,
+      "max_score": 1.0,
+      "source": "authored",
+      "notes": null,
+      "accepted_answers": [
+        "Green box",
+        "green",
+        "the green box"
+      ],
+      "key_facts": [],
+      "forbidden_claims": [],
+      "function_name": null,
+      "function_signature": null,
+      "numeric_tolerance": null,
+      "expected_unit": null
+    },
+    {
+      "id": "lr-012",
+      "category": "logical_reasoning",
+      "difficulty": "hard",
+      "prompt": "Three friends each own a different pet: a cat, a dog, or a fish. Mia does not own the cat. Leo owns the dog. Nora does not own the fish. Who owns the cat?",
+      "system_instruction": null,
+      "expected_answer": "Nora",
+      "evaluation_type": "exact_match",
+      "reference_answer": "Nora owns the cat.",
+      "test_cases": [],
+      "json_schema": null,
+      "required_constraints": [],
+      "maximum_output_tokens": 512,
+      "tags": [
+        "logic-grid",
+        "deduction"
+      ],
+      "is_unanswerable": false,
+      "judge_eligible": false,
+      "max_score": 1.0,
+      "source": "authored",
+      "notes": null,
+      "accepted_answers": [
+        "Nora",
+        "nora"
+      ],
+      "key_facts": [],
+      "forbidden_claims": [],
+      "function_name": null,
+      "function_signature": null,
+      "numeric_tolerance": null,
+      "expected_unit": null
+    },
+    {
+      "id": "lr-013",
+      "category": "logical_reasoning",
+      "difficulty": "hard",
+      "prompt": "If some programmers are musicians and all musicians are creative, which statement must be true: (A) all programmers are creative, (B) some programmers are creative, or (C) no programmers are creative?",
+      "system_instruction": null,
+      "expected_answer": "B",
+      "evaluation_type": "exact_match",
+      "reference_answer": "B. Some programmers are creative.",
+      "test_cases": [],
+      "json_schema": null,
+      "required_constraints": [],
+      "maximum_output_tokens": 512,
+      "tags": [
+        "syllogism",
+        "quantifiers"
+      ],
+      "is_unanswerable": false,
+      "judge_eligible": false,
+      "max_score": 1.0,
+      "source": "authored",
+      "notes": null,
+      "accepted_answers": [
+        "B",
+        "Some programmers are creative",
+        "(B)"
+      ],
+      "key_facts": [],
+      "forbidden_claims": [],
+      "function_name": null,
+      "function_signature": null,
+      "numeric_tolerance": null,
+      "expected_unit": null
+    },
+    {
+      "id": "lr-014",
+      "category": "logical_reasoning",
+      "difficulty": "hard",
+      "prompt": "A pet owner has exactly one pet. The pet is either a cat or a dog, but not both. Is the pet a cat?",
+      "system_instruction": null,
+      "expected_answer": null,
+      "evaluation_type": "refusal_check",
+      "reference_answer": "The information is insufficient; the pet could be either a cat or a dog.",
+      "test_cases": [],
+      "json_schema": null,
+      "required_constraints": [],
+      "maximum_output_tokens": 512,
+      "tags": [
+        "unanswerable",
+        "insufficient-information"
+      ],
+      "is_unanswerable": true,
+      "judge_eligible": false,
+      "max_score": 1.0,
+      "source": "authored",
+      "notes": null,
+      "accepted_answers": [],
+      "key_facts": [],
+      "forbidden_claims": [
+        "The pet is a cat",
+        "The pet is a dog",
+        "The pet must be a cat",
+        "The pet must be a dog"
+      ],
+      "function_name": null,
+      "function_signature": null,
+      "numeric_tolerance": null,
+      "expected_unit": null
+    },
+    {
+      "id": "lr-015",
+      "category": "logical_reasoning",
+      "difficulty": "hard",
+      "prompt": "A clock shows 3:15. What is the angle between the hour hand and the minute hand?",
+      "system_instruction": null,
+      "expected_answer": "7.5 degrees",
+      "evaluation_type": "exact_match",
+      "reference_answer": "The angle is 7.5 degrees.",
+      "test_cases": [],
+      "json_schema": null,
+      "required_constraints": [],
+      "maximum_output_tokens": 512,
+      "tags": [
+        "clock",
+        "angles"
+      ],
+      "is_unanswerable": false,
+      "judge_eligible": false,
+      "max_score": 1.0,
+      "source": "authored",
+      "notes": null,
+      "accepted_answers": [
+        "7.5 degrees",
+        "7.5",
+        "7.5°"
+      ],
+      "key_facts": [],
+      "forbidden_claims": [],
+      "function_name": null,
+      "function_signature": null,
+      "numeric_tolerance": null,
+      "expected_unit": null
+    },
+    {
+      "id": "mr-001",
+      "category": "mathematical_reasoning",
+      "difficulty": "easy",
+      "prompt": "What is 12 multiplied by 8?",
+      "system_instruction": null,
+      "expected_answer": "96",
+      "evaluation_type": "numeric",
+      "reference_answer": "96",
+      "test_cases": [],
+      "json_schema": null,
+      "required_constraints": [],
+      "maximum_output_tokens": 512,
+      "tags": [
+        "arithmetic",
+        "multiplication"
+      ],
+      "is_unanswerable": false,
+      "judge_eligible": false,
+      "max_score": 1.0,
+      "source": "authored",
+      "notes": null,
+      "accepted_answers": [],
+      "key_facts": [],
+      "forbidden_claims": [],
+      "function_name": null,
+      "function_signature": null,
+      "numeric_tolerance": 0.0,
+      "expected_unit": null
+    },
+    {
+      "id": "mr-002",
+      "category": "mathematical_reasoning",
+      "difficulty": "easy",
+      "prompt": "A train travels at 60 kilometers per hour for 2.5 hours. How many kilometers does it travel?",
+      "system_instruction": null,
+      "expected_answer": "150",
+      "evaluation_type": "numeric",
+      "reference_answer": "The train travels 150 kilometers.",
+      "test_cases": [],
+      "json_schema": null,
+      "required_constraints": [],
+      "maximum_output_tokens": 512,
+      "tags": [
+        "distance",
+        "rate-time"
+      ],
+      "is_unanswerable": false,
+      "judge_eligible": false,
+      "max_score": 1.0,
+      "source": "authored",
+      "notes": null,
+      "accepted_answers": [],
+      "key_facts": [],
+      "forbidden_claims": [],
+      "function_name": null,
+      "function_signature": null,
+      "numeric_tolerance": 0.0,
+      "expected_unit": "kilometers"
+    },
+    {
+      "id": "mr-003",
+      "category": "mathematical_reasoning",
+      "difficulty": "easy",
+      "prompt": "What is the sum of the first ten positive integers?",
+      "system_instruction": null,
+      "expected_answer": "55",
+      "evaluation_type": "numeric",
+      "reference_answer": "The sum is 55.",
+      "test_cases": [],
+      "json_schema": null,
+      "required_constraints": [],
+      "maximum_output_tokens": 512,
+      "tags": [
+        "series",
+        "sum"
+      ],
+      "is_unanswerable": false,
+      "judge_eligible": false,
+      "max_score": 1.0,
+      "source": "authored",
+      "notes": null,
+      "accepted_answers": [],
+      "key_facts": [],
+      "forbidden_claims": [],
+      "function_name": null,
+      "function_signature": null,
+      "numeric_tolerance": 0.0,
+      "expected_unit": null
+    },
+    {
+      "id": "mr-004",
+      "category": "mathematical_reasoning",
+      "difficulty": "easy",
+      "prompt": "A rectangle has a length of 9 centimeters and a width of 4 centimeters. What is its area in square centimeters?",
+      "system_instruction": null,
+      "expected_answer": "36",
+      "evaluation_type": "numeric",
+      "reference_answer": "The area is 36 square centimeters.",
+      "test_cases": [],
+      "json_schema": null,
+      "required_constraints": [],
+      "maximum_output_tokens": 512,
+      "tags": [
+        "geometry",
+        "area"
+      ],
+      "is_unanswerable": false,
+      "judge_eligible": false,
+      "max_score": 1.0,
+      "source": "authored",
+      "notes": null,
+      "accepted_answers": [],
+      "key_facts": [],
+      "forbidden_claims": [],
+      "function_name": null,
+      "function_signature": null,
+      "numeric_tolerance": 0.0,
+      "expected_unit": "square centimeters"
+    },
+    {
+      "id": "mr-005",
+      "category": "mathematical_reasoning",
+      "difficulty": "easy",
+      "prompt": "If 3x = 21, what is the value of x?",
+      "system_instruction": null,
+      "expected_answer": "7",
+      "evaluation_type": "numeric",
+      "reference_answer": "x equals 7.",
+      "test_cases": [],
+      "json_schema": null,
+      "required_constraints": [],
+      "maximum_output_tokens": 512,
+      "tags": [
+        "algebra",
+        "linear-equation"
+      ],
+      "is_unanswerable": false,
+      "judge_eligible": false,
+      "max_score": 1.0,
+      "source": "authored",
+      "notes": null,
+      "accepted_answers": [],
+      "key_facts": [],
+      "forbidden_claims": [],
+      "function_name": null,
+      "function_signature": null,
+      "numeric_tolerance": 0.0,
+      "expected_unit": null
+    },
+    {
+      "id": "mr-006",
+      "category": "mathematical_reasoning",
+      "difficulty": "medium",
+      "prompt": "A shirt costs 40 dollars and is discounted by 25 percent. What is the sale price in dollars?",
+      "system_instruction": null,
+      "expected_answer": "30",
+      "evaluation_type": "numeric",
+      "reference_answer": "The sale price is 30 dollars.",
+      "test_cases": [],
+      "json_schema": null,
+      "required_constraints": [],
+      "maximum_output_tokens": 512,
+      "tags": [
+        "percentages",
+        "discount"
+      ],
+      "is_unanswerable": false,
+      "judge_eligible": false,
+      "max_score": 1.0,
+      "source": "authored",
+      "notes": null,
+      "accepted_answers": [],
+      "key_facts": [],
+      "forbidden_claims": [],
+      "function_name": null,
+      "function_signature": null,
+      "numeric_tolerance": 0.0,
+      "expected_unit": "dollars"
+    },
+    {
+      "id": "mr-007",
+      "category": "mathematical_reasoning",
+      "difficulty": "medium",
+      "prompt": "What is the arithmetic mean of the numbers 4, 8, 15, and 17?",
+      "system_instruction": null,
+      "expected_answer": "11",
+      "evaluation_type": "numeric",
+      "reference_answer": "The mean is 11.",
+      "test_cases": [],
+      "json_schema": null,
+      "required_constraints": [],
+      "maximum_output_tokens": 512,
+      "tags": [
+        "statistics",
+        "mean"
+      ],
+      "is_unanswerable": false,
+      "judge_eligible": false,
+      "max_score": 1.0,
+      "source": "authored",
+      "notes": null,
+      "accepted_answers": [],
+      "key_facts": [],
+      "forbidden_claims": [],
+      "function_name": null,
+      "function_signature": null,
+      "numeric_tolerance": 0.0,
+      "expected_unit": null
+    },
+    {
+      "id": "mr-008",
+      "category": "mathematical_reasoning",
+      "difficulty": "medium",
+      "prompt": "A recipe uses 2 cups of flour for every 3 cups of milk. How many cups of flour are needed for 12 cups of milk?",
+      "system_instruction": null,
+      "expected_answer": "8",
+      "evaluation_type": "numeric",
+      "reference_answer": "8 cups of flour are needed.",
+      "test_cases": [],
+      "json_schema": null,
+      "required_constraints": [],
+      "maximum_output_tokens": 512,
+      "tags": [
+        "ratios",
+        "proportions"
+      ],
+      "is_unanswerable": false,
+      "judge_eligible": false,
+      "max_score": 1.0,
+      "source": "authored",
+      "notes": null,
+      "accepted_answers": [],
+      "key_facts": [],
+      "forbidden_claims": [],
+      "function_name": null,
+      "function_signature": null,
+      "numeric_tolerance": 0.0,
+      "expected_unit": "cups"
+    },
+    {
+      "id": "mr-009",
+      "category": "mathematical_reasoning",
+      "difficulty": "medium",
+      "prompt": "What is 15 percent of 240?",
+      "system_instruction": null,
+      "expected_answer": "36",
+      "evaluation_type": "numeric",
+      "reference_answer": "15 percent of 240 is 36.",
+      "test_cases": [],
+      "json_schema": null,
+      "required_constraints": [],
+      "maximum_output_tokens": 512,
+      "tags": [
+        "percentages",
+        "arithmetic"
+      ],
+      "is_unanswerable": false,
+      "judge_eligible": false,
+      "max_score": 1.0,
+      "source": "authored",
+      "notes": null,
+      "accepted_answers": [],
+      "key_facts": [],
+      "forbidden_claims": [],
+      "function_name": null,
+      "function_signature": null,
+      "numeric_tolerance": 0.0,
+      "expected_unit": null
+    },
+    {
+      "id": "mr-010",
+      "category": "mathematical_reasoning",
+      "difficulty": "medium",
+      "prompt": "A car travels 180 kilometers in 3 hours. What is its average speed in kilometers per hour?",
+      "system_instruction": null,
+      "expected_answer": "60",
+      "evaluation_type": "numeric",
+      "reference_answer": "The average speed is 60 kilometers per hour.",
+      "test_cases": [],
+      "json_schema": null,
+      "required_constraints": [],
+      "maximum_output_tokens": 512,
+      "tags": [
+        "speed",
+        "rate-time"
+      ],
+      "is_unanswerable": false,
+      "judge_eligible": false,
+      "max_score": 1.0,
+      "source": "authored",
+      "notes": null,
+      "accepted_answers": [],
+      "key_facts": [],
+      "forbidden_claims": [],
+      "function_name": null,
+      "function_signature": null,
+      "numeric_tolerance": 0.0,
+      "expected_unit": "kilometers per hour"
+    },
+    {
+      "id": "mr-011",
+      "category": "mathematical_reasoning",
+      "difficulty": "medium",
+      "prompt": "A triangle has a base of 10 meters and a height of 6 meters. What is its area in square meters?",
+      "system_instruction": null,
+      "expected_answer": "30",
+      "evaluation_type": "numeric",
+      "reference_answer": "The area is 30 square meters.",
+      "test_cases": [],
+      "json_schema": null,
+      "required_constraints": [],
+      "maximum_output_tokens": 512,
+      "tags": [
+        "geometry",
+        "triangle-area"
+      ],
+      "is_unanswerable": false,
+      "judge_eligible": false,
+      "max_score": 1.0,
+      "source": "authored",
+      "notes": null,
+      "accepted_answers": [],
+      "key_facts": [],
+      "forbidden_claims": [],
+      "function_name": null,
+      "function_signature": null,
+      "numeric_tolerance": 0.0,
+      "expected_unit": "square meters"
+    },
+    {
+      "id": "mr-012",
+      "category": "mathematical_reasoning",
+      "difficulty": "medium",
+      "prompt": "A jar contains 24 marbles, and one third of them are blue. How many blue marbles are in the jar?",
+      "system_instruction": null,
+      "expected_answer": "8",
+      "evaluation_type": "numeric",
+      "reference_answer": "There are 8 blue marbles.",
+      "test_cases": [],
+      "json_schema": null,
+      "required_constraints": [],
+      "maximum_output_tokens": 512,
+      "tags": [
+        "fractions",
+        "word-problem"
+      ],
+      "is_unanswerable": false,
+      "judge_eligible": false,
+      "max_score": 1.0,
+      "source": "authored",
+      "notes": null,
+      "accepted_answers": [],
+      "key_facts": [],
+      "forbidden_claims": [],
+      "function_name": null,
+      "function_signature": null,
+      "numeric_tolerance": 0.0,
+      "expected_unit": "marbles"
+    },
+    {
+      "id": "mr-013",
+      "category": "mathematical_reasoning",
+      "difficulty": "hard",
+      "prompt": "A sum of money doubles every 5 years. If it starts at 100 dollars, how much will it be after 20 years?",
+      "system_instruction": null,
+      "expected_answer": "1600",
+      "evaluation_type": "numeric",
+      "reference_answer": "The sum will be 1600 dollars.",
+      "test_cases": [],
+      "json_schema": null,
+      "required_constraints": [],
+      "maximum_output_tokens": 512,
+      "tags": [
+        "exponential-growth",
+        "finance"
+      ],
+      "is_unanswerable": false,
+      "judge_eligible": false,
+      "max_score": 1.0,
+      "source": "authored",
+      "notes": null,
+      "accepted_answers": [],
+      "key_facts": [],
+      "forbidden_claims": [],
+      "function_name": null,
+      "function_signature": null,
+      "numeric_tolerance": 0.0,
+      "expected_unit": "dollars"
+    },
+    {
+      "id": "mr-014",
+      "category": "mathematical_reasoning",
+      "difficulty": "hard",
+      "prompt": "A rectangle has an area of 24 square meters. What is its length in meters?",
+      "system_instruction": null,
+      "expected_answer": null,
+      "evaluation_type": "refusal_check",
+      "reference_answer": "The length cannot be determined from the area alone because multiple length-width pairs produce 24 square meters.",
+      "test_cases": [],
+      "json_schema": null,
+      "required_constraints": [],
+      "maximum_output_tokens": 512,
+      "tags": [
+        "unanswerable",
+        "insufficient-information",
+        "geometry"
+      ],
+      "is_unanswerable": true,
+      "judge_eligible": false,
+      "max_score": 1.0,
+      "source": "authored",
+      "notes": null,
+      "accepted_answers": [],
+      "key_facts": [],
+      "forbidden_claims": [
+        "The length is 6 meters",
+        "The length is 4 meters",
+        "The length must be",
+        "The length is 24 meters"
+      ],
+      "function_name": null,
+      "function_signature": null,
+      "numeric_tolerance": null,
+      "expected_unit": null
+    },
+    {
+      "id": "mr-015",
+      "category": "mathematical_reasoning",
+      "difficulty": "hard",
+      "prompt": "A store sells notebooks for 3 dollars each and pens for 2 dollars each. If Maya buys 4 notebooks and 5 pens, how much does she spend in dollars?",
+      "system_instruction": null,
+      "expected_answer": "22",
+      "evaluation_type": "numeric",
+      "reference_answer": "Maya spends 22 dollars.",
+      "test_cases": [],
+      "json_schema": null,
+      "required_constraints": [],
+      "maximum_output_tokens": 512,
+      "tags": [
+        "word-problem",
+        "arithmetic"
+      ],
+      "is_unanswerable": false,
+      "judge_eligible": false,
+      "max_score": 1.0,
+      "source": "authored",
+      "notes": null,
+      "accepted_answers": [],
+      "key_facts": [],
+      "forbidden_claims": [],
+      "function_name": null,
+      "function_signature": null,
+      "numeric_tolerance": 0.0,
+      "expected_unit": "dollars"
+    },
+    {
+      "id": "code-001",
+      "category": "coding",
+      "difficulty": "easy",
+      "prompt": "Write a Python function named add that takes two numbers and returns their sum.",
+      "system_instruction": null,
+      "expected_answer": null,
+      "evaluation_type": "code_tests",
+      "reference_answer": "def add(a, b):\n    return a + b",
+      "test_cases": [
+        {
+          "name": "positive",
+          "args": [
+            2,
+            3
+          ],
+          "kwargs": {},
+          "expected": 5,
+          "description": null
+        },
+        {
+          "name": "zero",
+          "args": [
+            0,
+            0
+          ],
+          "kwargs": {},
+          "expected": 0,
+          "description": null
+        },
+        {
+          "name": "negative",
+          "args": [
+            -4,
+            1
+          ],
+          "kwargs": {},
+          "expected": -3,
+          "description": null
+        }
+      ],
+      "json_schema": null,
+      "required_constraints": [],
+      "maximum_output_tokens": 512,
+      "tags": [
+        "python",
+        "arithmetic"
+      ],
+      "is_unanswerable": false,
+      "judge_eligible": false,
+      "max_score": 1.0,
+      "source": "authored",
+      "notes": null,
+      "accepted_answers": [],
+      "key_facts": [],
+      "forbidden_claims": [],
+      "function_name": "add",
+      "function_signature": "def add(a, b):",
+      "numeric_tolerance": null,
+      "expected_unit": null
+    },
+    {
+      "id": "code-002",
+      "category": "coding",
+      "difficulty": "easy",
+      "prompt": "Write a Python function named is_even that returns True when an integer is even and False otherwise.",
+      "system_instruction": null,
+      "expected_answer": null,
+      "evaluation_type": "code_tests",
+      "reference_answer": "def is_even(n):\n    return n % 2 == 0",
+      "test_cases": [
+        {
+          "name": "even_positive",
+          "args": [
+            4
+          ],
+          "kwargs": {},
+          "expected": true,
+          "description": null
+        },
+        {
+          "name": "odd_positive",
+          "args": [
+            7
+          ],
+          "kwargs": {},
+          "expected": false,
+          "description": null
+        },
+        {
+          "name": "zero",
+          "args": [
+            0
+          ],
+          "kwargs": {},
+          "expected": true,
+          "description": null
+        },
+        {
+          "name": "even_negative",
+          "args": [
+            -6
+          ],
+          "kwargs": {},
+          "expected": true,
+          "description": null
+        }
+      ],
+      "json_schema": null,
+      "required_constraints": [],
+      "maximum_output_tokens": 512,
+      "tags": [
+        "python",
+        "conditionals"
+      ],
+      "is_unanswerable": false,
+      "judge_eligible": false,
+      "max_score": 1.0,
+      "source": "authored",
+      "notes": null,
+      "accepted_answers": [],
+      "key_facts": [],
+      "forbidden_claims": [],
+      "function_name": "is_even",
+      "function_signature": "def is_even(n):",
+      "numeric_tolerance": null,
+      "expected_unit": null
+    },
+    {
+      "id": "code-003",
+      "category": "coding",
+      "difficulty": "easy",
+      "prompt": "Write a Python function named reverse_string that returns a string with its characters in reverse order.",
+      "system_instruction": null,
+      "expected_answer": null,
+      "evaluation_type": "code_tests",
+      "reference_answer": "def reverse_string(text):\n    return text[::-1]",
+      "test_cases": [
+        {
+          "name": "word",
+          "args": [
+            "hello"
+          ],
+          "kwargs": {},
+          "expected": "olleh",
+          "description": null
+        },
+        {
+          "name": "empty",
+          "args": [
+            ""
+          ],
+          "kwargs": {},
+          "expected": "",
+          "description": null
+        },
+        {
+          "name": "letters",
+          "args": [
+            "abc"
+          ],
+          "kwargs": {},
+          "expected": "cba",
+          "description": null
+        }
+      ],
+      "json_schema": null,
+      "required_constraints": [],
+      "maximum_output_tokens": 512,
+      "tags": [
+        "python",
+        "strings"
+      ],
+      "is_unanswerable": false,
+      "judge_eligible": false,
+      "max_score": 1.0,
+      "source": "authored",
+      "notes": null,
+      "accepted_answers": [],
+      "key_facts": [],
+      "forbidden_claims": [],
+      "function_name": "reverse_string",
+      "function_signature": "def reverse_string(text):",
+      "numeric_tolerance": null,
+      "expected_unit": null
+    },
+    {
+      "id": "code-004",
+      "category": "coding",
+      "difficulty": "easy",
+      "prompt": "Write a Python function named max_of_three that returns the largest of three numbers.",
+      "system_instruction": null,
+      "expected_answer": null,
+      "evaluation_type": "code_tests",
+      "reference_answer": "def max_of_three(a, b, c):\n    return max(a, b, c)",
+      "test_cases": [
+        {
+          "name": "ascending",
+          "args": [
+            1,
+            2,
+            3
+          ],
+          "kwargs": {},
+          "expected": 3,
+          "description": null
+        },
+        {
+          "name": "tie",
+          "args": [
+            5,
+            5,
+            2
+          ],
+          "kwargs": {},
+          "expected": 5,
+          "description": null
+        },
+        {
+          "name": "negatives",
+          "args": [
+            -1,
+            -2,
+            -3
+          ],
+          "kwargs": {},
+          "expected": -1,
+          "description": null
+        }
+      ],
+      "json_schema": null,
+      "required_constraints": [],
+      "maximum_output_tokens": 512,
+      "tags": [
+        "python",
+        "comparison"
+      ],
+      "is_unanswerable": false,
+      "judge_eligible": false,
+      "max_score": 1.0,
+      "source": "authored",
+      "notes": null,
+      "accepted_answers": [],
+      "key_facts": [],
+      "forbidden_claims": [],
+      "function_name": "max_of_three",
+      "function_signature": "def max_of_three(a, b, c):",
+      "numeric_tolerance": null,
+      "expected_unit": null
+    },
+    {
+      "id": "code-005",
+      "category": "coding",
+      "difficulty": "medium",
+      "prompt": "Write a Python function named count_vowels that counts the vowels a, e, i, o, and u in a string, ignoring case.",
+      "system_instruction": null,
+      "expected_answer": null,
+      "evaluation_type": "code_tests",
+      "reference_answer": "def count_vowels(text):\n    return sum(1 for char in text.lower() if char in \"aeiou\")",
+      "test_cases": [
+        {
+          "name": "hello",
+          "args": [
+            "hello"
+          ],
+          "kwargs": {},
+          "expected": 2,
+          "description": null
+        },
+        {
+          "name": "all_vowels",
+          "args": [
+            "AEIOU"
+          ],
+          "kwargs": {},
+          "expected": 5,
+          "description": null
+        },
+        {
+          "name": "no_vowels",
+          "args": [
+            "rhythm"
+          ],
+          "kwargs": {},
+          "expected": 0,
+          "description": null
+        },
+        {
+          "name": "mixed_case",
+          "args": [
+            "Python"
+          ],
+          "kwargs": {},
+          "expected": 1,
+          "description": null
+        }
+      ],
+      "json_schema": null,
+      "required_constraints": [],
+      "maximum_output_tokens": 512,
+      "tags": [
+        "python",
+        "strings",
+        "counting"
+      ],
+      "is_unanswerable": false,
+      "judge_eligible": false,
+      "max_score": 1.0,
+      "source": "authored",
+      "notes": null,
+      "accepted_answers": [],
+      "key_facts": [],
+      "forbidden_claims": [],
+      "function_name": "count_vowels",
+      "function_signature": "def count_vowels(text):",
+      "numeric_tolerance": null,
+      "expected_unit": null
+    },
+    {
+      "id": "code-006",
+      "category": "coding",
+      "difficulty": "medium",
+      "prompt": "Write a Python function named factorial that returns the factorial of a non-negative integer.",
+      "system_instruction": null,
+      "expected_answer": null,
+      "evaluation_type": "code_tests",
+      "reference_answer": "def factorial(n):\n    result = 1\n    for value in range(2, n + 1):\n        result *= value\n    return result",
+      "test_cases": [
+        {
+          "name": "zero",
+          "args": [
+            0
+          ],
+          "kwargs": {},
+          "expected": 1,
+          "description": null
+        },
+        {
+          "name": "one",
+          "args": [
+            1
+          ],
+          "kwargs": {},
+          "expected": 1,
+          "description": null
+        },
+        {
+          "name": "five",
+          "args": [
+            5
+          ],
+          "kwargs": {},
+          "expected": 120,
+          "description": null
+        },
+        {
+          "name": "seven",
+          "args": [
+            7
+          ],
+          "kwargs": {},
+          "expected": 5040,
+          "description": null
+        }
+      ],
+      "json_schema": null,
+      "required_constraints": [],
+      "maximum_output_tokens": 512,
+      "tags": [
+        "python",
+        "loops",
+        "math"
+      ],
+      "is_unanswerable": false,
+      "judge_eligible": false,
+      "max_score": 1.0,
+      "source": "authored",
+      "notes": null,
+      "accepted_answers": [],
+      "key_facts": [],
+      "forbidden_claims": [],
+      "function_name": "factorial",
+      "function_signature": "def factorial(n):",
+      "numeric_tolerance": null,
+      "expected_unit": null
+    },
+    {
+      "id": "code-007",
+      "category": "coding",
+      "difficulty": "medium",
+      "prompt": "Write a Python function named is_palindrome that ignores case and non-alphanumeric characters when checking whether a string reads the same forward and backward.",
+      "system_instruction": null,
+      "expected_answer": null,
+      "evaluation_type": "code_tests",
+      "reference_answer": "def is_palindrome(text):\n    cleaned = [char.lower() for char in text if char.isalnum()]\n    return cleaned == cleaned[::-1]",
+      "test_cases": [
+        {
+          "name": "panama",
+          "args": [
+            "A man, a plan, a canal: Panama"
+          ],
+          "kwargs": {},
+          "expected": true,
+          "description": null
+        },
+        {
+          "name": "not_palindrome",
+          "args": [
+            "race a car"
+          ],
+          "kwargs": {},
+          "expected": false,
+          "description": null
+        },
+        {
+          "name": "empty",
+          "args": [
+            ""
+          ],
+          "kwargs": {},
+          "expected": true,
+          "description": null
+        },
+        {
+          "name": "nixon",
+          "args": [
+            "No 'x' in Nixon"
+          ],
+          "kwargs": {},
+          "expected": true,
+          "description": null
+        }
+      ],
+      "json_schema": null,
+      "required_constraints": [],
+      "maximum_output_tokens": 512,
+      "tags": [
+        "python",
+        "strings",
+        "normalization"
+      ],
+      "is_unanswerable": false,
+      "judge_eligible": false,
+      "max_score": 1.0,
+      "source": "authored",
+      "notes": null,
+      "accepted_answers": [],
+      "key_facts": [],
+      "forbidden_claims": [],
+      "function_name": "is_palindrome",
+      "function_signature": "def is_palindrome(text):",
+      "numeric_tolerance": null,
+      "expected_unit": null
+    },
+    {
+      "id": "code-008",
+      "category": "coding",
+      "difficulty": "medium",
+      "prompt": "Write a Python function named fizzbuzz that returns a list of strings from 1 through n, using Fizz for multiples of 3, Buzz for multiples of 5, and FizzBuzz for multiples of both.",
+      "system_instruction": null,
+      "expected_answer": null,
+      "evaluation_type": "code_tests",
+      "reference_answer": "def fizzbuzz(n):\n    result = []\n    for value in range(1, n + 1):\n        if value % 15 == 0:\n            result.append(\"FizzBuzz\")\n        elif value % 3 == 0:\n            result.append(\"Fizz\")\n        elif value % 5 == 0:\n            result.append(\"Buzz\")\n        else:\n            result.append(str(value))\n    return result",
+      "test_cases": [
+        {
+          "name": "one",
+          "args": [
+            1
+          ],
+          "kwargs": {},
+          "expected": [
+            "1"
+          ],
+          "description": null
+        },
+        {
+          "name": "three",
+          "args": [
+            3
+          ],
+          "kwargs": {},
+          "expected": [
+            "1",
+            "2",
+            "Fizz"
+          ],
+          "description": null
+        },
+        {
+          "name": "five",
+          "args": [
+            5
+          ],
+          "kwargs": {},
+          "expected": [
+            "1",
+            "2",
+            "Fizz",
+            "4",
+            "Buzz"
+          ],
+          "description": null
+        },
+        {
+          "name": "fifteen",
+          "args": [
+            15
+          ],
+          "kwargs": {},
+          "expected": [
+            "1",
+            "2",
+            "Fizz",
+            "4",
+            "Buzz",
+            "Fizz",
+            "7",
+            "8",
+            "Fizz",
+            "Buzz",
+            "11",
+            "Fizz",
+            "13",
+            "14",
+            "FizzBuzz"
+          ],
+          "description": null
+        }
+      ],
+      "json_schema": null,
+      "required_constraints": [],
+      "maximum_output_tokens": 512,
+      "tags": [
+        "python",
+        "loops",
+        "conditionals"
+      ],
+      "is_unanswerable": false,
+      "judge_eligible": false,
+      "max_score": 1.0,
+      "source": "authored",
+      "notes": null,
+      "accepted_answers": [],
+      "key_facts": [],
+      "forbidden_claims": [],
+      "function_name": "fizzbuzz",
+      "function_signature": "def fizzbuzz(n):",
+      "numeric_tolerance": null,
+      "expected_unit": null
+    },
+    {
+      "id": "code-009",
+      "category": "coding",
+      "difficulty": "medium",
+      "prompt": "Write a Python function named second_largest that returns the second largest distinct value in a list, or None when fewer than two distinct values exist.",
+      "system_instruction": null,
+      "expected_answer": null,
+      "evaluation_type": "code_tests",
+      "reference_answer": "def second_largest(numbers):\n    unique = sorted(set(numbers), reverse=True)\n    return unique[1] if len(unique) >= 2 else None",
+      "test_cases": [
+        {
+          "name": "simple",
+          "args": [
+            [
+              1,
+              2,
+              3
+            ]
+          ],
+          "kwargs": {},
+          "expected": 2,
+          "description": null
+        },
+        {
+          "name": "duplicates",
+          "args": [
+            [
+              5,
+              5,
+              4
+            ]
+          ],
+          "kwargs": {},
+          "expected": 4,
+          "description": null
+        },
+        {
+          "name": "single",
+          "args": [
+            [
+              7
+            ]
+          ],
+          "kwargs": {},
+          "expected": null,
+          "description": null
+        },
+        {
+          "name": "all_same",
+          "args": [
+            [
+              2,
+              2,
+              2
+            ]
+          ],
+          "kwargs": {},
+          "expected": null,
+          "description": null
+        },
+        {
+          "name": "mixed",
+          "args": [
+            [
+              10,
+              9,
+              9,
+              8
+            ]
+          ],
+          "kwargs": {},
+          "expected": 9,
+          "description": null
+        }
+      ],
+      "json_schema": null,
+      "required_constraints": [],
+      "maximum_output_tokens": 512,
+      "tags": [
+        "python",
+        "sorting",
+        "sets"
+      ],
+      "is_unanswerable": false,
+      "judge_eligible": false,
+      "max_score": 1.0,
+      "source": "authored",
+      "notes": null,
+      "accepted_answers": [],
+      "key_facts": [],
+      "forbidden_claims": [],
+      "function_name": "second_largest",
+      "function_signature": "def second_largest(numbers):",
+      "numeric_tolerance": null,
+      "expected_unit": null
+    },
+    {
+      "id": "code-010",
+      "category": "coding",
+      "difficulty": "medium",
+      "prompt": "Write a Python function named char_frequency that returns a dictionary mapping each character in a string to its case-sensitive frequency.",
+      "system_instruction": null,
+      "expected_answer": null,
+      "evaluation_type": "code_tests",
+      "reference_answer": "def char_frequency(text):\n    counts = {}\n    for char in text:\n        counts[char] = counts.get(char, 0) + 1\n    return counts",
+      "test_cases": [
+        {
+          "name": "hello",
+          "args": [
+            "hello"
+          ],
+          "kwargs": {},
+          "expected": {
+            "h": 1,
+            "e": 1,
+            "l": 2,
+            "o": 1
+          },
+          "description": null
+        },
+        {
+          "name": "empty",
+          "args": [
+            ""
+          ],
+          "kwargs": {},
+          "expected": {},
+          "description": null
+        },
+        {
+          "name": "case_sensitive",
+          "args": [
+            "Aa"
+          ],
+          "kwargs": {},
+          "expected": {
+            "A": 1,
+            "a": 1
+          },
+          "description": null
+        }
+      ],
+      "json_schema": null,
+      "required_constraints": [],
+      "maximum_output_tokens": 512,
+      "tags": [
+        "python",
+        "dictionaries",
+        "counting"
+      ],
+      "is_unanswerable": false,
+      "judge_eligible": false,
+      "max_score": 1.0,
+      "source": "authored",
+      "notes": null,
+      "accepted_answers": [],
+      "key_facts": [],
+      "forbidden_claims": [],
+      "function_name": "char_frequency",
+      "function_signature": "def char_frequency(text):",
+      "numeric_tolerance": null,
+      "expected_unit": null
+    },
+    {
+      "id": "code-011",
+      "category": "coding",
+      "difficulty": "medium",
+      "prompt": "Write a Python function named flatten_once that flattens one level of nested lists while preserving scalar values.",
+      "system_instruction": null,
+      "expected_answer": null,
+      "evaluation_type": "code_tests",
+      "reference_answer": "def flatten_once(values):\n    result = []\n    for value in values:\n        if isinstance(value, list):\n            result.extend(value)\n        else:\n            result.append(value)\n    return result",
+      "test_cases": [
+        {
+          "name": "nested_lists",
+          "args": [
+            [
+              [
+                1,
+                2
+              ],
+              [
+                3
+              ],
+              [
+                4,
+                5
+              ]
+            ]
+          ],
+          "kwargs": {},
+          "expected": [
+            1,
+            2,
+            3,
+            4,
+            5
+          ],
+          "description": null
+        },
+        {
+          "name": "mixed",
+          "args": [
+            [
+              1,
+              [
+                2,
+                3
+              ],
+              4
+            ]
+          ],
+          "kwargs": {},
+          "expected": [
+            1,
+            2,
+            3,
+            4
+          ],
+          "description": null
+        },
+        {
+          "name": "empty",
+          "args": [
+            []
+          ],
+          "kwargs": {},
+          "expected": [],
+          "description": null
+        },
+        {
+          "name": "empty_nested",
+          "args": [
+            [
+              [],
+              [
+                1
+              ]
+            ]
+          ],
+          "kwargs": {},
+          "expected": [
+            1
+          ],
+          "description": null
+        }
+      ],
+      "json_schema": null,
+      "required_constraints": [],
+      "maximum_output_tokens": 512,
+      "tags": [
+        "python",
+        "lists",
+        "flattening"
+      ],
+      "is_unanswerable": false,
+      "judge_eligible": false,
+      "max_score": 1.0,
+      "source": "authored",
+      "notes": null,
+      "accepted_answers": [],
+      "key_facts": [],
+      "forbidden_claims": [],
+      "function_name": "flatten_once",
+      "function_signature": "def flatten_once(values):",
+      "numeric_tolerance": null,
+      "expected_unit": null
+    },
+    {
+      "id": "code-012",
+      "category": "coding",
+      "difficulty": "hard",
+      "prompt": "Write a Python function named two_sum that returns the indices of the two numbers that add to a target. Assume exactly one solution exists and return the indices in ascending order.",
+      "system_instruction": null,
+      "expected_answer": null,
+      "evaluation_type": "code_tests",
+      "reference_answer": "def two_sum(nums, target):\n    seen = {}\n    for index, value in enumerate(nums):\n        complement = target - value\n        if complement in seen:\n            return sorted([seen[complement], index])\n        seen[value] = index\n    return []",
+      "test_cases": [
+        {
+          "name": "first_pair",
+          "args": [
+            [
+              2,
+              7,
+              11,
+              15
+            ],
+            9
+          ],
+          "kwargs": {},
+          "expected": [
+            0,
+            1
+          ],
+          "description": null
+        },
+        {
+          "name": "middle_pair",
+          "args": [
+            [
+              3,
+              2,
+              4
+            ],
+            6
+          ],
+          "kwargs": {},
+          "expected": [
+            1,
+            2
+          ],
+          "description": null
+        },
+        {
+          "name": "duplicate_values",
+          "args": [
+            [
+              3,
+              3
+            ],
+            6
+          ],
+          "kwargs": {},
+          "expected": [
+            0,
+            1
+          ],
+          "description": null
+        }
+      ],
+      "json_schema": null,
+      "required_constraints": [],
+      "maximum_output_tokens": 512,
+      "tags": [
+        "python",
+        "hash-map",
+        "arrays"
+      ],
+      "is_unanswerable": false,
+      "judge_eligible": false,
+      "max_score": 1.0,
+      "source": "authored",
+      "notes": null,
+      "accepted_answers": [],
+      "key_facts": [],
+      "forbidden_claims": [],
+      "function_name": "two_sum",
+      "function_signature": "def two_sum(nums, target):",
+      "numeric_tolerance": null,
+      "expected_unit": null
+    },
+    {
+      "id": "code-013",
+      "category": "coding",
+      "difficulty": "hard",
+      "prompt": "Write a Python function named valid_parentheses that returns True when a string containing only parentheses, brackets, and braces is correctly balanced.",
+      "system_instruction": null,
+      "expected_answer": null,
+      "evaluation_type": "code_tests",
+      "reference_answer": "def valid_parentheses(text):\n    pairs = {\")\": \"(\", \"]\": \"[\", \"}\": \"{\"}\n    stack = []\n    for char in text:\n        if char in pairs.values():\n            stack.append(char)\n        elif char in pairs:\n            if not stack or stack.pop() != pairs[char]:\n                return False\n        else:\n            return False\n    return not stack",
+      "test_cases": [
+        {
+          "name": "simple",
+          "args": [
+            "()"
+          ],
+          "kwargs": {},
+          "expected": true,
+          "description": null
+        },
+        {
+          "name": "all_types",
+          "args": [
+            "()[]{}"
+          ],
+          "kwargs": {},
+          "expected": true,
+          "description": null
+        },
+        {
+          "name": "mismatch",
+          "args": [
+            "(]"
+          ],
+          "kwargs": {},
+          "expected": false,
+          "description": null
+        },
+        {
+          "name": "interleaved",
+          "args": [
+            "([)]"
+          ],
+          "kwargs": {},
+          "expected": false,
+          "description": null
+        },
+        {
+          "name": "nested",
+          "args": [
+            "{[]}"
+          ],
+          "kwargs": {},
+          "expected": true,
+          "description": null
+        },
+        {
+          "name": "empty",
+          "args": [
+            ""
+          ],
+          "kwargs": {},
+          "expected": true,
+          "description": null
+        }
+      ],
+      "json_schema": null,
+      "required_constraints": [],
+      "maximum_output_tokens": 512,
+      "tags": [
+        "python",
+        "stack",
+        "parsing"
+      ],
+      "is_unanswerable": false,
+      "judge_eligible": false,
+      "max_score": 1.0,
+      "source": "authored",
+      "notes": null,
+      "accepted_answers": [],
+      "key_facts": [],
+      "forbidden_claims": [],
+      "function_name": "valid_parentheses",
+      "function_signature": "def valid_parentheses(text):",
+      "numeric_tolerance": null,
+      "expected_unit": null
+    },
+    {
+      "id": "code-014",
+      "category": "coding",
+      "difficulty": "hard",
+      "prompt": "Write a Python function named merge_intervals that merges overlapping closed intervals and returns the result sorted by start value.",
+      "system_instruction": null,
+      "expected_answer": null,
+      "evaluation_type": "code_tests",
+      "reference_answer": "def merge_intervals(intervals):\n    if not intervals:\n        return []\n    ordered = sorted(intervals, key=lambda interval: interval[0])\n    merged = [list(ordered[0])]\n    for start, end in ordered[1:]:\n        if start <= merged[-1][1]:\n            merged[-1][1] = max(merged[-1][1], end)\n        else:\n            merged.append([start, end])\n    return merged",
+      "test_cases": [
+        {
+          "name": "typical",
+          "args": [
+            [
+              [
+                1,
+                3
+              ],
+              [
+                2,
+                6
+              ],
+              [
+                8,
+                10
+              ],
+              [
+                15,
+                18
+              ]
+            ]
+          ],
+          "kwargs": {},
+          "expected": [
+            [
+              1,
+              6
+            ],
+            [
+              8,
+              10
+            ],
+            [
+              15,
+              18
+            ]
+          ],
+          "description": null
+        },
+        {
+          "name": "touching",
+          "args": [
+            [
+              [
+                1,
+                4
+              ],
+              [
+                4,
+                5
+              ]
+            ]
+          ],
+          "kwargs": {},
+          "expected": [
+            [
+              1,
+              5
+            ]
+          ],
+          "description": null
+        },
+        {
+          "name": "unsorted_overlap",
+          "args": [
+            [
+              [
+                1,
+                4
+              ],
+              [
+                0,
+                4
+              ]
+            ]
+          ],
+          "kwargs": {},
+          "expected": [
+            [
+              0,
+              4
+            ]
+          ],
+          "description": null
+        },
+        {
+          "name": "empty",
+          "args": [
+            []
+          ],
+          "kwargs": {},
+          "expected": [],
+          "description": null
+        }
+      ],
+      "json_schema": null,
+      "required_constraints": [],
+      "maximum_output_tokens": 512,
+      "tags": [
+        "python",
+        "intervals",
+        "sorting"
+      ],
+      "is_unanswerable": false,
+      "judge_eligible": false,
+      "max_score": 1.0,
+      "source": "authored",
+      "notes": null,
+      "accepted_answers": [],
+      "key_facts": [],
+      "forbidden_claims": [],
+      "function_name": "merge_intervals",
+      "function_signature": "def merge_intervals(intervals):",
+      "numeric_tolerance": null,
+      "expected_unit": null
+    },
+    {
+      "id": "code-015",
+      "category": "coding",
+      "difficulty": "hard",
+      "prompt": "Write a Python function named min_coins that returns the minimum number of coins needed to make an amount, or -1 when the amount cannot be formed.",
+      "system_instruction": null,
+      "expected_answer": null,
+      "evaluation_type": "code_tests",
+      "reference_answer": "def min_coins(coins, amount):\n    unreachable = amount + 1\n    dp = [0] + [unreachable] * amount\n    for value in range(1, amount + 1):\n        for coin in coins:\n            if coin <= value:\n                dp[value] = min(dp[value], dp[value - coin] + 1)\n    return dp[amount] if dp[amount] != unreachable else -1",
+      "test_cases": [
+        {
+          "name": "classic",
+          "args": [
+            [
+              1,
+              2,
+              5
+            ],
+            11
+          ],
+          "kwargs": {},
+          "expected": 3,
+          "description": null
+        },
+        {
+          "name": "impossible",
+          "args": [
+            [
+              2
+            ],
+            3
+          ],
+          "kwargs": {},
+          "expected": -1,
+          "description": null
+        },
+        {
+          "name": "zero",
+          "args": [
+            [
+              1
+            ],
+            0
+          ],
+          "kwargs": {},
+          "expected": 0,
+          "description": null
+        },
+        {
+          "name": "mixed",
+          "args": [
+            [
+              2,
+              5,
+              10,
+              1
+            ],
+            27
+          ],
+          "kwargs": {},
+          "expected": 4,
+          "description": null
+        }
+      ],
+      "json_schema": null,
+      "required_constraints": [],
+      "maximum_output_tokens": 512,
+      "tags": [
+        "python",
+        "dynamic-programming",
+        "coins"
+      ],
+      "is_unanswerable": false,
+      "judge_eligible": false,
+      "max_score": 1.0,
+      "source": "authored",
+      "notes": null,
+      "accepted_answers": [],
+      "key_facts": [],
+      "forbidden_claims": [],
+      "function_name": "min_coins",
+      "function_signature": "def min_coins(coins, amount):",
+      "numeric_tolerance": null,
+      "expected_unit": null
+    },
+    {
+      "id": "if-001",
+      "category": "instruction_following",
+      "difficulty": "easy",
+      "prompt": "Write exactly two sentences about why sleep is important. Do not use the word tired.",
+      "system_instruction": null,
+      "expected_answer": null,
+      "evaluation_type": "instruction_constraints",
+      "reference_answer": "Sleep lets the body repair tissue and consolidate memories. Consistent rest also supports mood and immune health.",
+      "test_cases": [],
+      "json_schema": null,
+      "required_constraints": [
+        {
+          "type": "sentence_count",
+          "minimum": 2,
+          "maximum": 2
+        },
+        {
+          "type": "forbidden_phrase",
+          "phrase": "tired"
+        }
+      ],
+      "maximum_output_tokens": 512,
+      "tags": [
+        "constraints",
+        "sentence-count"
+      ],
+      "is_unanswerable": false,
+      "judge_eligible": false,
+      "max_score": 1.0,
+      "source": "authored",
+      "notes": null,
+      "accepted_answers": [],
+      "key_facts": [],
+      "forbidden_claims": [],
+      "function_name": null,
+      "function_signature": null,
+      "numeric_tolerance": null,
+      "expected_unit": null
+    },
+    {
+      "id": "if-002",
+      "category": "instruction_following",
+      "difficulty": "easy",
+      "prompt": "List exactly three benefits of drinking water. Start every line with a hyphen followed by a space.",
+      "system_instruction": null,
+      "expected_answer": null,
+      "evaluation_type": "instruction_constraints",
+      "reference_answer": "- Water supports healthy digestion.\n- Water helps regulate body temperature.\n- Water carries nutrients through the body.",
+      "test_cases": [],
+      "json_schema": null,
+      "required_constraints": [
+        {
+          "type": "bullet_count",
+          "count": 3
+        },
+        {
+          "type": "each_line_starts_with",
+          "text": "- "
+        }
+      ],
+      "maximum_output_tokens": 512,
+      "tags": [
+        "constraints",
+        "bullets"
+      ],
+      "is_unanswerable": false,
+      "judge_eligible": false,
+      "max_score": 1.0,
+      "source": "authored",
+      "notes": null,
+      "accepted_answers": [],
+      "key_facts": [],
+      "forbidden_claims": [],
+      "function_name": null,
+      "function_signature": null,
+      "numeric_tolerance": null,
+      "expected_unit": null
+    },
+    {
+      "id": "if-003",
+      "category": "instruction_following",
+      "difficulty": "easy",
+      "prompt": "Write a single sentence of exactly 12 words that contains the phrase renewable energy.",
+      "system_instruction": null,
+      "expected_answer": null,
+      "evaluation_type": "instruction_constraints",
+      "reference_answer": "Solar and wind power are clean forms of renewable energy used worldwide.",
+      "test_cases": [],
+      "json_schema": null,
+      "required_constraints": [
+        {
+          "type": "sentence_count",
+          "minimum": 1,
+          "maximum": 1
+        },
+        {
+          "type": "word_count",
+          "minimum": 12,
+          "maximum": 12
+        },
+        {
+          "type": "required_phrase",
+          "phrase": "renewable energy"
+        }
+      ],
+      "maximum_output_tokens": 512,
+      "tags": [
+        "constraints",
+        "word-count",
+        "phrase"
+      ],
+      "is_unanswerable": false,
+      "judge_eligible": false,
+      "max_score": 1.0,
+      "source": "authored",
+      "notes": null,
+      "accepted_answers": [],
+      "key_facts": [],
+      "forbidden_claims": [],
+      "function_name": null,
+      "function_signature": null,
+      "numeric_tolerance": null,
+      "expected_unit": null
+    },
+    {
+      "id": "if-004",
+      "category": "instruction_following",
+      "difficulty": "easy",
+      "prompt": "Write a three-item grocery list. Each line must end with a period.",
+      "system_instruction": null,
+      "expected_answer": null,
+      "evaluation_type": "instruction_constraints",
+      "reference_answer": "Milk.\nBread.\nApples.",
+      "test_cases": [],
+      "json_schema": null,
+      "required_constraints": [
+        {
+          "type": "line_count",
+          "count": 3
+        },
+        {
+          "type": "each_line_ends_with",
+          "text": "."
+        }
+      ],
+      "maximum_output_tokens": 512,
+      "tags": [
+        "constraints",
+        "line-count"
+      ],
+      "is_unanswerable": false,
+      "judge_eligible": false,
+      "max_score": 1.0,
+      "source": "authored",
+      "notes": null,
+      "accepted_answers": [],
+      "key_facts": [],
+      "forbidden_claims": [],
+      "function_name": null,
+      "function_signature": null,
+      "numeric_tolerance": null,
+      "expected_unit": null
+    },
+    {
+      "id": "if-005",
+      "category": "instruction_following",
+      "difficulty": "easy",
+      "prompt": "Write exactly one sentence about the ocean without using the letter e.",
+      "system_instruction": null,
+      "expected_answer": null,
+      "evaluation_type": "instruction_constraints",
+      "reference_answer": "A vast salty body of liquid supports abundant organisms.",
+      "test_cases": [],
+      "json_schema": null,
+      "required_constraints": [
+        {
+          "type": "sentence_count",
+          "minimum": 1,
+          "maximum": 1
+        },
+        {
+          "type": "forbidden_phrase",
+          "phrase": "e"
+        }
+      ],
+      "maximum_output_tokens": 512,
+      "tags": [
+        "constraints",
+        "forbidden-letter"
+      ],
+      "is_unanswerable": false,
+      "judge_eligible": false,
+      "max_score": 1.0,
+      "source": "authored",
+      "notes": null,
+      "accepted_answers": [],
+      "key_facts": [],
+      "forbidden_claims": [],
+      "function_name": null,
+      "function_signature": null,
+      "numeric_tolerance": null,
+      "expected_unit": null
+    },
+    {
+      "id": "if-006",
+      "category": "instruction_following",
+      "difficulty": "medium",
+      "prompt": "Write exactly four sentences describing a morning routine. Start the response with the word First.",
+      "system_instruction": null,
+      "expected_answer": null,
+      "evaluation_type": "instruction_constraints",
+      "reference_answer": "First, I wake up and stretch. Then I brush my teeth. After that I eat breakfast. Finally I begin my workday.",
+      "test_cases": [],
+      "json_schema": null,
+      "required_constraints": [
+        {
+          "type": "sentence_count",
+          "minimum": 4,
+          "maximum": 4
+        },
+        {
+          "type": "starts_with",
+          "text": "First"
+        }
+      ],
+      "maximum_output_tokens": 512,
+      "tags": [
+        "constraints",
+        "sentence-count",
+        "prefix"
+      ],
+      "is_unanswerable": false,
+      "judge_eligible": false,
+      "max_score": 1.0,
+      "source": "authored",
+      "notes": null,
+      "accepted_answers": [],
+      "key_facts": [],
+      "forbidden_claims": [],
+      "function_name": null,
+      "function_signature": null,
+      "numeric_tolerance": null,
+      "expected_unit": null
+    },
+    {
+      "id": "if-007",
+      "category": "instruction_following",
+      "difficulty": "medium",
+      "prompt": "Explain photosynthesis in between 40 and 50 words, and include the word chlorophyll.",
+      "system_instruction": null,
+      "expected_answer": null,
+      "evaluation_type": "instruction_constraints",
+      "reference_answer": "Photosynthesis is the process by which green plants use sunlight to convert carbon dioxide and water into glucose and oxygen. Chlorophyll in chloroplasts captures light energy. The glucose stores chemical energy, while the released oxygen supports aerobic life on Earth.",
+      "test_cases": [],
+      "json_schema": null,
+      "required_constraints": [
+        {
+          "type": "word_count",
+          "minimum": 40,
+          "maximum": 50
+        },
+        {
+          "type": "required_phrase",
+          "phrase": "chlorophyll"
+        }
+      ],
+      "maximum_output_tokens": 512,
+      "tags": [
+        "constraints",
+        "word-count",
+        "science"
+      ],
+      "is_unanswerable": false,
+      "judge_eligible": false,
+      "max_score": 1.0,
+      "source": "authored",
+      "notes": null,
+      "accepted_answers": [],
+      "key_facts": [],
+      "forbidden_claims": [],
+      "function_name": null,
+      "function_signature": null,
+      "numeric_tolerance": null,
+      "expected_unit": null
+    },
+    {
+      "id": "if-008",
+      "category": "instruction_following",
+      "difficulty": "medium",
+      "prompt": "Write a two-line slogan for a bicycle shop. Both lines must contain the word ride.",
+      "system_instruction": null,
+      "expected_answer": null,
+      "evaluation_type": "instruction_constraints",
+      "reference_answer": "Ride farther with confidence.\nRide happier every day.",
+      "test_cases": [],
+      "json_schema": null,
+      "required_constraints": [
+        {
+          "type": "line_count",
+          "count": 2
+        },
+        {
+          "type": "each_line_contains",
+          "text": "ride"
+        }
+      ],
+      "maximum_output_tokens": 512,
+      "tags": [
+        "constraints",
+        "line-count",
+        "phrase"
+      ],
+      "is_unanswerable": false,
+      "judge_eligible": false,
+      "max_score": 1.0,
+      "source": "authored",
+      "notes": null,
+      "accepted_answers": [],
+      "key_facts": [],
+      "forbidden_claims": [],
+      "function_name": null,
+      "function_signature": null,
+      "numeric_tolerance": null,
+      "expected_unit": null
+    },
+    {
+      "id": "if-009",
+      "category": "instruction_following",
+      "difficulty": "medium",
+      "prompt": "List exactly three safety tips for cycling. Each line must contain the word road.",
+      "system_instruction": null,
+      "expected_answer": null,
+      "evaluation_type": "instruction_constraints",
+      "reference_answer": "Always scan the road ahead.\nKeep your helmet secured before entering the road.\nUse lights when the road is dim.",
+      "test_cases": [],
+      "json_schema": null,
+      "required_constraints": [
+        {
+          "type": "line_count",
+          "count": 3
+        },
+        {
+          "type": "each_line_contains",
+          "text": "road"
+        }
+      ],
+      "maximum_output_tokens": 512,
+      "tags": [
+        "constraints",
+        "line-count",
+        "safety"
+      ],
+      "is_unanswerable": false,
+      "judge_eligible": false,
+      "max_score": 1.0,
+      "source": "authored",
+      "notes": null,
+      "accepted_answers": [],
+      "key_facts": [],
+      "forbidden_claims": [],
+      "function_name": null,
+      "function_signature": null,
+      "numeric_tolerance": null,
+      "expected_unit": null
+    },
+    {
+      "id": "if-010",
+      "category": "instruction_following",
+      "difficulty": "medium",
+      "prompt": "Write one sentence that contains all three words: apple, river, and stone.",
+      "system_instruction": null,
+      "expected_answer": null,
+      "evaluation_type": "instruction_constraints",
+      "reference_answer": "An apple fell near the river and landed beside a smooth stone.",
+      "test_cases": [],
+      "json_schema": null,
+      "required_constraints": [
+        {
+          "type": "sentence_count",
+          "minimum": 1,
+          "maximum": 1
+        },
+        {
+          "type": "contains_all",
+          "terms": [
+            "apple",
+            "river",
+            "stone"
+          ]
+        }
+      ],
+      "maximum_output_tokens": 512,
+      "tags": [
+        "constraints",
+        "contains-all"
+      ],
+      "is_unanswerable": false,
+      "judge_eligible": false,
+      "max_score": 1.0,
+      "source": "authored",
+      "notes": null,
+      "accepted_answers": [],
+      "key_facts": [],
+      "forbidden_claims": [],
+      "function_name": null,
+      "function_signature": null,
+      "numeric_tolerance": null,
+      "expected_unit": null
+    },
+    {
+      "id": "if-011",
+      "category": "instruction_following",
+      "difficulty": "medium",
+      "prompt": "Write exactly three lines about a library. The lines must contain the words book, shelf, and quiet in that order across the response.",
+      "system_instruction": null,
+      "expected_answer": null,
+      "evaluation_type": "instruction_constraints",
+      "reference_answer": "The book rested on the shelf.\nThe shelf stood in a quiet corner.\nA quiet reader chose the book.",
+      "test_cases": [],
+      "json_schema": null,
+      "required_constraints": [
+        {
+          "type": "line_count",
+          "count": 3
+        },
+        {
+          "type": "ordered_terms",
+          "terms": [
+            "book",
+            "shelf",
+            "quiet"
+          ]
+        }
+      ],
+      "maximum_output_tokens": 512,
+      "tags": [
+        "constraints",
+        "ordered-terms"
+      ],
+      "is_unanswerable": false,
+      "judge_eligible": false,
+      "max_score": 1.0,
+      "source": "authored",
+      "notes": null,
+      "accepted_answers": [],
+      "key_facts": [],
+      "forbidden_claims": [],
+      "function_name": null,
+      "function_signature": null,
+      "numeric_tolerance": null,
+      "expected_unit": null
+    },
+    {
+      "id": "if-012",
+      "category": "instruction_following",
+      "difficulty": "medium",
+      "prompt": "Respond in lowercase only with exactly five words about the moon.",
+      "system_instruction": null,
+      "expected_answer": null,
+      "evaluation_type": "instruction_constraints",
+      "reference_answer": "the moon glows at night",
+      "test_cases": [],
+      "json_schema": null,
+      "required_constraints": [
+        {
+          "type": "lowercase"
+        },
+        {
+          "type": "word_count",
+          "minimum": 5,
+          "maximum": 5
+        }
+      ],
+      "maximum_output_tokens": 512,
+      "tags": [
+        "constraints",
+        "lowercase",
+        "word-count"
+      ],
+      "is_unanswerable": false,
+      "judge_eligible": false,
+      "max_score": 1.0,
+      "source": "authored",
+      "notes": null,
+      "accepted_answers": [],
+      "key_facts": [],
+      "forbidden_claims": [],
+      "function_name": null,
+      "function_signature": null,
+      "numeric_tolerance": null,
+      "expected_unit": null
+    },
+    {
+      "id": "if-013",
+      "category": "instruction_following",
+      "difficulty": "hard",
+      "prompt": "In exactly five words, state the exact population of the fictional city of Noria.",
+      "system_instruction": null,
+      "expected_answer": null,
+      "evaluation_type": "refusal_check",
+      "reference_answer": "Noria is fictional; no population exists.",
+      "test_cases": [],
+      "json_schema": null,
+      "required_constraints": [],
+      "maximum_output_tokens": 512,
+      "tags": [
+        "unanswerable",
+        "fictional-places",
+        "constraints"
+      ],
+      "is_unanswerable": true,
+      "judge_eligible": false,
+      "max_score": 1.0,
+      "source": "authored",
+      "notes": null,
+      "accepted_answers": [],
+      "key_facts": [],
+      "forbidden_claims": [
+        "Noria has a population of",
+        "The population of Noria is",
+        "According to records, Noria",
+        "Noria's population is"
+      ],
+      "function_name": null,
+      "function_signature": null,
+      "numeric_tolerance": null,
+      "expected_unit": null
+    },
+    {
+      "id": "if-014",
+      "category": "instruction_following",
+      "difficulty": "hard",
+      "prompt": "Write exactly three sentences about a desert. The first sentence must start with Deserts, the last sentence must end with the word survive followed by a period, and the word water must appear exactly twice.",
+      "system_instruction": null,
+      "expected_answer": null,
+      "evaluation_type": "instruction_constraints",
+      "reference_answer": "Deserts receive very little water each year. Plants and animals adapt to scarce water. Only resilient species survive.",
+      "test_cases": [],
+      "json_schema": null,
+      "required_constraints": [
+        {
+          "type": "sentence_count",
+          "minimum": 3,
+          "maximum": 3
+        },
+        {
+          "type": "starts_with",
+          "text": "Deserts"
+        },
+        {
+          "type": "ends_with",
+          "text": "survive."
+        },
+        {
+          "type": "occurrence_count",
+          "phrase": "water",
+          "count": 2
+        }
+      ],
+      "maximum_output_tokens": 512,
+      "tags": [
+        "constraints",
+        "sentence-count",
+        "occurrence-count"
+      ],
+      "is_unanswerable": false,
+      "judge_eligible": false,
+      "max_score": 1.0,
+      "source": "authored",
+      "notes": null,
+      "accepted_answers": [],
+      "key_facts": [],
+      "forbidden_claims": [],
+      "function_name": null,
+      "function_signature": null,
+      "numeric_tolerance": null,
+      "expected_unit": null
+    },
+    {
+      "id": "if-015",
+      "category": "instruction_following",
+      "difficulty": "hard",
+      "prompt": "Write a four-line poem about the sea. Each line must contain the word wave, and the response must not contain the word calm.",
+      "system_instruction": null,
+      "expected_answer": null,
+      "evaluation_type": "instruction_constraints",
+      "reference_answer": "A wave rises at dawn.\nEach wave carries light.\nThe wave folds and breaks.\nOne wave returns to sea.",
+      "test_cases": [],
+      "json_schema": null,
+      "required_constraints": [
+        {
+          "type": "line_count",
+          "count": 4
+        },
+        {
+          "type": "each_line_contains",
+          "text": "wave"
+        },
+        {
+          "type": "forbidden_phrase",
+          "phrase": "calm"
+        }
+      ],
+      "maximum_output_tokens": 512,
+      "tags": [
+        "constraints",
+        "line-count",
+        "poetry"
+      ],
+      "is_unanswerable": false,
+      "judge_eligible": false,
+      "max_score": 1.0,
+      "source": "authored",
+      "notes": null,
+      "accepted_answers": [],
+      "key_facts": [],
+      "forbidden_claims": [],
+      "function_name": null,
+      "function_signature": null,
+      "numeric_tolerance": null,
+      "expected_unit": null
+    },
+    {
+      "id": "json-001",
+      "category": "structured_json",
+      "difficulty": "easy",
+      "prompt": "Return a JSON object with keys name and age for a person named Ada who is 36 years old.",
+      "system_instruction": null,
+      "expected_answer": null,
+      "evaluation_type": "json_schema",
+      "reference_answer": "{\"name\":\"Ada\",\"age\":36}",
+      "test_cases": [],
+      "json_schema": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "age": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "name",
+          "age"
+        ],
+        "additionalProperties": false
+      },
+      "required_constraints": [],
+      "maximum_output_tokens": 512,
+      "tags": [
+        "json",
+        "object"
+      ],
+      "is_unanswerable": false,
+      "judge_eligible": false,
+      "max_score": 1.0,
+      "source": "authored",
+      "notes": null,
+      "accepted_answers": [],
+      "key_facts": [],
+      "forbidden_claims": [],
+      "function_name": null,
+      "function_signature": null,
+      "numeric_tolerance": null,
+      "expected_unit": null
+    },
+    {
+      "id": "json-002",
+      "category": "structured_json",
+      "difficulty": "easy",
+      "prompt": "Return a JSON array containing the numbers 1, 2, and 3 in ascending order.",
+      "system_instruction": null,
+      "expected_answer": null,
+      "evaluation_type": "json_schema",
+      "reference_answer": "[1,2,3]",
+      "test_cases": [],
+      "json_schema": {
+        "type": "array",
+        "prefixItems": [
+          {
+            "const": 1
+          },
+          {
+            "const": 2
+          },
+          {
+            "const": 3
+          }
+        ],
+        "minItems": 3,
+        "maxItems": 3,
+        "items": false
+      },
+      "required_constraints": [],
+      "maximum_output_tokens": 512,
+      "tags": [
+        "json",
+        "array"
+      ],
+      "is_unanswerable": false,
+      "judge_eligible": false,
+      "max_score": 1.0,
+      "source": "authored",
+      "notes": null,
+      "accepted_answers": [],
+      "key_facts": [],
+      "forbidden_claims": [],
+      "function_name": null,
+      "function_signature": null,
+      "numeric_tolerance": null,
+      "expected_unit": null
+    },
+    {
+      "id": "json-003",
+      "category": "structured_json",
+      "difficulty": "easy",
+      "prompt": "Return a JSON object with a boolean field active set to true and a string field status set to ready.",
+      "system_instruction": null,
+      "expected_answer": null,
+      "evaluation_type": "json_schema",
+      "reference_answer": "{\"active\":true,\"status\":\"ready\"}",
+      "test_cases": [],
+      "json_schema": {
+        "type": "object",
+        "properties": {
+          "active": {
+            "type": "boolean"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ready"
+            ]
+          }
+        },
+        "required": [
+          "active",
+          "status"
+        ],
+        "additionalProperties": false
+      },
+      "required_constraints": [],
+      "maximum_output_tokens": 512,
+      "tags": [
+        "json",
+        "booleans"
+      ],
+      "is_unanswerable": false,
+      "judge_eligible": false,
+      "max_score": 1.0,
+      "source": "authored",
+      "notes": null,
+      "accepted_answers": [],
+      "key_facts": [],
+      "forbidden_claims": [],
+      "function_name": null,
+      "function_signature": null,
+      "numeric_tolerance": null,
+      "expected_unit": null
+    },
+    {
+      "id": "json-004",
+      "category": "structured_json",
+      "difficulty": "easy",
+      "prompt": "Return a JSON object representing a book with title set to Dune and year set to 1965.",
+      "system_instruction": null,
+      "expected_answer": null,
+      "evaluation_type": "json_schema",
+      "reference_answer": "{\"title\":\"Dune\",\"year\":1965}",
+      "test_cases": [],
+      "json_schema": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "const": "Dune"
+          },
+          "year": {
+            "type": "integer",
+            "const": 1965
+          }
+        },
+        "required": [
+          "title",
+          "year"
+        ],
+        "additionalProperties": false
+      },
+      "required_constraints": [],
+      "maximum_output_tokens": 512,
+      "tags": [
+        "json",
+        "object",
+        "literature"
+      ],
+      "is_unanswerable": false,
+      "judge_eligible": false,
+      "max_score": 1.0,
+      "source": "authored",
+      "notes": null,
+      "accepted_answers": [],
+      "key_facts": [],
+      "forbidden_claims": [],
+      "function_name": null,
+      "function_signature": null,
+      "numeric_tolerance": null,
+      "expected_unit": null
+    },
+    {
+      "id": "json-005",
+      "category": "structured_json",
+      "difficulty": "easy",
+      "prompt": "Return a JSON object with a colors array containing red, green, and blue in that order.",
+      "system_instruction": null,
+      "expected_answer": null,
+      "evaluation_type": "json_schema",
+      "reference_answer": "{\"colors\":[\"red\",\"green\",\"blue\"]}",
+      "test_cases": [],
+      "json_schema": {
+        "type": "object",
+        "properties": {
+          "colors": {
+            "type": "array",
+            "prefixItems": [
+              {
+                "const": "red"
+              },
+              {
+                "const": "green"
+              },
+              {
+                "const": "blue"
+              }
+            ],
+            "minItems": 3,
+            "maxItems": 3,
+            "items": false
+          }
+        },
+        "required": [
+          "colors"
+        ],
+        "additionalProperties": false
+      },
+      "required_constraints": [],
+      "maximum_output_tokens": 512,
+      "tags": [
+        "json",
+        "array",
+        "colors"
+      ],
+      "is_unanswerable": false,
+      "judge_eligible": false,
+      "max_score": 1.0,
+      "source": "authored",
+      "notes": null,
+      "accepted_answers": [],
+      "key_facts": [],
+      "forbidden_claims": [],
+      "function_name": null,
+      "function_signature": null,
+      "numeric_tolerance": null,
+      "expected_unit": null
+    },
+    {
+      "id": "json-006",
+      "category": "structured_json",
+      "difficulty": "medium",
+      "prompt": "Return a JSON object for a user with integer id 7, email sam@example.com, and roles admin and editor.",
+      "system_instruction": null,
+      "expected_answer": null,
+      "evaluation_type": "json_schema",
+      "reference_answer": "{\"id\":7,\"email\":\"sam@example.com\",\"roles\":[\"admin\",\"editor\"]}",
+      "test_cases": [],
+      "json_schema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "const": 7
+          },
+          "email": {
+            "type": "string",
+            "const": "sam@example.com"
+          },
+          "roles": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "minItems": 2,
+            "maxItems": 2
+          }
+        },
+        "required": [
+          "id",
+          "email",
+          "roles"
+        ],
+        "additionalProperties": false
+      },
+      "required_constraints": [],
+      "maximum_output_tokens": 512,
+      "tags": [
+        "json",
+        "nested",
+        "user"
+      ],
+      "is_unanswerable": false,
+      "judge_eligible": false,
+      "max_score": 1.0,
+      "source": "authored",
+      "notes": null,
+      "accepted_answers": [],
+      "key_facts": [],
+      "forbidden_claims": [],
+      "function_name": null,
+      "function_signature": null,
+      "numeric_tolerance": null,
+      "expected_unit": null
+    },
+    {
+      "id": "json-007",
+      "category": "structured_json",
+      "difficulty": "medium",
+      "prompt": "Return a JSON object with city Paris, temperature_c 18, and conditions partly cloudy.",
+      "system_instruction": null,
+      "expected_answer": null,
+      "evaluation_type": "json_schema",
+      "reference_answer": "{\"city\":\"Paris\",\"temperature_c\":18,\"conditions\":\"partly cloudy\"}",
+      "test_cases": [],
+      "json_schema": {
+        "type": "object",
+        "properties": {
+          "city": {
+            "type": "string",
+            "const": "Paris"
+          },
+          "temperature_c": {
+            "type": "number",
+            "const": 18
+          },
+          "conditions": {
+            "type": "string",
+            "const": "partly cloudy"
+          }
+        },
+        "required": [
+          "city",
+          "temperature_c",
+          "conditions"
+        ],
+        "additionalProperties": false
+      },
+      "required_constraints": [],
+      "maximum_output_tokens": 512,
+      "tags": [
+        "json",
+        "weather"
+      ],
+      "is_unanswerable": false,
+      "judge_eligible": false,
+      "max_score": 1.0,
+      "source": "authored",
+      "notes": null,
+      "accepted_answers": [],
+      "key_facts": [],
+      "forbidden_claims": [],
+      "function_name": null,
+      "function_signature": null,
+      "numeric_tolerance": null,
+      "expected_unit": null
+    },
+    {
+      "id": "json-008",
+      "category": "structured_json",
+      "difficulty": "medium",
+      "prompt": "Return a JSON array of two objects with product and price for a pen costing 2.50 and a notebook costing 4.00.",
+      "system_instruction": null,
+      "expected_answer": null,
+      "evaluation_type": "json_schema",
+      "reference_answer": "[{\"product\":\"pen\",\"price\":2.5},{\"product\":\"notebook\",\"price\":4.0}]",
+      "test_cases": [],
+      "json_schema": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "product": {
+              "type": "string"
+            },
+            "price": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "product",
+            "price"
+          ],
+          "additionalProperties": false
+        },
+        "minItems": 2,
+        "maxItems": 2
+      },
+      "required_constraints": [],
+      "maximum_output_tokens": 512,
+      "tags": [
+        "json",
+        "array",
+        "objects"
+      ],
+      "is_unanswerable": false,
+      "judge_eligible": false,
+      "max_score": 1.0,
+      "source": "authored",
+      "notes": null,
+      "accepted_answers": [],
+      "key_facts": [],
+      "forbidden_claims": [],
+      "function_name": null,
+      "function_signature": null,
+      "numeric_tolerance": null,
+      "expected_unit": null
+    },
+    {
+      "id": "json-009",
+      "category": "structured_json",
+      "difficulty": "medium",
+      "prompt": "Return a JSON object with a nested address object containing street 10 Main Street, city Springfield, and postal_code 12345.",
+      "system_instruction": null,
+      "expected_answer": null,
+      "evaluation_type": "json_schema",
+      "reference_answer": "{\"address\":{\"street\":\"10 Main Street\",\"city\":\"Springfield\",\"postal_code\":\"12345\"}}",
+      "test_cases": [],
+      "json_schema": {
+        "type": "object",
+        "properties": {
+          "address": {
+            "type": "object",
+            "properties": {
+              "street": {
+                "type": "string",
+                "const": "10 Main Street"
+              },
+              "city": {
+                "type": "string",
+                "const": "Springfield"
+              },
+              "postal_code": {
+                "type": "string",
+                "pattern": "^[0-9]{5}$"
+              }
+            },
+            "required": [
+              "street",
+              "city",
+              "postal_code"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "address"
+        ],
+        "additionalProperties": false
+      },
+      "required_constraints": [],
+      "maximum_output_tokens": 512,
+      "tags": [
+        "json",
+        "nested",
+        "address"
+      ],
+      "is_unanswerable": false,
+      "judge_eligible": false,
+      "max_score": 1.0,
+      "source": "authored",
+      "notes": null,
+      "accepted_answers": [],
+      "key_facts": [],
+      "forbidden_claims": [],
+      "function_name": null,
+      "function_signature": null,
+      "numeric_tolerance": null,
+      "expected_unit": null
+    },
+    {
+      "id": "json-010",
+      "category": "structured_json",
+      "difficulty": "medium",
+      "prompt": "Return a JSON object with tags as an array of exactly three unique strings and count equal to 3.",
+      "system_instruction": null,
+      "expected_answer": null,
+      "evaluation_type": "json_schema",
+      "reference_answer": "{\"tags\":[\"alpha\",\"beta\",\"gamma\"],\"count\":3}",
+      "test_cases": [],
+      "json_schema": {
+        "type": "object",
+        "properties": {
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "minItems": 3,
+            "maxItems": 3,
+            "uniqueItems": true
+          },
+          "count": {
+            "type": "integer",
+            "const": 3
+          }
+        },
+        "required": [
+          "tags",
+          "count"
+        ],
+        "additionalProperties": false
+      },
+      "required_constraints": [],
+      "maximum_output_tokens": 512,
+      "tags": [
+        "json",
+        "arrays",
+        "uniqueness"
+      ],
+      "is_unanswerable": false,
+      "judge_eligible": false,
+      "max_score": 1.0,
+      "source": "authored",
+      "notes": null,
+      "accepted_answers": [],
+      "key_facts": [],
+      "forbidden_claims": [],
+      "function_name": null,
+      "function_signature": null,
+      "numeric_tolerance": null,
+      "expected_unit": null
+    },
+    {
+      "id": "json-011",
+      "category": "structured_json",
+      "difficulty": "medium",
+      "prompt": "Return a JSON object with start and end dates in YYYY-MM-DD format for a project running from 2026-01-05 to 2026-02-10.",
+      "system_instruction": null,
+      "expected_answer": null,
+      "evaluation_type": "json_schema",
+      "reference_answer": "{\"start\":\"2026-01-05\",\"end\":\"2026-02-10\"}",
+      "test_cases": [],
+      "json_schema": {
+        "type": "object",
+        "properties": {
+          "start": {
+            "type": "string",
+            "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+          },
+          "end": {
+            "type": "string",
+            "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+          }
+        },
+        "required": [
+          "start",
+          "end"
+        ],
+        "additionalProperties": false
+      },
+      "required_constraints": [],
+      "maximum_output_tokens": 512,
+      "tags": [
+        "json",
+        "dates",
+        "pattern"
+      ],
+      "is_unanswerable": false,
+      "judge_eligible": false,
+      "max_score": 1.0,
+      "source": "authored",
+      "notes": null,
+      "accepted_answers": [],
+      "key_facts": [],
+      "forbidden_claims": [],
+      "function_name": null,
+      "function_signature": null,
+      "numeric_tolerance": null,
+      "expected_unit": null
+    },
+    {
+      "id": "json-012",
+      "category": "structured_json",
+      "difficulty": "medium",
+      "prompt": "Return a JSON object with enabled set to false and retries set to 3, and include no other fields.",
+      "system_instruction": null,
+      "expected_answer": null,
+      "evaluation_type": "json_schema",
+      "reference_answer": "{\"enabled\":false,\"retries\":3}",
+      "test_cases": [],
+      "json_schema": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "const": false
+          },
+          "retries": {
+            "type": "integer",
+            "const": 3
+          }
+        },
+        "required": [
+          "enabled",
+          "retries"
+        ],
+        "additionalProperties": false
+      },
+      "required_constraints": [],
+      "maximum_output_tokens": 512,
+      "tags": [
+        "json",
+        "configuration"
+      ],
+      "is_unanswerable": false,
+      "judge_eligible": false,
+      "max_score": 1.0,
+      "source": "authored",
+      "notes": null,
+      "accepted_answers": [],
+      "key_facts": [],
+      "forbidden_claims": [],
+      "function_name": null,
+      "function_signature": null,
+      "numeric_tolerance": null,
+      "expected_unit": null
+    },
+    {
+      "id": "json-013",
+      "category": "structured_json",
+      "difficulty": "hard",
+      "prompt": "Return a JSON object with order_id A-100, a non-empty items array containing sku X1 with quantity 2, and total 19.98.",
+      "system_instruction": null,
+      "expected_answer": null,
+      "evaluation_type": "json_schema",
+      "reference_answer": "{\"order_id\":\"A-100\",\"items\":[{\"sku\":\"X1\",\"quantity\":2}],\"total\":19.98}",
+      "test_cases": [],
+      "json_schema": {
+        "type": "object",
+        "properties": {
+          "order_id": {
+            "type": "string",
+            "const": "A-100"
+          },
+          "items": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "properties": {
+                "sku": {
+                  "type": "string",
+                  "const": "X1"
+                },
+                "quantity": {
+                  "type": "integer",
+                  "const": 2
+                }
+              },
+              "required": [
+                "sku",
+                "quantity"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "total": {
+            "type": "number",
+            "const": 19.98
+          }
+        },
+        "required": [
+          "order_id",
+          "items",
+          "total"
+        ],
+        "additionalProperties": false
+      },
+      "required_constraints": [],
+      "maximum_output_tokens": 512,
+      "tags": [
+        "json",
+        "nested",
+        "orders"
+      ],
+      "is_unanswerable": false,
+      "judge_eligible": false,
+      "max_score": 1.0,
+      "source": "authored",
+      "notes": null,
+      "accepted_answers": [],
+      "key_facts": [],
+      "forbidden_claims": [],
+      "function_name": null,
+      "function_signature": null,
+      "numeric_tolerance": null,
+      "expected_unit": null
+    },
+    {
+      "id": "json-014",
+      "category": "structured_json",
+      "difficulty": "hard",
+      "prompt": "Return a JSON object with matrix [[1,2],[3,4]] and determinant -2, using exactly two rows of two integers each.",
+      "system_instruction": null,
+      "expected_answer": null,
+      "evaluation_type": "json_schema",
+      "reference_answer": "{\"matrix\":[[1,2],[3,4]],\"determinant\":-2}",
+      "test_cases": [],
+      "json_schema": {
+        "type": "object",
+        "properties": {
+          "matrix": {
+            "type": "array",
+            "prefixItems": [
+              {
+                "type": "array",
+                "prefixItems": [
+                  {
+                    "const": 1
+                  },
+                  {
+                    "const": 2
+                  }
+                ],
+                "minItems": 2,
+                "maxItems": 2,
+                "items": false
+              },
+              {
+                "type": "array",
+                "prefixItems": [
+                  {
+                    "const": 3
+                  },
+                  {
+                    "const": 4
+                  }
+                ],
+                "minItems": 2,
+                "maxItems": 2,
+                "items": false
+              }
+            ],
+            "minItems": 2,
+            "maxItems": 2,
+            "items": false
+          },
+          "determinant": {
+            "type": "integer",
+            "const": -2
+          }
+        },
+        "required": [
+          "matrix",
+          "determinant"
+        ],
+        "additionalProperties": false
+      },
+      "required_constraints": [],
+      "maximum_output_tokens": 512,
+      "tags": [
+        "json",
+        "nested-arrays",
+        "math"
+      ],
+      "is_unanswerable": false,
+      "judge_eligible": false,
+      "max_score": 1.0,
+      "source": "authored",
+      "notes": null,
+      "accepted_answers": [],
+      "key_facts": [],
+      "forbidden_claims": [],
+      "function_name": null,
+      "function_signature": null,
+      "numeric_tolerance": null,
+      "expected_unit": null
+    },
+    {
+      "id": "json-015",
+      "category": "structured_json",
+      "difficulty": "hard",
+      "prompt": "Return a JSON object with name demo, version 1.0.0, and dependencies mapping fastapi to 0.115.0 and pydantic to 2.9.0.",
+      "system_instruction": null,
+      "expected_answer": null,
+      "evaluation_type": "json_schema",
+      "reference_answer": "{\"name\":\"demo\",\"version\":\"1.0.0\",\"dependencies\":{\"fastapi\":\"0.115.0\",\"pydantic\":\"2.9.0\"}}",
+      "test_cases": [],
+      "json_schema": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "const": "demo"
+          },
+          "version": {
+            "type": "string",
+            "const": "1.0.0"
+          },
+          "dependencies": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "name",
+          "version",
+          "dependencies"
+        ],
+        "additionalProperties": false
+      },
+      "required_constraints": [],
+      "maximum_output_tokens": 512,
+      "tags": [
+        "json",
+        "dependencies",
+        "nested"
+      ],
+      "is_unanswerable": false,
+      "judge_eligible": false,
+      "max_score": 1.0,
+      "source": "authored",
+      "notes": null,
+      "accepted_answers": [],
+      "key_facts": [],
+      "forbidden_claims": [],
+      "function_name": null,
+      "function_signature": null,
+      "numeric_tolerance": null,
+      "expected_unit": null
+    },
+    {
+      "id": "sum-001",
+      "category": "summarization",
+      "difficulty": "easy",
+      "prompt": "Summarize the following passage in one sentence: Honeybee colonies are organized around a queen, who lays eggs, and thousands of worker bees, who gather nectar and pollen, build comb, and care for larvae. A colony can contain tens of thousands of bees working together.",
+      "system_instruction": null,
+      "expected_answer": null,
+      "evaluation_type": "reference_overlap",
+      "reference_answer": "Honeybee colonies are highly organized societies in which a queen lays eggs while thousands of workers gather food, build comb, and raise larvae.",
+      "test_cases": [],
+      "json_schema": null,
+      "required_constraints": [],
+      "maximum_output_tokens": 256,
+      "tags": [
+        "summarization",
+        "biology"
+      ],
+      "is_unanswerable": false,
+      "judge_eligible": true,
+      "max_score": 1.0,
+      "source": "authored",
+      "notes": null,
+      "accepted_answers": [],
+      "key_facts": [
+        "honeybee colonies are organized",
+        "a queen lays eggs",
+        "workers gather nectar and pollen",
+        "workers build comb and care for larvae"
+      ],
+      "forbidden_claims": [],
+      "function_name": null,
+      "function_signature": null,
+      "numeric_tolerance": null,
+      "expected_unit": null
+    },
+    {
+      "id": "sum-002",
+      "category": "summarization",
+      "difficulty": "easy",
+      "prompt": "Summarize the following passage in one sentence: Recycling reduces the amount of waste sent to landfills, conserves raw materials, and saves energy. Aluminum cans, glass bottles, paper, and many plastics can be recycled. Contamination, such as food residue or mixed materials, can prevent otherwise recyclable items from being processed.",
+      "system_instruction": null,
+      "expected_answer": null,
+      "evaluation_type": "reference_overlap",
+      "reference_answer": "Recycling conserves materials and energy while reducing landfill waste, but contamination can prevent recyclable items from being processed.",
+      "test_cases": [],
+      "json_schema": null,
+      "required_constraints": [],
+      "maximum_output_tokens": 256,
+      "tags": [
+        "summarization",
+        "environment"
+      ],
+      "is_unanswerable": false,
+      "judge_eligible": true,
+      "max_score": 1.0,
+      "source": "authored",
+      "notes": null,
+      "accepted_answers": [],
+      "key_facts": [
+        "recycling reduces landfill waste",
+        "recycling conserves raw materials",
+        "recycling saves energy",
+        "contamination can prevent processing"
+      ],
+      "forbidden_claims": [],
+      "function_name": null,
+      "function_signature": null,
+      "numeric_tolerance": null,
+      "expected_unit": null
+    },
+    {
+      "id": "sum-003",
+      "category": "summarization",
+      "difficulty": "medium",
+      "prompt": "Summarize the following passage in two sentences: Sleep plays a central role in memory consolidation. During deep sleep, the brain replays patterns of activity from the day and strengthens connections between neurons. REM sleep is associated with emotional processing and creative problem solving. People who are consistently sleep-deprived perform worse on tasks that require attention and recall.",
+      "system_instruction": null,
+      "expected_answer": null,
+      "evaluation_type": "reference_overlap",
+      "reference_answer": "Sleep supports memory consolidation by strengthening neural connections and replaying daytime activity, while REM sleep aids emotional processing and creativity. Consistent sleep deprivation impairs attention and recall.",
+      "test_cases": [],
+      "json_schema": null,
+      "required_constraints": [],
+      "maximum_output_tokens": 256,
+      "tags": [
+        "summarization",
+        "neuroscience"
+      ],
+      "is_unanswerable": false,
+      "judge_eligible": true,
+      "max_score": 1.0,
+      "source": "authored",
+      "notes": null,
+      "accepted_answers": [],
+      "key_facts": [
+        "sleep supports memory consolidation",
+        "deep sleep strengthens neural connections",
+        "REM sleep aids emotional processing and creativity",
+        "sleep deprivation impairs attention and recall"
+      ],
+      "forbidden_claims": [],
+      "function_name": null,
+      "function_signature": null,
+      "numeric_tolerance": null,
+      "expected_unit": null
+    },
+    {
+      "id": "sum-004",
+      "category": "summarization",
+      "difficulty": "medium",
+      "prompt": "Summarize the following passage in two sentences: Urban trees provide shade that lowers surface temperatures and reduces the energy needed for cooling. Their roots help absorb stormwater, which can lessen flooding during heavy rain. Trees also improve air quality by trapping particulate matter and offer habitat for birds and insects. However, young trees require regular watering and maintenance to survive in dense cities.",
+      "system_instruction": null,
+      "expected_answer": null,
+      "evaluation_type": "reference_overlap",
+      "reference_answer": "Urban trees cool streets, absorb stormwater, improve air quality, and provide habitat, but young trees need regular care to survive in dense cities.",
+      "test_cases": [],
+      "json_schema": null,
+      "required_constraints": [],
+      "maximum_output_tokens": 256,
+      "tags": [
+        "summarization",
+        "cities",
+        "environment"
+      ],
+      "is_unanswerable": false,
+      "judge_eligible": true,
+      "max_score": 1.0,
+      "source": "authored",
+      "notes": null,
+      "accepted_answers": [],
+      "key_facts": [
+        "urban trees provide shade and reduce cooling energy",
+        "tree roots absorb stormwater",
+        "trees improve air quality",
+        "trees provide habitat",
+        "young trees require maintenance"
+      ],
+      "forbidden_claims": [],
+      "function_name": null,
+      "function_signature": null,
+      "numeric_tolerance": null,
+      "expected_unit": null
+    },
+    {
+      "id": "sum-005",
+      "category": "summarization",
+      "difficulty": "medium",
+      "prompt": "Summarize the following passage in two sentences: The water cycle moves water between the ocean, atmosphere, and land. Heat from the sun causes water to evaporate from oceans, lakes, and soil. Water vapor rises, cools, and condenses into clouds. Precipitation returns water to the surface, where it flows into rivers, soaks into the ground, or is stored in ice and snow.",
+      "system_instruction": null,
+      "expected_answer": null,
+      "evaluation_type": "reference_overlap",
+      "reference_answer": "Solar heat evaporates water, which condenses into clouds and returns as precipitation that flows across land or is stored as ice and snow. This cycle continuously moves water between the ocean, atmosphere, and land.",
+      "test_cases": [],
+      "json_schema": null,
+      "required_constraints": [],
+      "maximum_output_tokens": 256,
+      "tags": [
+        "summarization",
+        "earth-science"
+      ],
+      "is_unanswerable": false,
+      "judge_eligible": true,
+      "max_score": 1.0,
+      "source": "authored",
+      "notes": null,
+      "accepted_answers": [],
+      "key_facts": [
+        "the water cycle moves water between ocean atmosphere and land",
+        "solar heat causes evaporation",
+        "water vapor condenses into clouds",
+        "precipitation returns water to the surface",
+        "water is stored in ice and snow"
+      ],
+      "forbidden_claims": [],
+      "function_name": null,
+      "function_signature": null,
+      "numeric_tolerance": null,
+      "expected_unit": null
+    },
+    {
+      "id": "sum-006",
+      "category": "summarization",
+      "difficulty": "medium",
+      "prompt": "Summarize the following passage in two sentences: Remote work can reduce commuting time and give employees more flexibility over their schedules. It can also widen hiring pools because companies are no longer limited to local candidates. At the same time, remote employees may report isolation and difficulty separating work from personal life. Organizations often address these issues with regular check-ins, clear communication norms, and occasional in-person meetings.",
+      "system_instruction": null,
+      "expected_answer": null,
+      "evaluation_type": "reference_overlap",
+      "reference_answer": "Remote work offers flexibility, shorter commutes, and broader hiring, but can cause isolation and work-life blurring that organizations mitigate through communication and occasional in-person contact.",
+      "test_cases": [],
+      "json_schema": null,
+      "required_constraints": [],
+      "maximum_output_tokens": 256,
+      "tags": [
+        "summarization",
+        "workplace"
+      ],
+      "is_unanswerable": false,
+      "judge_eligible": true,
+      "max_score": 1.0,
+      "source": "authored",
+      "notes": null,
+      "accepted_answers": [],
+      "key_facts": [
+        "remote work reduces commuting time",
+        "remote work provides schedule flexibility",
+        "remote work widens hiring pools",
+        "remote workers may experience isolation",
+        "organizations use check-ins and in-person meetings"
+      ],
+      "forbidden_claims": [],
+      "function_name": null,
+      "function_signature": null,
+      "numeric_tolerance": null,
+      "expected_unit": null
+    },
+    {
+      "id": "sum-007",
+      "category": "summarization",
+      "difficulty": "medium",
+      "prompt": "Summarize the following passage in two sentences: The Mediterranean diet emphasizes vegetables, fruits, whole grains, legumes, nuts, and olive oil. Fish and poultry are eaten in moderation, while red meat and processed foods are limited. Studies associate the pattern with lower rates of heart disease and longer life expectancy. The diet is also valued for being flexible and enjoyable rather than highly restrictive.",
+      "system_instruction": null,
+      "expected_answer": null,
+      "evaluation_type": "reference_overlap",
+      "reference_answer": "The Mediterranean diet emphasizes plant foods, olive oil, fish, and poultry while limiting red meat and processed foods, and is linked to better heart health and longevity. It is flexible and enjoyable rather than highly restrictive.",
+      "test_cases": [],
+      "json_schema": null,
+      "required_constraints": [],
+      "maximum_output_tokens": 256,
+      "tags": [
+        "summarization",
+        "nutrition"
+      ],
+      "is_unanswerable": false,
+      "judge_eligible": true,
+      "max_score": 1.0,
+      "source": "authored",
+      "notes": null,
+      "accepted_answers": [],
+      "key_facts": [
+        "the diet emphasizes vegetables fruits whole grains legumes nuts and olive oil",
+        "fish and poultry are eaten in moderation",
+        "red meat and processed foods are limited",
+        "the diet is linked to lower heart disease and longer life expectancy",
+        "the diet is flexible"
+      ],
+      "forbidden_claims": [],
+      "function_name": null,
+      "function_signature": null,
+      "numeric_tolerance": null,
+      "expected_unit": null
+    },
+    {
+      "id": "sum-008",
+      "category": "summarization",
+      "difficulty": "hard",
+      "prompt": "Summarize the following passage in two sentences: Quantum computers use qubits, which can exist in superpositions of zero and one. This property may allow certain problems, such as factoring large numbers or simulating molecules, to be solved much faster than with classical computers. However, qubits are highly sensitive to noise and require extreme cooling and error correction. Building a large, reliable quantum computer remains a major engineering challenge.",
+      "system_instruction": null,
+      "expected_answer": null,
+      "evaluation_type": "reference_overlap",
+      "reference_answer": "Quantum computers exploit qubit superpositions to potentially solve problems such as factoring and molecular simulation faster than classical machines. Their sensitivity to noise and need for extreme cooling and error correction still make large reliable systems an engineering challenge.",
+      "test_cases": [],
+      "json_schema": null,
+      "required_constraints": [],
+      "maximum_output_tokens": 256,
+      "tags": [
+        "summarization",
+        "quantum-computing"
+      ],
+      "is_unanswerable": false,
+      "judge_eligible": true,
+      "max_score": 1.0,
+      "source": "authored",
+      "notes": null,
+      "accepted_answers": [],
+      "key_facts": [
+        "quantum computers use qubits",
+        "qubits can exist in superpositions",
+        "quantum computers may solve factoring and molecular simulation faster",
+        "qubits are sensitive to noise",
+        "quantum computers require extreme cooling and error correction"
+      ],
+      "forbidden_claims": [],
+      "function_name": null,
+      "function_signature": null,
+      "numeric_tolerance": null,
+      "expected_unit": null
+    },
+    {
+      "id": "sum-009",
+      "category": "summarization",
+      "difficulty": "hard",
+      "prompt": "Summarize the main findings of the 2026 clinical trial on the fictional drug Neuroclear, including its sample size and primary outcome.",
+      "system_instruction": null,
+      "expected_answer": null,
+      "evaluation_type": "refusal_check",
+      "reference_answer": "No summary can be provided because Neuroclear and the described 2026 clinical trial are fictional; no findings, sample size, or primary outcome exist.",
+      "test_cases": [],
+      "json_schema": null,
+      "required_constraints": [],
+      "maximum_output_tokens": 256,
+      "tags": [
+        "unanswerable",
+        "fictional-medicine",
+        "summarization"
+      ],
+      "is_unanswerable": true,
+      "judge_eligible": false,
+      "max_score": 1.0,
+      "source": "authored",
+      "notes": null,
+      "accepted_answers": [],
+      "key_facts": [],
+      "forbidden_claims": [
+        "Neuroclear reduced",
+        "The trial enrolled",
+        "The sample size was",
+        "The primary outcome was",
+        "Neuroclear was effective"
+      ],
+      "function_name": null,
+      "function_signature": null,
+      "numeric_tolerance": null,
+      "expected_unit": null
+    },
+    {
+      "id": "sum-010",
+      "category": "summarization",
+      "difficulty": "hard",
+      "prompt": "Summarize the following passage in two sentences: The Industrial Revolution began in Britain in the late eighteenth century and spread across Europe and North America. Mechanized textile production, steam power, and railways transformed manufacturing and transportation. Cities grew rapidly as workers moved from farms to factories. The period brought rising productivity and new consumer goods, but also crowded housing, dangerous working conditions, and pollution.",
+      "system_instruction": null,
+      "expected_answer": null,
+      "evaluation_type": "reference_overlap",
+      "reference_answer": "The Industrial Revolution spread mechanized textile production, steam power, and railways from Britain across Europe and North America, driving rapid urban growth and productivity gains. It also produced crowded housing, unsafe working conditions, and pollution.",
+      "test_cases": [],
+      "json_schema": null,
+      "required_constraints": [],
+      "maximum_output_tokens": 256,
+      "tags": [
+        "summarization",
+        "history"
+      ],
+      "is_unanswerable": false,
+      "judge_eligible": true,
+      "max_score": 1.0,
+      "source": "authored",
+      "notes": null,
+      "accepted_answers": [],
+      "key_facts": [
+        "the Industrial Revolution began in Britain",
+        "mechanized textile production transformed manufacturing",
+        "steam power and railways transformed transportation",
+        "cities grew as workers moved from farms",
+        "the period brought productivity gains and consumer goods",
+        "it also brought crowded housing dangerous work and pollution"
+      ],
+      "forbidden_claims": [],
+      "function_name": null,
+      "function_signature": null,
+      "numeric_tolerance": null,
+      "expected_unit": null
+    }
+  ]
+}

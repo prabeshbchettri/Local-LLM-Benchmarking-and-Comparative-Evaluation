@@ -1,4 +1,4 @@
-"""
+﻿"""
 File: health.py
 
 Description:
@@ -17,15 +17,17 @@ import platform
 import shutil
 import sys
 from dataclasses import dataclass
+from importlib.metadata import version as package_version
 from pathlib import Path
 from typing import Literal
 
 import httpx
+import jsonschema
 import pydantic
 import yaml
 
 from benchmark.core.config import AppSettings, load_settings
-from benchmark.core.exceptions import BenchmarkError, OllamaError
+from benchmark.core.exceptions import BenchmarkError, DatasetError, OllamaError
 from benchmark.core.paths import get_config_dir, get_project_root
 from benchmark.core.startup import ensure_runtime_directories
 from benchmark.execution.ollama_client import OllamaClient
@@ -72,6 +74,7 @@ def _python_check() -> CheckResult:
 def _dependency_checks() -> list[CheckResult]:
     return [
         CheckResult("httpx", "ok", f"httpx {httpx.__version__}"),
+        CheckResult("jsonschema", "ok", f"jsonschema {package_version('jsonschema')}"),
         CheckResult("pydantic", "ok", f"pydantic {pydantic.VERSION}"),
         CheckResult("pyyaml", "ok", f"PyYAML {yaml.__version__}"),
     ]
@@ -120,6 +123,28 @@ def _disk_check(settings: AppSettings) -> CheckResult:
     return CheckResult("disk_space", "ok", f"{free / 1024**3:.1f} GiB free")
 
 
+def _dataset_check(settings: AppSettings) -> CheckResult:
+    dataset_path = settings.benchmark.dataset_path
+    if not dataset_path.is_file():
+        return CheckResult(
+            "dataset_file",
+            "warn",
+            f"Not present yet: {dataset_path}; expected in Phase 03",
+        )
+    try:
+        from benchmark.dataset.loader import load_dataset
+
+        dataset = load_dataset(dataset_path)
+    except DatasetError as exc:
+        return CheckResult("dataset_file", "fail", str(exc))
+    return CheckResult(
+        "dataset_file",
+        "ok",
+        f"{dataset.name} v{dataset.version}; {len(dataset.items)} items; "
+        f"SHA-256 {dataset.content_sha256[:16]}...",
+    )
+
+
 def _runtime_checks(settings: AppSettings) -> list[CheckResult]:
     checks: list[CheckResult] = []
     try:
@@ -134,17 +159,7 @@ def _runtime_checks(settings: AppSettings) -> list[CheckResult]:
             ", ".join(str(path) for path in directories),
         )
     )
-    dataset_path = settings.benchmark.dataset_path
-    if dataset_path.is_file():
-        checks.append(CheckResult("dataset_file", "ok", str(dataset_path)))
-    else:
-        checks.append(
-            CheckResult(
-                "dataset_file",
-                "warn",
-                f"Not present yet: {dataset_path}; expected in Phase 03",
-            )
-        )
+    checks.append(_dataset_check(settings))
     checks.append(_disk_check(settings))
     checks.append(_ollama_check(settings))
     return checks

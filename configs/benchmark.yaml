@@ -1,6 +1,6 @@
 name: local-llm-benchmark
 version: "1.0.0"
-dataset_path: data/datasets/benchmark_v1.0.0.jsonl
+dataset_path: data/datasets/benchmark_v1.json
 random_seed: 42
 request_timeout_seconds: 300
 performance_repeats: 5

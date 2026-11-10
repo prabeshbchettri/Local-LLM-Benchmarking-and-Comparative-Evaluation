@@ -26,6 +26,14 @@ class StartupError(BenchmarkError):
     """Raised when runtime directories or application initialization fail."""
 
 
+class DatasetError(BenchmarkError):
+    """Base exception for dataset loading and export failures."""
+
+
+class DatasetValidationError(DatasetError):
+    """Raised when a dataset, probe, or item fails validation."""
+
+
 class OllamaError(BenchmarkError):
     """Base exception for Ollama client and model management failures."""
 
@@ -89,3 +97,19 @@ class ModelQuantizationMismatchError(OllamaError):
 
 class InferenceError(OllamaError):
     """Raised when a test inference request fails or returns an invalid result."""
+
+
+class InferenceTimeoutError(InferenceError):
+    """Raised when a streaming inference request exceeds its timeout."""
+
+
+class StreamParseError(InferenceError):
+    """Raised when a streaming response is malformed or incomplete."""
+
+
+class EmptyResponseError(InferenceError):
+    """Raised when a completed inference response contains no content."""
+
+
+class InferenceCancelledError(InferenceError):
+    """Raised when an inference request is cancelled by the caller."""

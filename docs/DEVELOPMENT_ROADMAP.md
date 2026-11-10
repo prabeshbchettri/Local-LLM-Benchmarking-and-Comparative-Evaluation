@@ -4,10 +4,10 @@
 
 | Field | Value |
 |---|---|
-| Document version | 1.0.0 |
-| Status | Phase 00 complete; Phase 01 complete; Phase 02 complete (pending approval) |
+| Document version | 1.2.0 |
+| Status | Phase 00 complete; Phase 01 complete; Phase 02 complete; Phase 03 complete (pending approval); Phase 04 complete (pending approval) |
 | Date | 2026-11-10 |
-| Related documents | `PROJECT_REQUIREMENTS.md`, `EXPERIMENTAL_METHODOLOGY.md`, `METRICS_DEFINITIONS.md`, `ARCHITECTURE.md` |
+| Related documents | `PROJECT_REQUIREMENTS.md`, `EXPERIMENTAL_METHODOLOGY.md`, `METRICS_DEFINITIONS.md`, `ARCHITECTURE.md`, `DATASET_GUIDE.md` |
 
 ---
 
@@ -42,9 +42,9 @@
 |---|---|---|---|
 | 00 | Requirements and experimental design | Complete | Five baseline documents |
 | 01 | Project structure and environment setup | Complete | Installable skeleton, config, logging, preflight |
-| 02 | Model setup and metadata collection | Complete (pending approval) | Ollama client, registry, metadata, pull workflow |
-| 03 | Benchmark dataset development | Planned | Validated 100-item dataset and probes |
-| 04 | Inference engine development | Planned | Streaming inference with timing |
+| 02 | Model setup and metadata collection | Complete | Ollama client, registry, metadata, pull workflow |
+| 03 | Benchmark dataset development | Complete (pending approval) | Validated 100-item dataset and probes |
+| 04 | Inference engine development | Complete (pending approval) | Streaming inference with timing |
 | 05 | Hardware monitoring engine | Planned | CPU/RAM/GPU/VRAM sampler and summaries |
 | 06 | Evaluation engine development | Planned | Deterministic evaluators, sandbox, judge, scoring |
 | 07 | Database and experiment management | Planned | SQLite schema, repositories, orchestrator, resume |
@@ -294,25 +294,27 @@ Author, validate, and version the 100-item benchmark dataset and the performance
 
 ### Deliverables
 
-- `data/datasets/benchmark_v1.0.0.jsonl`.
+- `data/datasets/benchmark_v1.json` (canonical dataset).
+- `data/datasets/benchmark_v1.0.0.jsonl` and `benchmark_v1.0.0.manifest.json` (compatibility export).
 - `data/datasets/probes/performance_v1.0.0.json`.
 - `data/datasets/probes/consistency_v1.0.0.json`.
 - `data/datasets/schemas/benchmark_item.schema.json`.
 - `src/benchmark/dataset/models.py`, `loader.py`, `validation.py`.
 - `scripts/validate_dataset.py`.
-- Dataset tests.
+- `docs/DATASET_GUIDE.md`.
+- Dataset unit and integration tests.
 
-### Key decisions to implement
+### Key decisions implemented
 
 - Exactly 100 items with the required category counts.
 - Six unanswerable items embedded in existing categories.
-- Difficulty distribution recorded.
-- Stable item IDs.
-- Evaluation configurations for each item.
-- SHA-256 content hash.
+- Difficulty distribution: 30 easy, 47 medium, 23 hard.
+- Stable category-prefixed item IDs.
+- Item-level evaluation configurations and accepted-answer alternatives.
+- Canonical SHA-256 content hash over sorted item payloads.
 - Deterministic ordering with seed 42.
-- No answer leakage.
-- Original content only.
+- Canonical JSON source of truth with deterministic JSONL compatibility export.
+- No answer leakage and original content only.
 
 ### Acceptance criteria
 
@@ -322,12 +324,20 @@ Author, validate, and version the 100-item benchmark dataset and the performance
 - Every item has an expected answer or reference and an evaluation method.
 - Coding items include function signatures and tests.
 - JSON items include schemas.
-- Summarization items include source text and length constraints.
-- Loader rejects duplicate IDs, missing fields, unknown categories, and invalid evaluation methods.
+- Summarization items include source text and key facts.
+- Loader rejects duplicate IDs, missing fields, unknown categories, invalid evaluation methods, hash mismatches, and invalid item JSON Schemas.
 - Hash is stable and stored.
 - Probes are versioned and validated.
 - Tests pass.
 - Full project scan performed.
+
+### Implementation status
+
+- Completed: dataset/probe models, canonical JSON and JSONL loading, hash verification, item JSON Schema validation, validation summaries, generated schema, validation CLI, documentation, and tests.
+- Verified: 100 items; 30/47/23 difficulty; 6 unanswerable items; 9 performance prompts; 10 consistency items; all 58 coding test cases pass against reference solutions; all 32 instruction-constraint checks pass against reference answers.
+- Validation: `scripts/validate_dataset.py` reports `Status: VALID`; canonical JSON and JSONL exports produce the same 100 IDs and SHA-256 `ceafe917235213c710da9e3b6a1ceecb86ba519b214581f683191c51358e46f1`.
+- Full project scan: `compileall` passed; full suite `93 passed, 1 skipped`; health passed with the expected warning for the two missing candidate models.
+- Pending: user approval of Phase 03 and Phase 04.
 
 ### Dependencies
 
@@ -369,7 +379,7 @@ Implement streaming inference with client-side timing, Ollama metadata capture, 
 - Response record model.
 - Interim JSONL response log (until Phase 07 database).
 - Unit tests with mock streaming responses.
-- Optional live smoke test with `qwen2.5:3b`.
+- Optional live smoke test with an installed model.
 
 ### Key decisions to implement
 
@@ -394,9 +404,19 @@ Implement streaming inference with client-side timing, Ollama metadata capture, 
 - Tests cover normal, empty, malformed, timeout, and cancellation cases.
 - Full project scan performed.
 
+### Implementation status (2026-11-10)
+
+- Implemented in `src/benchmark/execution/engine.py`, `streaming.py`, and `timing.py`; response schemas live in `src/benchmark/models/inference.py`.
+- `benchmark infer` supports model and item selection, repeats, warm-up, cold start, output caps, cooldowns, cancellation, `--json`, and interim JSONL logs.
+- Unit and CLI tests cover success, empty responses, malformed streams, timeout mapping, cancellation, warm-up exclusion, cold-start ordering, and sequential execution.
+- Full suite: 117 passed, 1 skipped. The skip is the opt-in live Ollama integration test.
+- Live smoke used installed candidate `llama3.1:8b` with five dataset items and one warm-up. Experiment `20261110T052647Z-afd1e4d4` produced six records, all `success`/`stop`; output is `data/results/inference_20261110T052647Z-afd1e4d4.jsonl`.
+- Measured TTFT ranged from 0.173s to 1.485s and total latency from 5.251s to 17.588s for the five-question smoke. These are smoke measurements, not a three-model comparison.
+- An earlier 128-token smoke (`20261110T052432Z-2bf63c08`) was superseded because `json-002` reached the output cap.
+
 ### Dependencies
 
-- Phases 01–03.
+- Phases 01-03.
 
 ### Risks
 
@@ -499,7 +519,7 @@ Implement deterministic evaluators, the restricted code runner, the LLM judge, a
 
 ### Key decisions to implement
 
-- Evaluator registry by `evaluation_method`.
+- Evaluator registry by `evaluation_type`.
 - Exact match normalization.
 - Numeric tolerance.
 - Code extraction and subprocess tests.
@@ -1003,6 +1023,6 @@ A phase is done only when:
 
 ## 22. Immediate next step
 
-Phase 02 is complete pending user approval.
+Phases 03 and 04 are complete pending user approval.
 
-When approved, provide the Phase 03 prompt. Phase 03 will author and validate the versioned 100-item benchmark dataset, performance probe, consistency probe, JSON Schema, loader, and dataset tests. Model pulls remain a separate explicit action and are not started automatically by Phase 03.
+When approved, provide the Phase 05 prompt. Phase 05 will implement periodic CPU, RAM, Ollama process, GPU, VRAM, and temperature sampling with baseline/inference windows and honest availability flags. Model pulls remain a separate explicit action and are not started automatically by any phase.

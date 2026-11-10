@@ -12,6 +12,8 @@ from benchmark.core.config import AppSettings, compute_config_hash, load_setting
 from benchmark.core.exceptions import (
     BenchmarkError,
     ConfigurationError,
+    DatasetError,
+    DatasetValidationError,
     InferenceError,
     InvalidModelTagError,
     LoggingError,
@@ -39,6 +41,8 @@ __all__ = [
     "BenchmarkError",
     "CheckResult",
     "ConfigurationError",
+    "DatasetError",
+    "DatasetValidationError",
     "HealthReport",
     "InferenceError",
     "InvalidModelTagError",
