@@ -1,0 +1,16 @@
+rubric_version: "1.0.0"
+judge_temperature: 0.0
+judge_seed: 42
+judge_context_length: 4096
+judge_max_output_tokens: 300
+manual_validation_fraction: 0.1
+reliability_sample_fraction: 0.1
+reliability_temperature: 0.7
+category_judge_weights:
+  general_knowledge: 0.30
+  logical_reasoning: 0.30
+  mathematical_reasoning: 0.10
+  coding: 0.10
+  instruction_following: 0.10
+  structured_json: 0.10
+  summarization: 0.40

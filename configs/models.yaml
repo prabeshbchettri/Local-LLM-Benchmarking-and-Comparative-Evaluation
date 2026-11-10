@@ -1,0 +1,18 @@
+ollama_base_url: http://127.0.0.1:11434
+keep_alive: "30m"
+candidates:
+  - name: Llama 3.1 8B Instruct
+    tag: "llama3.1:8b"
+    expected_digest: "46e0c10c039e019119339687c3c1757cc81b9da49709a3b3924863ba87ca666e"
+    expected_quantization: Q4_K_M
+  - name: Qwen 2.5 7B Instruct
+    tag: "qwen2.5:7b-instruct"
+    expected_quantization: Q4_K_M
+  - name: Mistral 7B Instruct v0.3
+    tag: "mistral:7b-instruct-v0.3-q4_K_M"
+    expected_quantization: Q4_K_M
+judge:
+  name: Qwen 2.5 3B Judge
+  tag: "qwen2.5:3b"
+  expected_digest: "357c53fb659c5076de1d65ccb0b397446227b71a42be9d1603d46168015c9e4b"
+  expected_quantization: Q4_K_M

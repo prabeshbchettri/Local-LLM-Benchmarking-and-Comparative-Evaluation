@@ -1,0 +1,42 @@
+[build-system]
+requires = ["setuptools>=75"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "local-llm-benchmark"
+version = "0.1.0"
+description = "Local LLM benchmarking and comparative evaluation framework."
+readme = "README.md"
+requires-python = ">=3.13,<3.14"
+dependencies = [
+    "httpx==0.28.1",
+    "pydantic==2.12.5",
+    "PyYAML==6.0.3",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest==8.3.4",
+]
+
+[project.scripts]
+benchmark = "benchmark.__main__:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = "-ra --strict-markers"
+markers = [
+    "unit: fast unit tests",
+    "integration: tests that initialize or invoke the application",
+    "evaluation: evaluator tests",
+    "performance: performance tests",
+    "slow: long-running tests",
+    "ollama: tests that require a live Ollama server",
+]
