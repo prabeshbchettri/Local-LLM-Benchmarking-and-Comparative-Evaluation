@@ -4,8 +4,8 @@
 
 | Field | Value |
 |---|---|
-| Document version | 1.2.0 |
-| Status | Phase 00 complete; Phase 01 complete; Phase 02 complete; Phase 03 complete (pending approval); Phase 04 complete (pending approval) |
+| Document version | 1.4.0 |
+| Status | Phase 00 complete; Phase 01 complete; Phase 02 complete; Phase 03 complete (pending approval); Phase 04 complete (pending approval); Phase 05 complete (pending approval); Phase 06 complete (pending approval); Phase 07 complete (pending approval) |
 | Date | 2026-11-10 |
 | Related documents | `PROJECT_REQUIREMENTS.md`, `EXPERIMENTAL_METHODOLOGY.md`, `METRICS_DEFINITIONS.md`, `ARCHITECTURE.md`, `DATASET_GUIDE.md` |
 
@@ -45,8 +45,8 @@
 | 02 | Model setup and metadata collection | Complete | Ollama client, registry, metadata, pull workflow |
 | 03 | Benchmark dataset development | Complete (pending approval) | Validated 100-item dataset and probes |
 | 04 | Inference engine development | Complete (pending approval) | Streaming inference with timing |
-| 05 | Hardware monitoring engine | Planned | CPU/RAM/GPU/VRAM sampler and summaries |
-| 06 | Evaluation engine development | Planned | Deterministic evaluators, sandbox, judge, scoring |
+| 05 | Hardware monitoring engine | Complete (pending approval) | CPU/RAM/GPU/VRAM sampler, Ollama model VRAM, summaries |
+| 06 | Evaluation engine development | Complete (pending approval) | Deterministic evaluators, sandbox, blind judge, scoring |
 | 07 | Database and experiment management | Planned | SQLite schema, repositories, orchestrator, resume |
 | 08 | Analytics and recommendation engine | Planned | Aggregates, normalization, workload profiles |
 | 09 | Interactive Streamlit dashboard | Planned | Ten dashboard pages |
@@ -452,15 +452,16 @@ Implement periodic CPU, RAM, Ollama process, GPU, VRAM, and temperature sampling
 - Tests with fake sensors and unavailable cases.
 - Live hardware check.
 
-### Key decisions to implement
+### Key decisions implemented
 
-- 500 ms sampling interval, configurable 250–1000 ms.
-- 2-second baseline.
-- Continuous sampler per model run with request markers.
+- 1000 ms default sampling interval, configurable 250-1000 ms.
+- 2-second default baseline, configurable from the CLI.
+- Sampler lifecycle per measured request with baseline and inference markers.
 - NVML preferred; nvidia-smi fallback.
 - Nulls and availability flags.
-- System VRAM versus Ollama `size_vram`.
+- System VRAM versus Ollama `size_vram` from `/api/ps`.
 - Peak and average summaries.
+- Monitoring failures recorded without failing inference.
 
 ### Acceptance criteria
 
@@ -489,8 +490,22 @@ Implement periodic CPU, RAM, Ollama process, GPU, VRAM, and temperature sampling
 
 - Fallbacks and null flags.
 - Lazy import with clear error.
-- Keep interval at 500 ms.
+- Keep the default interval at 1000 ms while allowing 250-1000 ms.
 - Record matched process names.
+
+### Phase 05 implementation notes
+
+- Implemented `models/hardware.py` plus `monitoring/system.py`, `gpu.py`, `summaries.py`, and `sampler.py`.
+- Integrated monitoring into `InferenceEngine` with a per-request sampler, configurable baseline, `hardware` summary, and `hardware_error`.
+- Added `benchmark monitor` and `infer` monitoring options (`--no-monitor`, `--hardware-interval-ms`, `--baseline-seconds`).
+- Response schema is `1.1.0`; each record stores baseline, inference, and overall hardware windows plus raw samples.
+- Ollama model VRAM and offload ratio are read from `/api/ps` after the response and attached to the hardware summary.
+- Health checks include `psutil`, `nvidia-ml-py`, and `nvidia-smi`.
+- Full suite: 139 passed, 1 skipped (live Ollama opt-in).
+- Real `benchmark monitor` check succeeded with 3 samples at 1000 ms; CPU average 10.9%, RAM average 7.50 GiB, GPU `NVIDIA GeForce GTX 1650` via NVML, VRAM average 158.00 MiB, temperature average 38.0 C, sampler overhead average 71.00 ms.
+- Real monitored inference with `llama3.1:8b` succeeded: 28 samples (2 baseline, 26 inference) with a 1.0 s baseline, CPU average 71.4% (peak 94.3%), GPU utilization average 25.6% (peak 33.0%), system VRAM average 2.42 GiB, RAM average 12.09 GiB, GPU temperature average 40.3 C, Ollama model VRAM 2.36 GiB of 5.63 GiB (42.0%), sampler overhead average 106.07 ms (peak 239.26 ms).
+- WDDM makes GPU utilization unavailable in some standalone samples; monitored inference produced valid utilization values. Unavailable values remain null.
+- Evidence is engineering validation, not a comparative model result.
 
 ---
 
@@ -625,6 +640,13 @@ Implement SQLite persistence, repositories, the experiment orchestrator, resumab
 - Unique constraints and idempotent inserts.
 - Short write transactions and WAL.
 - Single writer.
+
+### Phase 07 implementation notes
+
+- Implemented `database/{db,tables,migrations,repositories}.py`, `execution/orchestrator.py`, and `scripts/run_experiment.py`; `docs/DATABASE_SCHEMA.md` documents tables, integrity rules, and SQL inspection.
+- Profile and state handling live inside the orchestrator rather than separate `profiles.py` and `state.py`; separate modules would have added indirection without behavior.
+- Interim JSONL import is not implemented. The database is the system of record for new runs, existing JSONL files are untouched, and import can be added later without schema changes.
+- `experiments.config_hash` is indexed but not unique, so repeat experiments remain distinct historical records.
 
 ---
 
@@ -1023,6 +1045,6 @@ A phase is done only when:
 
 ## 22. Immediate next step
 
-Phases 03 and 04 are complete pending user approval.
+Phases 03, 04, 05, and 06 are complete pending user approval.
 
-When approved, provide the Phase 05 prompt. Phase 05 will implement periodic CPU, RAM, Ollama process, GPU, VRAM, and temperature sampling with baseline/inference windows and honest availability flags. Model pulls remain a separate explicit action and are not started automatically by any phase.
+When approved, provide the Phase 07 prompt. Phase 07 will implement SQLite persistence, repositories, the experiment orchestrator, resumability, and migration of interim JSONL records into the database. Model pulls remain a separate explicit action and are not started automatically by any phase.

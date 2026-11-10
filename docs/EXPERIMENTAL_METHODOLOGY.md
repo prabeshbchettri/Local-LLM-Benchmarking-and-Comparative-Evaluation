@@ -4,8 +4,8 @@
 
 | Field | Value |
 |---|---|
-| Document version | 1.2.0 |
-| Status | Phase 03 dataset and Phase 04 inference engine implemented (pending approval) |
+| Document version | 1.3.0 |
+| Status | Phase 03 dataset, Phase 04 inference engine, Phase 05 hardware monitoring, Phase 06 evaluation, and Phase 07 persistence implemented (pending approval) |
 | Date | 2026-11-10 |
 | Related documents | `PROJECT_REQUIREMENTS.md`, `METRICS_DEFINITIONS.md`, `ARCHITECTURE.md`, `DATASET_GUIDE.md` |
 
@@ -490,11 +490,14 @@ These are stored in nanoseconds and converted to seconds for analysis. They desc
 
 ### 10.3 Hardware sampling window
 
-- Baseline: 2 seconds before the request, sampled every 500 ms.
-- Inference: from `t0` to `t_last`, sampled every 500 ms.
+- Baseline: 2 seconds before the request, sampled every 1000 ms by default.
+- Inference: from `t0` to `t_last`, sampled every 1000 ms by default.
 - A final sample is taken at completion.
 - The sampling interval is configurable between 250 ms and 1000 ms and is recorded.
-- If the sampler cannot keep up, the actual sample count and interval are reported.
+- The baseline duration is configurable and recorded.
+- If the sampler cannot keep up, the actual sample count and configured interval are reported.
+- System-wide CPU, RAM, and GPU values are not exclusively attributable to the model; Ollama process RSS and Ollama model VRAM are separate fields.
+- Ollama model VRAM and offload ratio are read from `/api/ps` after the response and stored alongside system VRAM.
 
 ### 10.4 What is excluded
 
@@ -511,6 +514,16 @@ These are stored in nanoseconds and converted to seconds for analysis. They desc
 - Warm-up records are stored and marked but excluded from measured summaries.
 - `benchmark infer` defaults to the first configured candidate and five ordered dataset items; explicit `--model` and `--item` selections are required for targeted runs.
 - A five-question smoke with `llama3.1:8b` produced all-success records in experiment `20261110T052647Z-afd1e4d4`; it is engineering validation, not a comparative result.
+
+### 10.6 Phase 05 implementation notes
+
+- A hardware sampler runs per measured request with baseline and inference markers; monitoring failures are recorded in `hardware_error` and do not fail the response.
+- Each response record stores baseline, inference, and overall hardware windows, raw samples, availability flags, sampler overhead, and attribution notes.
+- NVML is preferred for GPU telemetry, with `nvidia-smi` fallback. Unavailable values remain null.
+- Windows WDDM can make GPU utilization unavailable in some standalone samples; monitored inference produced valid utilization values on the test laptop.
+- A real monitored `llama3.1:8b` request produced 28 samples (2 baseline, 26 inference) with a 1.0 s baseline, CPU average 71.4% (peak 94.3%), GPU utilization average 25.6% (peak 33.0%), system VRAM average 2.42 GiB, RAM average 12.09 GiB, GPU temperature average 40.3 C, Ollama model VRAM 2.36 GiB of 5.63 GiB (42.0%), and sampler overhead average 106.07 ms (peak 239.26 ms).
+- The standalone `benchmark monitor` check produced CPU average 10.9%, RAM average 7.50 GiB, VRAM average 158.00 MiB, GPU temperature average 38.0 C, and sampler overhead average 71.00 ms.
+- These runs validate instrumentation and plumbing only; they are not comparative model results.
 
 ---
 

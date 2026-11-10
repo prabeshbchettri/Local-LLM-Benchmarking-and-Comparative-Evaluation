@@ -4,8 +4,8 @@
 
 | Field | Value |
 |---|---|
-| Document version | 1.0.0 |
-| Status | Phase 00 baseline |
+| Document version | 1.1.0 |
+| Status | Phase 00 baseline; Phase 05 hardware implementation aligned |
 | Date | 2026-11-10 |
 | Related documents | `EXPERIMENTAL_METHODOLOGY.md`, `PROJECT_REQUIREMENTS.md`, `ARCHITECTURE.md` |
 
@@ -471,9 +471,9 @@ These are reported as evaluator health metrics, not as model quality.
 
 ### 7.1 Sampling model
 
-- Baseline window: 2 seconds before `t0`.
+- Baseline window: 2 seconds before `t0` by default, configurable.
 - Inference window: `t0` to `t_last`.
-- Sampling interval: 500 ms default, configurable 250–1000 ms.
+- Sampling interval: 1000 ms default, configurable 250-1000 ms.
 - Each sample stores a UTC timestamp, phase, and availability flags.
 - Peak and average are computed over the inference-window samples only.
 - Baseline mean is computed over the baseline window.
@@ -587,7 +587,7 @@ delta_vram_peak = vram_used_peak − baseline_vram_mean
 
 **Use:** Model-level VRAM accounting, separate from NVML system totals.
 
-**Caveats:** Ollama's accounting may differ from NVML; report both. `size_vram = 0` means no GPU residency; a value less than model `size` indicates partial offload. Record `/api/ps` after load, after warm-up, and at the end of the model run; flag placement changes.
+**Caveats:** Ollama's accounting may differ from NVML; report both. `size_vram = 0` means no GPU residency; a value less than model `size` indicates partial offload. Phase 05 reads `/api/ps` after each monitored response and stores the matched model name, artifact size, `size_vram`, and offload ratio. A model that is not listed produces an explicit `ollama_model_vram_error` rather than an inferred value. Sampling at load, after warm-up, and at model-run end remains a later orchestration concern.
 
 ### 7.9 GPU offload ratio
 
@@ -637,6 +637,18 @@ throughput_per_cpu_percent = output_tps / max(cpu_mean, 1)
 **Use:** Comparative indicators within the same hardware and run. Do not present them as universal efficiency ratings.
 
 **Caveats:** System VRAM includes other processes; RAM is system-wide; CPU is system-wide.
+
+### 7.13 Phase 05 implementation notes
+
+- The sampler runs per measured request with a baseline window, an inference window from `t0` to `t_last`, and a final sample.
+- Each `HardwareSample` stores UTC timestamp, elapsed seconds, phase, raw values, Ollama process names, GPU source, and sample overhead.
+- `WindowSummary` stores `sample_count`, `low_sample_count`, `duration_seconds`, averages, and peaks. A window with fewer than two samples is flagged; its values remain descriptive only.
+- `HardwareSummary` stores baseline, inference, and overall windows, raw samples, availability flags, system VRAM, Ollama model VRAM, GPU source/name, errors, and the attribution note.
+- System-wide CPU, RAM, and GPU values include other processes. Ollama RSS is process-specific only when a matching process is found; Ollama model VRAM comes from `/api/ps`.
+- NVML is preferred; `nvidia-smi` is the fallback. Unavailable values are null. Windows WDDM can make GPU utilization unavailable in some samples.
+- Monitoring failures are stored in `hardware_error` and do not fail the inference request.
+- Sampler overhead is stored as average and peak milliseconds per summary.
+- The default interval is 1000 ms; the default baseline is 2.0 seconds. Both are recorded in the summary.
 
 ---
 

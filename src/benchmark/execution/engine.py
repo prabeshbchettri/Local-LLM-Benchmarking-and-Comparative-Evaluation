@@ -48,6 +48,7 @@ from benchmark.execution.timing import (
     tokens_per_second,
     ttft_seconds,
 )
+from benchmark.models.hardware import HardwareSummary
 from benchmark.models.inference import (
     GenerationOptions,
     InferenceProfile,
@@ -60,6 +61,7 @@ from benchmark.models.inference import (
     TokenMetrics,
 )
 from benchmark.models.ollama import OllamaChatChunk
+from benchmark.monitoring.sampler import HardwareSampler
 
 LOGGER = get_logger("execution.engine")
 
@@ -123,6 +125,8 @@ class InferenceEngine:
         *,
         clock_ns: Callable[[], int] = time.perf_counter_ns,
         model_identity: Callable[[str], tuple[str, str | None]] | None = None,
+        hardware_factory: Callable[[], HardwareSampler | None] | None = None,
+        sleep: Callable[[float], None] = time.sleep,
     ) -> None:
         self.settings = settings
         self.client = client
@@ -130,6 +134,55 @@ class InferenceEngine:
         self._model_identity = model_identity or self._resolve_model_identity
         self._identity_cache: dict[str, tuple[str, str | None]] = {}
         self._interrupted = False
+        self._sleep = sleep
+        self._hardware_factory = (
+            hardware_factory
+            if hardware_factory is not None
+            else self._default_hardware_factory
+        )
+
+    def _default_hardware_factory(self) -> HardwareSampler | None:
+        benchmark = self.settings.benchmark
+        if not benchmark.hardware_monitoring_enabled:
+            return None
+        return HardwareSampler(
+            interval_seconds=benchmark.hardware_sample_interval_ms / 1000,
+            baseline_seconds=benchmark.hardware_baseline_seconds,
+        )
+
+    def _attach_model_vram(
+        self,
+        hardware: HardwareSummary,
+        model_tag: str,
+    ) -> None:
+        loader = getattr(self.client, "loaded_models", None)
+        if not callable(loader):
+            return
+        try:
+            loaded = loader()
+        except Exception as exc:
+            hardware.ollama_model_vram_error = f"Could not read /api/ps: {exc}"
+            return
+        match = next(
+            (
+                model
+                for model in loaded
+                if model_tag in {model.name, model.model, model.tag}
+            ),
+            None,
+        )
+        if match is None:
+            hardware.ollama_model_vram_error = (
+                f"Model is not listed by /api/ps: {model_tag}"
+            )
+            return
+        hardware.ollama_model_name = match.tag
+        hardware.ollama_model_size_bytes = match.size
+        hardware.ollama_model_size_vram_bytes = match.size_vram
+        hardware.ollama_model_vram_ratio = (
+            match.size_vram / match.size if match.size > 0 else None
+        )
+        hardware.ollama_model_vram_available = True
 
     @property
     def interrupted(self) -> bool:
@@ -197,6 +250,8 @@ class InferenceEngine:
         final_chunk: OllamaChatChunk | None,
         metadata_chunk: OllamaChatChunk | None,
         chunk_count: int,
+        hardware: HardwareSummary | None = None,
+        hardware_error: str | None = None,
     ) -> ResponseRecord:
         final = final_chunk
         timing = TimingMetrics(
@@ -250,6 +305,8 @@ class InferenceEngine:
             tokens=tokens,
             ollama_metadata=metadata_source.raw if metadata_source else {},
             stream_chunk_count=chunk_count,
+            hardware=hardware,
+            hardware_error=hardware_error,
             config_hash=self.settings.config_hash,
         )
 
@@ -321,6 +378,34 @@ class InferenceEngine:
             if cold_start
             else self.settings.models.keep_alive
         )
+
+        monitor: HardwareSampler | None = None
+        hardware: HardwareSummary | None = None
+        hardware_error: str | None = None
+        if self._hardware_factory is not None:
+            try:
+                monitor = self._hardware_factory()
+                if monitor is not None:
+                    monitor.start()
+                    baseline = getattr(
+                        monitor,
+                        "baseline_seconds",
+                        self.settings.benchmark.hardware_baseline_seconds,
+                    )
+                    if baseline > 0:
+                        self._sleep(baseline)
+                    monitor.mark_request_start()
+            except BaseException as exc:
+                if monitor is not None:
+                    try:
+                        monitor.stop()
+                    except Exception:
+                        pass
+                monitor = None
+                if isinstance(exc, Exception):
+                    hardware_error = f"Hardware monitoring failed: {exc}"
+                else:
+                    raise
 
         parts: list[str] = []
         first_token_ns: int | None = None
@@ -403,6 +488,19 @@ class InferenceEngine:
             error_type = type(exc).__name__
             error_message = str(exc)
             response_text = "".join(parts)
+        finally:
+            if monitor is not None:
+                try:
+                    hardware = monitor.stop()
+                except Exception as exc:
+                    hardware_error = f"Hardware monitoring stop failed: {exc}"
+                else:
+                    try:
+                        self._attach_model_vram(hardware, model_tag)
+                    except Exception as exc:
+                        hardware.ollama_model_vram_error = (
+                            f"Could not attach /api/ps data: {exc}"
+                        )
 
         if not response_text:
             response_text = "".join(parts)
@@ -435,6 +533,8 @@ class InferenceEngine:
             final_chunk=final_chunk,
             metadata_chunk=metadata_chunk,
             chunk_count=chunk_count,
+            hardware=hardware,
+            hardware_error=hardware_error,
         )
 
 

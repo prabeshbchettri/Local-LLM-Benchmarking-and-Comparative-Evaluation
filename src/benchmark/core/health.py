@@ -72,12 +72,41 @@ def _python_check() -> CheckResult:
 
 
 def _dependency_checks() -> list[CheckResult]:
-    return [
+    checks = [
         CheckResult("httpx", "ok", f"httpx {httpx.__version__}"),
         CheckResult("jsonschema", "ok", f"jsonschema {package_version('jsonschema')}"),
         CheckResult("pydantic", "ok", f"pydantic {pydantic.VERSION}"),
         CheckResult("pyyaml", "ok", f"PyYAML {yaml.__version__}"),
     ]
+    try:
+        checks.append(CheckResult("psutil", "ok", f"psutil {package_version('psutil')}"))
+    except Exception as exc:
+        checks.append(CheckResult("psutil", "fail", f"psutil unavailable: {exc}"))
+    try:
+        checks.append(
+            CheckResult(
+                "pynvml",
+                "ok",
+                f"nvidia-ml-py {package_version('nvidia-ml-py')}",
+            )
+        )
+    except Exception as exc:
+        checks.append(
+            CheckResult(
+                "pynvml",
+                "warn",
+                f"pynvml unavailable; GPU metrics may be missing: {exc}",
+            )
+        )
+    smi = shutil.which("nvidia-smi")
+    checks.append(
+        CheckResult(
+            "nvidia_smi",
+            "ok" if smi else "warn",
+            smi or "nvidia-smi not found on PATH; GPU fallback unavailable",
+        )
+    )
+    return checks
 
 
 def _ollama_check(settings: AppSettings) -> CheckResult:

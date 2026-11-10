@@ -10,7 +10,9 @@ full_runs: 3
 warmup_requests: 1
 cooldown_seconds_between_models: 60
 cooldown_seconds_between_runs: 300
-hardware_sample_interval_ms: 500
+hardware_monitoring_enabled: true
+hardware_sample_interval_ms: 1000
+hardware_baseline_seconds: 2.0
 num_ctx: 4096
 num_predict: 512
 temperature: 0.0

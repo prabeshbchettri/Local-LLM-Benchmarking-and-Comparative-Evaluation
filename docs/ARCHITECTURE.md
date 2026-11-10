@@ -4,8 +4,8 @@
 
 | Field | Value |
 |---|---|
-| Document version | 1.3.0 |
-| Status | Phase 04 implemented (pending approval) |
+| Document version | 1.4.0 |
+| Status | Phase 07 implemented (pending approval) |
 | Date | 2026-11-10 |
 | Related documents | `PROJECT_REQUIREMENTS.md`, `EXPERIMENTAL_METHODOLOGY.md`, `METRICS_DEFINITIONS.md`, `DATASET_GUIDE.md` |
 
@@ -62,7 +62,7 @@ The dashboard is a read-mostly client. Long experiments run in a separate CLI pr
 
 ---
 
-## 4. Repository structure (implemented through Phase 04)
+## 4. Repository structure (implemented through Phase 05)
 
 ```text
 Local LLM Benchmarking and Comparative Evaluation/
@@ -110,6 +110,8 @@ Local LLM Benchmarking and Comparative Evaluation/
 │       ├── models/
 │       │   ├── __init__.py
 │       │   ├── base.py
+│       │   ├── hardware.py
+│       │   ├── inference.py
 │       │   └── ollama.py
 │       ├── dataset/
 │       │   ├── __init__.py
@@ -197,7 +199,7 @@ Local LLM Benchmarking and Comparative Evaluation/
 └── README.md
 ```
 
-Phase 04 adds `src/benchmark/models/inference.py` for response, timing, token, and run-summary schemas; `src/benchmark/execution/streaming.py` for NDJSON chat-chunk parsing; and `src/benchmark/execution/engine.py` for request execution, batch controls, cancellation, and interim JSONL logging.
+Phase 04 adds `src/benchmark/models/inference.py` for response, timing, token, and run-summary schemas; `src/benchmark/execution/streaming.py` for NDJSON chat-chunk parsing; and `src/benchmark/execution/engine.py` for request execution, batch controls, cancellation, and interim JSONL logging. Phase 05 adds `src/benchmark/models/hardware.py` for sample and summary schemas plus `src/benchmark/monitoring/` for system, GPU, summary, and sampler responsibilities. The inference engine attaches a hardware summary and optional hardware error to each response record.
 
 ### 4.1 Structure rules
 
@@ -323,6 +325,8 @@ stateDiagram-v2
 - Support cooperative cancellation and graceful keyboard interruption.
 - Append interim response records to JSONL until Phase 07 storage exists.
 - Use `benchmark.execution.streaming` for NDJSON parsing and `benchmark.execution.timing` for formulas.
+- Start and stop the hardware sampler around each measured request, attach a `HardwareSummary`, and record monitoring failures without failing inference.
+- Read Ollama model VRAM from `/api/ps` after the request and attach it to the hardware summary when available.
 
 ### 5.7 Hardware monitor (`benchmark.monitoring`)
 
@@ -330,12 +334,14 @@ stateDiagram-v2
 
 - Sample CPU, system RAM, Ollama process RSS, GPU utilization, GPU memory utilization, VRAM, and GPU temperature.
 - Run a sampler in a background thread with request start/end markers.
-- Compute baseline and inference-window summaries.
-- Detect unavailable sensors and mark them.
-- Fall back from NVML to nvidia-smi where needed.
-- Keep sampling overhead low.
+- Compute baseline, inference-window, and overall summaries.
+- Detect unavailable sensors and mark them with nulls and availability flags.
+- Fall back from NVML to `nvidia-smi` where needed.
+- Record sampler overhead and matched Ollama process names.
+- Read Ollama model VRAM from `/api/ps` after the response and store it separately from system VRAM.
+- Keep sampling isolated from inference failures: monitoring errors become `hardware_error`, not failed responses.
 
-**Design choice:** one continuous sampler per model run, with per-request markers, avoids creating a thread per request and reduces overhead. Samples are tagged with the active response ID.
+**Design choice:** one sampler lifecycle per measured request, started before the baseline window and stopped after the response. This is simpler than a model-run sampler and gives each response its own baseline and inference windows. The trade-off is thread and process-discovery overhead per request; the summary records the measured sampler overhead so this cost is visible.
 
 ### 5.8 Evaluation engine (`benchmark.evaluation`)
 
@@ -550,7 +556,7 @@ Experimental settings are snapshotted and hashed. Changing a setting creates a n
 
 ## 9. Dependency plan
 
-Runtime dependencies (implemented through Phase 04 plus planned later additions):
+Runtime dependencies (implemented through Phase 05 plus planned later additions):
 
 | Dependency | Purpose | Why not a simpler alternative |
 |---|---|---|
@@ -584,7 +590,7 @@ Not used:
 
 Dependency management: a single `pyproject.toml` with pinned versions and a `dev` optional dependency group. Installation: `python -m pip install -e ".[dev]"`.
 
-Phase 01 installs `pydantic`, `PyYAML`, and `pytest`; Phase 02 adds `httpx`; Phase 03 adds `jsonschema`; Phase 04 adds no new runtime dependencies. Remaining runtime and development dependencies are added, pinned, and tested in the phases that first use them.
+Phase 01 installs `pydantic`, `PyYAML`, and `pytest`; Phase 02 adds `httpx`; Phase 03 adds `jsonschema`; Phase 04 adds no new runtime dependencies; Phase 05 adds `psutil` and `nvidia-ml-py`. `nvidia-smi` is an optional system fallback, not a Python dependency. Remaining runtime and development dependencies are added, pinned, and tested in the phases that first use them.
 
 ---
 
@@ -593,7 +599,7 @@ Phase 01 installs `pydantic`, `PyYAML`, and `pytest`; Phase 02 adds `httpx`; Pha
 - One experiment CLI process per run.
 - One candidate model loaded at a time.
 - One HTTP request in flight at a time.
-- Hardware sampler runs in one background thread per model run.
+- Hardware sampler runs in one background thread per measured request.
 - Judge runs after candidate inference.
 - Dashboard is read-only during a run and polls the database.
 - Report generation runs after the run completes.
@@ -702,7 +708,7 @@ Implemented and planned typed exceptions:
 - `num_predict = 512` limits runaway output.
 - The performance probe runs first after warm-up, before the long quality pass, to reduce thermal drift in latency measurements.
 - Repeated performance prompts use unique nonce prefixes to prevent Ollama prompt-prefix cache reuse from inflating prompt speed.
-- Hardware sampling at 500 ms keeps overhead low; NVML is preferred over spawning nvidia-smi per sample.
+- Hardware sampling defaults to 1000 ms and is configurable from 250-1000 ms; NVML is preferred over spawning `nvidia-smi` per sample. Sampler overhead is measured per request.
 - Streaming avoids buffering large responses before TTFT.
 - SQLite WAL allows dashboard reads during writes.
 - Raw responses are stored once; derived metrics are computed from stored data.
@@ -740,7 +746,7 @@ Rules:
 | 02 | Ollama client, model registry, metadata, pull workflow |
 | 03 | Dataset models, loader, validation, probes, hash |
 | 04 | Inference engine, streaming, timing, response records |
-| 05 | Hardware sampler, NVML/nvidia-smi, summaries |
+| 05 | Hardware sampler, NVML/nvidia-smi, Ollama model VRAM, summaries |
 | 06 | Deterministic evaluators, sandbox, judge, scoring |
 | 07 | SQLAlchemy tables, repositories, orchestrator, resumability |
 | 08 | Aggregates, normalization, recommendations |

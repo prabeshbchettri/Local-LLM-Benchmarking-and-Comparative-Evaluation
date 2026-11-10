@@ -135,6 +135,7 @@ def _engine(
         settings,
         fake_client,
         clock_ns=FakeClock(clock_values or [0, 100_000_000, 200_000_000]),
+        hardware_factory=lambda: None,
     )
     return engine, fake_client
 

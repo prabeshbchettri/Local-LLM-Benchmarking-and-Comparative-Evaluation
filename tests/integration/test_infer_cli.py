@@ -99,6 +99,7 @@ def test_infer_command_writes_jsonl_and_summary(tmp_path: Path, monkeypatch, cap
             "1",
             "--warmup",
             "0",
+            "--no-monitor",
             "--output",
             str(output),
             "--json",
@@ -115,6 +116,7 @@ def test_infer_command_writes_jsonl_and_summary(tmp_path: Path, monkeypatch, cap
     assert records[0]["model_tag"] == "llama3.1:8b"
     assert records[0]["response_text"] == "OK"
     assert records[0]["status"] == "success"
+    assert records[0]["hardware"] is None
     assert records[0]["tokens"]["output_tokens_per_second"] == pytest.approx(10.0)
     assert managers[0].loads == ["llama3.1:8b"]
     assert managers[0].unloads == ["llama3.1:8b"]

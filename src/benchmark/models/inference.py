@@ -20,7 +20,9 @@ from uuid import uuid4
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-RESPONSE_SCHEMA_VERSION = "1.0.0"
+from benchmark.models.hardware import HardwareSummary
+
+RESPONSE_SCHEMA_VERSION = "1.1.0"
 
 
 class InferenceSchema(BaseModel):
@@ -134,6 +136,8 @@ class ResponseRecord(InferenceSchema):
     tokens: TokenMetrics
     ollama_metadata: dict[str, Any] = Field(default_factory=dict)
     stream_chunk_count: int = Field(default=0, ge=0)
+    hardware: HardwareSummary | None = None
+    hardware_error: str | None = None
     config_hash: str | None = None
 
     @field_validator("started_at", "completed_at")

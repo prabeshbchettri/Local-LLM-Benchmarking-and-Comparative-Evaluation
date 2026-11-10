@@ -38,6 +38,9 @@ def test_loads_valid_configuration(settings: AppSettings) -> None:
     assert settings.benchmark.dataset_path.is_absolute()
     assert settings.benchmark.dataset_path.name == "benchmark_v1.json"
     assert settings.evaluation.category_judge_weights["summarization"] == 0.40
+    assert settings.benchmark.hardware_monitoring_enabled is True
+    assert settings.benchmark.hardware_sample_interval_ms == 1000
+    assert settings.benchmark.hardware_baseline_seconds == 2.0
     assert len(settings.config_hash) == 64
 
 

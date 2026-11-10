@@ -16,6 +16,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+import time
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Sequence
@@ -42,8 +43,10 @@ from benchmark.execution.metadata import (
     format_pull_event,
 )
 from benchmark.execution.registry import ModelManager
+from benchmark.models.hardware import HardwareSummary
 from benchmark.models.inference import InferenceProfile, PromptSpec, ResponseRecord, RunSummary
 from benchmark.models.ollama import OllamaPullEvent
+from benchmark.monitoring.sampler import HardwareSampler
 
 
 def _add_config_dir(parser: argparse.ArgumentParser) -> None:
@@ -261,7 +264,43 @@ def build_parser() -> argparse.ArgumentParser:
         default=None,
         help="JSONL output path; defaults to data/results/inference_<experiment>.jsonl.",
     )
+    infer_parser.add_argument(
+        "--no-monitor",
+        action="store_true",
+        help="Disable hardware sampling for this run.",
+    )
+    infer_parser.add_argument(
+        "--hardware-interval-ms",
+        type=int,
+        default=None,
+        help="Override hardware sampling interval; allowed range is 250-1000 ms.",
+    )
+    infer_parser.add_argument(
+        "--baseline-seconds",
+        type=float,
+        default=None,
+        help="Override the pre-request hardware baseline duration.",
+    )
     _add_json(infer_parser)
+
+    monitor_parser = subparsers.add_parser(
+        "monitor",
+        help="Sample CPU, RAM, GPU, VRAM, and temperature metrics.",
+    )
+    _add_config_dir(monitor_parser)
+    monitor_parser.add_argument(
+        "--seconds",
+        type=float,
+        default=5.0,
+        help="Sampling duration in seconds; defaults to 5.",
+    )
+    monitor_parser.add_argument(
+        "--interval-ms",
+        type=int,
+        default=None,
+        help="Override hardware sampling interval; allowed range is 250-1000 ms.",
+    )
+    _add_json(monitor_parser)
     return parser
 
 
@@ -440,6 +479,120 @@ def _summary_text(summary: RunSummary) -> str:
     )
 
 
+def _optional_percent(value: float | None) -> str:
+    return "n/a" if value is None else f"{value:.1f}%"
+
+
+def _optional_bytes(value: int | None) -> str:
+    return "n/a" if value is None else format_bytes(value)
+
+
+def _optional_celsius(value: float | None) -> str:
+    return "n/a" if value is None else f"{value:.1f} C"
+
+
+def _optional_ms(value: float | None) -> str:
+    return "n/a" if value is None else f"{value:.2f} ms"
+
+
+def _hardware_summary_text(summary: HardwareSummary) -> str:
+    inference = summary.inference
+    gpu_source = summary.gpu_source.value if summary.gpu_source else "unavailable"
+    lines = [
+        (
+            f"Hardware: {summary.sample_count} samples "
+            f"({summary.baseline.sample_count} baseline, "
+            f"{inference.sample_count} inference) | "
+            f"interval {summary.sampling_interval_ms} ms"
+        ),
+        (
+            f"CPU: avg {_optional_percent(inference.cpu_avg_percent)} | "
+            f"peak {_optional_percent(inference.cpu_peak_percent)}"
+        ),
+        (
+            f"RAM: avg {_optional_bytes(inference.ram_avg_used_bytes)} | "
+            f"peak {_optional_bytes(inference.ram_peak_used_bytes)} | "
+            f"total {_optional_bytes(summary.ram_total_bytes)}"
+        ),
+        (
+            f"Ollama RSS: avg {_optional_bytes(inference.ollama_rss_avg_bytes)} | "
+            f"peak {_optional_bytes(inference.ollama_rss_peak_bytes)} | "
+            f"processes {', '.join(summary.ollama_process_names) or 'not found'}"
+        ),
+        (
+            f"GPU: {summary.gpu_name or 'unavailable'} via {gpu_source} | "
+            f"util avg {_optional_percent(inference.gpu_utilization_avg_percent)} | "
+            f"peak {_optional_percent(inference.gpu_utilization_peak_percent)}"
+        ),
+        (
+            f"VRAM: avg {_optional_bytes(inference.vram_avg_used_bytes)} | "
+            f"peak {_optional_bytes(inference.vram_peak_used_bytes)} | "
+            f"total {_optional_bytes(summary.vram_total_bytes)}"
+        ),
+        (
+            "Ollama model VRAM: "
+            + (
+                f"{_optional_bytes(summary.ollama_model_size_vram_bytes)} / "
+                f"{_optional_bytes(summary.ollama_model_size_bytes)}"
+                + (
+                    f" ({summary.ollama_model_vram_ratio * 100:.1f}%)"
+                    if summary.ollama_model_vram_ratio is not None
+                    else ""
+                )
+                if summary.ollama_model_vram_available
+                else "not recorded"
+            )
+        ),
+        (
+            f"GPU temperature: avg {_optional_celsius(inference.gpu_temperature_avg_c)} | "
+            f"peak {_optional_celsius(inference.gpu_temperature_peak_c)}"
+        ),
+        (
+            f"Sampler overhead: avg {_optional_ms(summary.sampler_overhead_avg_ms)} | "
+            f"peak {_optional_ms(summary.sampler_overhead_peak_ms)}"
+        ),
+        f"Attribution: {summary.attribution_note}",
+    ]
+    if summary.gpu_error:
+        lines.append(f"GPU note: {summary.gpu_error}")
+    if summary.ollama_model_vram_error:
+        lines.append(f"Ollama model VRAM note: {summary.ollama_model_vram_error}")
+    if inference.low_sample_count:
+        lines.append(
+            "Sample note: the inference window has fewer than two samples; "
+            "averages and peaks are descriptive only."
+        )
+    if summary.sampler_error:
+        lines.append(f"Sampler note: {summary.sampler_error}")
+    return "\n".join(lines)
+
+
+def _make_hardware_factory(
+    args: argparse.Namespace,
+    settings: AppSettings,
+) -> Any:
+    if args.no_monitor or not settings.benchmark.hardware_monitoring_enabled:
+        return lambda: None
+    interval_ms = (
+        args.hardware_interval_ms
+        if args.hardware_interval_ms is not None
+        else settings.benchmark.hardware_sample_interval_ms
+    )
+    baseline = (
+        args.baseline_seconds
+        if args.baseline_seconds is not None
+        else settings.benchmark.hardware_baseline_seconds
+    )
+    if not 250 <= interval_ms <= 1000:
+        raise BenchmarkError("--hardware-interval-ms must be between 250 and 1000")
+    if not 0.0 <= baseline <= 10.0:
+        raise BenchmarkError("--baseline-seconds must be between 0 and 10")
+    return lambda: HardwareSampler(
+        interval_seconds=interval_ms / 1000,
+        baseline_seconds=baseline,
+    )
+
+
 def _handle_infer(args: argparse.Namespace, settings: AppSettings) -> int:
     if args.repeats < 1:
         raise BenchmarkError("--repeats must be at least 1")
@@ -462,7 +615,11 @@ def _handle_infer(args: argparse.Namespace, settings: AppSettings) -> int:
         output = args.output or (
             settings.benchmark.results_dir / f"inference_{experiment_id}.jsonl"
         )
-        engine = InferenceEngine(settings, manager.client)
+        engine = InferenceEngine(
+            settings,
+            manager.client,
+            hardware_factory=_make_hardware_factory(args, settings),
+        )
         runner = InferenceRunner(
             engine,
             JsonlResponseWriter(output),
@@ -494,6 +651,35 @@ def _handle_infer(args: argparse.Namespace, settings: AppSettings) -> int:
         return 130 if result.summary.status.value == "cancelled" else 0
     finally:
         manager.close()
+
+
+def _handle_monitor(args: argparse.Namespace, settings: AppSettings) -> int:
+    if args.seconds <= 0:
+        raise BenchmarkError("--seconds must be greater than zero")
+    interval_ms = (
+        args.interval_ms
+        if args.interval_ms is not None
+        else settings.benchmark.hardware_sample_interval_ms
+    )
+    if not 250 <= interval_ms <= 1000:
+        raise BenchmarkError("--interval-ms must be between 250 and 1000")
+    sampler = HardwareSampler(
+        interval_seconds=interval_ms / 1000,
+        baseline_seconds=0.0,
+    )
+    sampler.start()
+    sampler.mark_request_start()
+    if not args.json:
+        print(f"Sampling hardware for {args.seconds:.1f}s...", flush=True)
+    try:
+        time.sleep(args.seconds)
+    finally:
+        summary = sampler.stop()
+    if args.json:
+        _print_json(summary.model_dump(mode="json"))
+    else:
+        print(_hardware_summary_text(summary))
+    return 0
 
 
 def _handle_models(args: argparse.Namespace, settings: AppSettings) -> int:
@@ -648,6 +834,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             return 0 if report.ok else 1
         if args.command == "models":
             return _handle_models(args, settings)
+        if args.command == "monitor":
+            return _handle_monitor(args, settings)
         if args.command == "infer":
             return _handle_infer(args, settings)
         raise BenchmarkError(f"Unknown command: {args.command}")

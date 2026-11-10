@@ -47,6 +47,12 @@ def test_health_check_passes_with_warnings(temp_settings: AppSettings) -> None:
         for check in report.checks
     )
     assert any(check.name == "disk_space" for check in report.checks)
+    assert any(check.name == "psutil" and check.status == "ok" for check in report.checks)
+    assert any(
+        check.name == "pynvml" and check.status in {"ok", "warn"}
+        for check in report.checks
+    )
+    assert any(check.name == "nvidia_smi" for check in report.checks)
     assert not report.failures
 
 

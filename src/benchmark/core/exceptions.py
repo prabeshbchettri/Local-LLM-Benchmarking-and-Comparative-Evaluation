@@ -113,3 +113,51 @@ class EmptyResponseError(InferenceError):
 
 class InferenceCancelledError(InferenceError):
     """Raised when an inference request is cancelled by the caller."""
+
+
+class EvaluationError(BenchmarkError):
+    """Base exception for deterministic evaluation failures."""
+
+
+class EvaluationConfigurationError(EvaluationError):
+    """Raised when an item cannot be evaluated with its configured method."""
+
+
+class SandboxError(EvaluationError):
+    """Raised when the restricted code runner cannot execute a test."""
+
+
+class JudgeError(EvaluationError):
+    """Base exception for judge client, verification, and parsing failures."""
+
+
+class JudgeVerificationError(JudgeError):
+    """Raised when the configured judge artifact cannot be verified."""
+
+
+class JudgeParseError(JudgeError):
+    """Raised when judge output does not match the required JSON schema."""
+
+
+class DatabaseError(BenchmarkError):
+    """Base exception for database initialization and persistence failures."""
+
+
+class DatabaseDuplicateError(DatabaseError):
+    """Raised when an existing historical record would be overwritten."""
+
+
+class DatabaseConflictError(DatabaseError):
+    """Raised when a record conflicts with a stored dataset or experiment identity."""
+
+
+class ExperimentStateError(DatabaseError):
+    """Raised when an operation is not allowed in the current experiment state."""
+
+
+class AnalyticsError(BenchmarkError):
+    """Base exception for analytics, scoring, and recommendation failures."""
+
+
+class InsufficientDataError(AnalyticsError):
+    """Raised when stored experiment data cannot support the requested analysis."""

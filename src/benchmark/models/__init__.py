@@ -9,6 +9,13 @@ Responsibilities:
 """
 
 from benchmark.models.base import BaseSchema
+from benchmark.models.hardware import (
+    GpuSource,
+    HardwareSample,
+    HardwareSummary,
+    SamplePhase,
+    WindowSummary,
+)
 from benchmark.models.ollama import (
     OllamaChatMessage,
     OllamaChatResponse,
@@ -26,6 +33,9 @@ from benchmark.models.ollama import (
 
 __all__ = [
     "BaseSchema",
+    "GpuSource",
+    "HardwareSample",
+    "HardwareSummary",
     "OllamaChatMessage",
     "OllamaChatResponse",
     "OllamaGenerateResponse",
@@ -38,4 +48,6 @@ __all__ = [
     "OllamaShowResponse",
     "OllamaTagsResponse",
     "OllamaVersionResponse",
+    "SamplePhase",
+    "WindowSummary",
 ]

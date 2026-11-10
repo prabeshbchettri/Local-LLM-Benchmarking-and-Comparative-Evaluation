@@ -54,7 +54,9 @@ class BenchmarkSettings(BaseSchema):
     warmup_requests: int = Field(default=1, ge=0)
     cooldown_seconds_between_models: int = Field(default=60, ge=0)
     cooldown_seconds_between_runs: int = Field(default=300, ge=0)
-    hardware_sample_interval_ms: int = Field(default=500, ge=250, le=1000)
+    hardware_monitoring_enabled: bool = True
+    hardware_sample_interval_ms: int = Field(default=1000, ge=250, le=1000)
+    hardware_baseline_seconds: float = Field(default=2.0, ge=0.0, le=10.0)
     num_ctx: int = Field(default=4096, ge=512)
     num_predict: int = Field(default=512, ge=1)
     temperature: float = Field(default=0.0, ge=0.0, le=2.0)
