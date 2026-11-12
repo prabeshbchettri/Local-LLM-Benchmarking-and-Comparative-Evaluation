@@ -114,6 +114,7 @@ class ExperimentReport(BaseSchema):
     successful_responses: int
     failed_responses: int
     resumed: bool
+    interrupted: bool = False
 
 
 class ExperimentOrchestrator:
@@ -164,6 +165,13 @@ class ExperimentOrchestrator:
             else [spec.tag for spec in self.settings.models.candidates]
         )
         self._validate_models(selected)
+        missing = self._missing_models(selected)
+        if missing:
+            raise BenchmarkError(
+                "selected models are not installed in Ollama: "
+                + ", ".join(missing)
+                + "; pull them explicitly or select installed models"
+            )
         items = self._select_items(item_ids, limit)
         repeats = (
             repetitions
@@ -220,8 +228,12 @@ class ExperimentOrchestrator:
             )
 
         self.repos.experiments.mark_running(experiment_id)
+        cancelled = False
         try:
             for index, tag in enumerate(selected):
+                if self._cancelled():
+                    cancelled = True
+                    break
                 self._run_model(
                     experiment_id,
                     tag,
@@ -232,9 +244,18 @@ class ExperimentOrchestrator:
                     cold_start,
                 )
                 if self._cancelled():
+                    cancelled = True
                     break
                 if cooldown > 0 and index < len(selected) - 1:
                     self._sleep(cooldown)
+            if cancelled:
+                return self._report(
+                    experiment_id,
+                    profile_value,
+                    selected,
+                    resumed,
+                    interrupted=True,
+                )
             self.repos.experiments.mark_completed(experiment_id)
         except Exception as exc:
             self.repos.errors.record(
@@ -262,6 +283,25 @@ class ExperimentOrchestrator:
             raise BenchmarkError("selected models must be unique")
         if not models:
             raise BenchmarkError("at least one model must be selected")
+
+    def _missing_models(self, models: Sequence[str]) -> list[str]:
+        """Return selected models that are not installed, before any state is created.
+
+        A missing model used to fail after the experiment was created, which left a
+        permanently failed experiment and skipped every later model. Availability is
+        now checked up front so the operator gets one clear error instead.
+        """
+        if self.manager is None:
+            return []
+        try:
+            installed = {
+                status.tag: status.installed
+                for status in self.manager.inventory(include_all=False)
+            }
+        except BenchmarkError:
+            # Connectivity problems surface as a typed error when the run starts.
+            return []
+        return [tag for tag in models if not installed.get(tag, False)]
 
     def _default_repetitions(self, profile: InferenceProfile) -> int:
         benchmark = self.settings.benchmark
@@ -370,6 +410,8 @@ class ExperimentOrchestrator:
             warmup_requests=warmup,
             repetitions=repetitions,
         )
+        if run.status == "cancelled":
+            run = self.repos.runs.reopen(run.id)
         if run.status in CLOSED_STATUSES:
             return
         existing = self.repos.responses.existing_keys(run.id)
@@ -377,6 +419,9 @@ class ExperimentOrchestrator:
             if self.manager is not None and not cold_start:
                 self.manager.load(tag)
             for index in range(warmup):
+                if self._cancelled():
+                    self.repos.runs.mark_cancelled(run.id)
+                    return
                 item = items[index % len(items)]
                 if (item.id, 1, True) in existing:
                     continue
@@ -391,6 +436,9 @@ class ExperimentOrchestrator:
                 )
                 self.repos.responses.save(record, run.id)
                 self._notify(record)
+                if self._cancelled():
+                    self.repos.runs.mark_cancelled(run.id)
+                    return
             for item in items:
                 for repetition in range(1, repetitions + 1):
                     if self._cancelled():
@@ -420,6 +468,9 @@ class ExperimentOrchestrator:
                     self.manager.unload(tag)
                 except BenchmarkError:
                     pass
+        if self._cancelled():
+            self.repos.runs.mark_cancelled(run.id)
+            return
         self._evaluate_run(experiment_id, run.id, tag, model.family, items)
         self.repos.runs.mark_completed(run.id)
 
@@ -462,6 +513,8 @@ class ExperimentOrchestrator:
         profile: InferenceProfile,
         models: Sequence[str],
         resumed: bool,
+        *,
+        interrupted: bool = False,
     ) -> ExperimentReport:
         view = self.repos.experiments.get(experiment_id)
         if view is None:
@@ -480,4 +533,5 @@ class ExperimentOrchestrator:
             successful_responses=sum(item.successful_responses for item in results),
             failed_responses=sum(item.failed_responses for item in results),
             resumed=resumed,
+            interrupted=interrupted,
         )

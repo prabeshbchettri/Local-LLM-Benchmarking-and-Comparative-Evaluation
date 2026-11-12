@@ -34,7 +34,6 @@ from benchmark.execution.metadata import (
 )
 from benchmark.models.ollama import (
     OllamaLoadedModel,
-    OllamaModelDetailsSummary,
     OllamaModelSummary,
     OllamaShowResponse,
 )

@@ -1,6 +1,6 @@
 # Database Schema
 
-**Status:** Phase 07 implementation (schema version `1.0.0`)
+**Status:** Phase 08 implementation (schema version `1.1.0`)
 **Engine:** SQLite 3 through SQLAlchemy 2.0 ORM
 **Default file:** `storage/benchmark.db`
 
@@ -36,9 +36,14 @@ objects; they return Pydantic read views.
 ## Schema Versioning
 
 `schema_versions` records the applied version. On startup `apply_schema` creates
-missing tables, inserts `1.0.0` for a new database, and refuses to open a database
-whose stored version is newer than the running code. Future changes are registered
-in `MIGRATIONS` and must be additive (new tables, indexes, or nullable columns).
+missing tables, inserts `1.1.0` for a new database, and applies the migration
+registered for an older stored version. It refuses to open a database whose stored
+version is newer than the running code. Future changes are registered in
+`MIGRATIONS` and must be additive (new tables, indexes, or nullable columns).
+
+Version `1.1.0` adds nullable `recommendations.details_json`. Opening an existing
+`1.0.0` database applies this migration without rewriting or deleting historical
+rows.
 
 There is no Alembic dependency. A backup of `storage/benchmark.db` is the required
 step before upgrading a database used for published results.
@@ -202,10 +207,14 @@ One row per response (unique `response_id`).
 | `score`, `confidence` | float/text | |
 | `weights_json` | JSON | Scoring weights used |
 | `rationale` | text | Explanation |
+| `details_json` | JSON, nullable | Full Phase 08 evidence payload |
 | `created_at` | datetime | |
 
 Unique on `(experiment_id, workload, rank)` (`uq_recommendation_rank`). Phase 08
-computes recommendations; Phase 07 only provides durable storage.
+computes recommendations and populates `details_json` with sub-scores, raw metrics,
+missing dimensions, evidence counts, coverage, failure/timeout rates, tie details,
+confidence, limitations, and methodology version. Phase 07 only provided durable
+storage.
 
 ### `errors`
 
@@ -326,6 +335,6 @@ which proves the record is on disk rather than in memory.
   content hash, and item content is recoverable from the versioned dataset file.
 - `hardware_samples` are stored as JSON inside `hardware_measurements` rather than as
   one row per sample, because there can be hundreds of samples per response.
-- `report_exports` is not implemented in Phase 07; report generation is a later phase.
+- `report_exports` is not implemented in Phase 08; report generation is a later phase.
 - `experiments.config_hash` is indexed but not unique, so repeated experiments remain
   possible.

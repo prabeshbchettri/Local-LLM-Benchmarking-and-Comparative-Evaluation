@@ -4,9 +4,9 @@
 
 | Field | Value |
 |---|---|
-| Document version | 1.3.0 |
-| Status | Phase 03 dataset, Phase 04 inference engine, Phase 05 hardware monitoring, Phase 06 evaluation, and Phase 07 persistence implemented (pending approval) |
-| Date | 2026-11-10 |
+| Document version | 1.4.0 |
+| Status | Phases 03-08 implemented: dataset, inference engine, hardware monitoring, evaluation, persistence, analytics, and recommendations (pending approval) |
+| Date | 2026-11-11 |
 | Related documents | `PROJECT_REQUIREMENTS.md`, `METRICS_DEFINITIONS.md`, `ARCHITECTURE.md`, `DATASET_GUIDE.md` |
 
 ---
@@ -15,7 +15,7 @@
 
 > Among Llama 3.1 8B Instruct, Qwen 2.5 7B Instruct, and Mistral 7B Instruct v0.3, which model provides the best balance of response quality, inference performance, hardware efficiency, and reliability on a Lenovo IdeaPad Gaming 3 with an NVIDIA GTX 1650 4 GB, 16 GB RAM, Windows 11, and Ollama 0.40.15?
 
-"Best balance" is workload-dependent. The project therefore reports a default balanced score plus workload-specific profiles, and it reports the underlying dimensions separately so a reader can disagree with the weights.
+"Best balance" is workload-dependent. The project therefore reports a default `general_purpose` score plus workload-specific profiles, and it reports the underlying dimensions separately so a reader can disagree with the weights. See `docs/SCORING_AND_RECOMMENDATIONS.md`.
 
 ### 1.1 Pre-registered expectations
 
@@ -508,7 +508,7 @@ These are stored in nanoseconds and converted to seconds for analysis. They desc
 
 ### 10.5 Phase 04 implementation notes
 
-- The interim response log is append-only JSONL under `data/results/` until Phase 07 storage exists.
+- JSONL remains an append-only inspection and export format under `data/results/`; since Phase 07, SQLite is the system of record for persisted experiments.
 - Each record captures experiment, model, prompt, repetition, warm-up and cold-start flags, status, response text, finish reason, client timing, token metrics, generation options, Ollama metadata, and error details.
 - Prompt and output token rates are calculated from the matching Ollama token count and duration; they are not inferred from text length.
 - Warm-up records are stored and marked but excluded from measured summaries.

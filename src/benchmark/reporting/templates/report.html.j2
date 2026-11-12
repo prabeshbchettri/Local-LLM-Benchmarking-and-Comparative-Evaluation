@@ -1,0 +1,170 @@
+{# HTML report template. All values arrive preformatted from presentation.build_view. #}
+{% macro table(block) %}
+  {% if block.rows %}
+    <table>
+      <thead>
+        <tr>{% for column in block.columns %}<th class="{{ column.align }}">{{ column.label }}</th>{% endfor %}</tr>
+      </thead>
+      <tbody>
+        {% for row in block.rows %}
+          <tr>{% for column in block.columns %}<td class="{{ column.align }}">{{ row[column.key] }}</td>{% endfor %}</tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p class="empty">No rows are available for this table.</p>
+  {% endif %}
+{% endmacro %}
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ view.title }}</title>
+<style>
+  :root { color-scheme: light; }
+  body { font-family: "Segoe UI", Arial, sans-serif; color: #0f172a; margin: 0; background: #f8fafc; }
+  .page { max-width: 1080px; margin: 0 auto; padding: 32px 28px 64px; background: #ffffff; }
+  h1 { font-size: 1.7rem; margin: 0 0 4px; }
+  h2 { font-size: 1.15rem; margin: 34px 0 10px; padding-bottom: 6px; border-bottom: 2px solid #e2e8f0; }
+  h3 { font-size: 1rem; margin: 20px 0 6px; }
+  p { line-height: 1.5; }
+  .subtitle, .meta { color: #475569; font-size: 0.9rem; margin: 2px 0; }
+  .banner { margin: 16px 0; padding: 10px 14px; border-radius: 8px; background: #fef3c7; border: 1px solid #f59e0b; color: #92400e; font-weight: 600; }
+  table { border-collapse: collapse; width: 100%; margin: 10px 0 16px; font-size: 0.84rem; }
+  th, td { border: 1px solid #e2e8f0; padding: 5px 7px; vertical-align: top; }
+  th { background: #f1f5f9; text-align: left; }
+  td.right, th.right { text-align: right; }
+  td.left, th.left { text-align: left; }
+  .kv td:first-child, .kv th { width: 24%; font-weight: 600; background: #f8fafc; }
+  .kv td.hint { color: #64748b; }
+  .cards { display: flex; flex-wrap: wrap; gap: 10px; margin: 12px 0; }
+  .card { flex: 1 1 220px; border: 1px solid #e2e8f0; border-radius: 10px; padding: 10px 12px; background: #f8fafc; }
+  .card .label { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.04em; color: #64748b; }
+  .card .value { font-size: 1.15rem; font-weight: 650; margin-top: 2px; }
+  .card .detail { font-size: 0.78rem; color: #64748b; margin-top: 2px; }
+  .chart { display: block; margin: 8px 0 18px; }
+  .chart-label { font-size: 11px; fill: #334155; }
+  .chart-value { font-size: 11px; fill: #1d4ed8; }
+  .chart-axis { font-size: 10px; fill: #64748b; }
+  ul { margin: 6px 0 16px 20px; }
+  li { margin: 4px 0; line-height: 1.45; }
+  .empty { color: #64748b; font-style: italic; }
+  footer { margin-top: 40px; color: #64748b; font-size: 0.8rem; border-top: 1px solid #e2e8f0; padding-top: 10px; }
+  .rec { border: 1px solid #e2e8f0; border-radius: 10px; padding: 10px 14px; margin: 8px 0; background: #f8fafc; }
+  .rec .head { font-weight: 650; }
+  @media print { body { background: #fff; } .page { max-width: none; padding: 0; } }
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>{{ view.title }}</h1>
+  <p class="subtitle">{{ view.subtitle }}</p>
+  <p class="meta">Generated {{ view.generated_at }} · report schema {{ view.schema_version }}</p>
+  {% if view.preliminary %}
+    <div class="banner">PRELIMINARY DATA — experiment status is {{ view.experiment.status }}. This report is not a final benchmark result.</div>
+  {% endif %}
+
+  <h2>1. Executive summary</h2>
+  <div class="cards">
+    {% for card in view.summary.key_metrics %}
+      <div class="card">
+        <div class="label">{{ card.label }}</div>
+        <div class="value">{{ card.value }}</div>
+        <div class="detail">{{ card.detail }}</div>
+      </div>
+    {% endfor %}
+  </div>
+  <p>{{ view.summary.narrative }}</p>
+  <p class="meta">Profile <strong>{{ view.summary.profile }}</strong> — {{ view.summary.profile_description }}</p>
+
+  <h2>2. Experimental environment</h2>
+  <table class="kv">
+    <tbody>
+      {% for row in view.environment %}
+        <tr><th>{{ row.label }}</th><td colspan="2">{{ row.value }}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <h2>3. Methodology</h2>
+  {% for paragraph in view.methodology.paragraphs %}<p>{{ paragraph }}</p>{% endfor %}
+  <h3>Scoring weights</h3>
+  {{ table(view.methodology.weights) }}
+  <p class="meta">Run profile: {{ view.methodology.filters.run_profile }} · cold-start included: {{ view.methodology.filters.include_cold_start }} · smoke included: {{ view.methodology.filters.include_smoke }}</p>
+
+  <h2>4. Model metadata</h2>
+  {{ table(view.tables.models) }}
+
+  <h2>5. Performance results</h2>
+  {{ table(view.tables.performance) }}
+  {% for chart in view.charts if chart.key in ['composite', 'latency_p95'] %}
+    <h3>{{ chart.title }}</h3>
+    {{ chart.svg | safe }}
+  {% endfor %}
+
+  <h2>6. Quality results</h2>
+  {{ table(view.tables.quality) }}
+  <h3>Category breakdown</h3>
+  {{ table(view.tables.quality_categories) }}
+  {% for chart in view.charts if chart.key in ['quality', 'throughput'] %}
+    <h3>{{ chart.title }}</h3>
+    {{ chart.svg | safe }}
+  {% endfor %}
+
+  <h2>7. Hardware analysis</h2>
+  <h3>CPU and RAM</h3>
+  {{ table(view.tables.hardware_cpu_ram) }}
+  <h3>GPU, VRAM, and temperature</h3>
+  {{ table(view.tables.hardware_gpu) }}
+  <p class="meta">Hardware values are system-wide samples and are not exclusively attributable to the model. Missing sensors appear as {{ "—" }}.</p>
+
+  <h2>8. Reliability analysis</h2>
+  {{ table(view.tables.reliability) }}
+
+  <h2>9. Recommendations</h2>
+  {% for result in view.recommendations %}
+    <h3>{{ result.workload }}</h3>
+    {% if result.available %}
+      {% for entry in result.entries %}
+        <div class="rec">
+          <div class="head">#{{ entry.rank }} {{ entry.model }} · score {{ entry.score }} · confidence {{ entry.confidence }}</div>
+          <p>{{ entry.rationale }}</p>
+          {% if entry.strengths %}<p><strong>Strengths:</strong> {{ entry.strengths | join("; ") }}</p>{% endif %}
+          {% if entry.weaknesses %}<p><strong>Weaknesses:</strong> {{ entry.weaknesses | join("; ") }}</p>{% endif %}
+          {% if entry.limitations %}<p><strong>Limitations:</strong> {{ entry.limitations | join("; ") }}</p>{% endif %}
+          <p class="meta">Evidence: {{ entry.evidence }} responses · quality coverage {{ entry.coverage }}</p>
+        </div>
+      {% endfor %}
+    {% else %}
+      <p class="empty">Unavailable: {{ result.reason or "insufficient data" }}</p>
+    {% endif %}
+  {% else %}
+    <p class="empty">No workload recommendation could be computed.</p>
+  {% endfor %}
+
+  <h2>10. Limitations</h2>
+  <ul>
+    {% for item in view.limitations %}<li>{{ item }}</li>{% endfor %}
+  </ul>
+
+  {% if view.tables.errors.rows %}
+    <h2>Appendix — structured errors</h2>
+    {{ table(view.tables.errors) }}
+  {% endif %}
+
+  {% if view.excerpts %}
+    <h2>Appendix — response excerpts</h2>
+    <p class="meta">Excerpts are truncated to 600 characters; the CSV and JSON exports contain full response text.</p>
+    {% for excerpt in view.excerpts %}
+      <h3>{{ excerpt.model }} · {{ excerpt.question }}</h3>
+      <p>{{ excerpt.text }}</p>
+    {% endfor %}
+  {% endif %}
+
+  <footer>
+    Generated from stored benchmark rows by the local reporting layer. Every figure is reproducible from the SQLite database and the recorded configuration hash.
+  </footer>
+</div>
+</body>
+</html>

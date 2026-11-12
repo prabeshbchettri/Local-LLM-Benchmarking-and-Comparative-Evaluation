@@ -19,7 +19,7 @@ from math import ceil
 from pydantic import Field
 
 from benchmark.core.config import EvaluationSettings
-from benchmark.dataset.models import DatasetItem, EvaluationType
+from benchmark.dataset.models import DatasetItem
 from benchmark.evaluation.deterministic.registry import (
     EvaluatorRegistry,
     build_default_registry,

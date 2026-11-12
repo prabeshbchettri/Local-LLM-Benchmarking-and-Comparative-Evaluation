@@ -29,12 +29,28 @@ from benchmark.analytics.models import (
 METRICS: dict[str, str] = {
     "quality_score": "quality_score",
     "p95_latency_seconds": "latency_p95",
+    "mean_ttft_seconds": "ttft_mean",
     "mean_output_tokens_per_second": "throughput_mean",
     "success_rate": "success_rate",
+    "failure_rate": "failure_rate",
+    "timeout_rate": "timeout_rate",
     "cpu_avg_percent": "cpu_avg_percent",
     "ram_avg_mib": "ram_avg_mib",
+    "gpu_utilization_avg_percent": "gpu_utilization_avg_percent",
+    "vram_avg_mib": "vram_avg_mib",
+    "model_vram_avg_mib": "model_vram_avg_mib",
 }
-LOWER_IS_BETTER = {"p95_latency_seconds", "cpu_avg_percent", "ram_avg_mib"}
+LOWER_IS_BETTER = {
+    "p95_latency_seconds",
+    "mean_ttft_seconds",
+    "failure_rate",
+    "timeout_rate",
+    "cpu_avg_percent",
+    "ram_avg_mib",
+    "gpu_utilization_avg_percent",
+    "vram_avg_mib",
+    "model_vram_avg_mib",
+}
 
 
 def _model_values(analytics: ExperimentAnalytics) -> list[dict[str, object]]:
@@ -45,12 +61,20 @@ def _model_values(analytics: ExperimentAnalytics) -> list[dict[str, object]]:
                 "model_tag": model.model_tag,
                 "quality_score": model.quality_score,
                 "p95_latency_seconds": model.statistics.latency.p95,
+                "mean_ttft_seconds": model.statistics.ttft.mean,
                 "mean_output_tokens_per_second": (
                     model.statistics.output_tokens_per_second.mean
                 ),
                 "success_rate": model.statistics.success_rate,
+                "failure_rate": model.statistics.failure_rate,
+                "timeout_rate": model.statistics.timeout_rate,
                 "cpu_avg_percent": model.resources.cpu_avg_percent,
                 "ram_avg_mib": model.resources.ram_avg_mib,
+                "gpu_utilization_avg_percent": (
+                    model.resources.gpu_utilization_avg_percent
+                ),
+                "vram_avg_mib": model.resources.vram_avg_mib,
+                "model_vram_avg_mib": model.resources.model_vram_avg_mib,
             }
         )
     return rows
@@ -99,6 +123,17 @@ def compare_analytics(
         )
     if not common:
         limitations.append("the two experiments share no model tags")
+    if baseline.profile != candidate.profile:
+        limitations.append(
+            f"profiles differ: baseline {baseline.profile}, "
+            f"candidate {candidate.profile}"
+        )
+    if baseline.run_profile != candidate.run_profile:
+        limitations.append(
+            "run-profile filters differ: baseline "
+            f"{baseline.run_profile or 'all'}, candidate "
+            f"{candidate.run_profile or 'all'}"
+        )
 
     comparisons: list[ModelComparison] = []
     for tag in common:
@@ -129,6 +164,8 @@ def compare_analytics(
     return ExperimentComparison(
         baseline_experiment_id=baseline.experiment_id,
         candidate_experiment_id=candidate.experiment_id,
+        baseline_profile=baseline.profile,
+        candidate_profile=candidate.profile,
         models=comparisons,
         limitations=limitations,
     )

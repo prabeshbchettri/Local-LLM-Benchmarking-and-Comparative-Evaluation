@@ -5,10 +5,10 @@ Description:
 Command-line entry point for initialization, health checks, and model management.
 
 Responsibilities:
-- Parse init, health, and models commands.
+- Parse init, health, models, infer, monitor, analyze, compare, and report commands.
 - Load and validate configuration.
 - Initialize runtime directories and logging.
-- Manage Ollama models without starting a benchmark.
+- Manage Ollama models and run or report on benchmark experiments.
 """
 
 from __future__ import annotations
@@ -22,10 +22,13 @@ from pathlib import Path
 from typing import Any, Sequence
 from uuid import uuid4
 
+from benchmark.analytics import AnalyticsEngine, build_recommendation_set
+from benchmark.analytics.models import ExperimentAnalytics, RecommendationSet
 from benchmark.core.config import AppSettings, load_settings
 from benchmark.core.exceptions import BenchmarkError
 from benchmark.core.health import render_health_report, run_health_check
 from benchmark.core.startup import initialize_application
+from benchmark.database.db import Database
 from benchmark.dataset.loader import load_dataset, ordered_items
 from benchmark.dataset.models import BenchmarkDataset
 from benchmark.execution.engine import (
@@ -282,6 +285,138 @@ def build_parser() -> argparse.ArgumentParser:
         help="Override the pre-request hardware baseline duration.",
     )
     _add_json(infer_parser)
+
+    analyze_parser = subparsers.add_parser(
+        "analyze",
+        help="Compute stored-result analytics and workload recommendations.",
+    )
+    _add_config_dir(analyze_parser)
+    analyze_parser.add_argument("experiment_id", help="Experiment identifier.")
+    profile_group = analyze_parser.add_mutually_exclusive_group()
+    profile_group.add_argument(
+        "--profile",
+        default=None,
+        help="Scoring profile name; defaults to the configured default.",
+    )
+    profile_group.add_argument(
+        "--all-profiles",
+        action="store_true",
+        help="Compute every configured workload profile.",
+    )
+    analyze_parser.add_argument(
+        "--run-profile",
+        default=None,
+        help="Only include stored runs with this inference profile.",
+    )
+    analyze_parser.add_argument(
+        "--include-cold-start",
+        action="store_true",
+        help="Include cold-start runs; excluded by default.",
+    )
+    analyze_parser.add_argument(
+        "--include-smoke",
+        action="store_true",
+        help="Include smoke runs; excluded by default.",
+    )
+    analyze_parser.add_argument(
+        "--persist",
+        action="store_true",
+        help="Store available recommendations in the database.",
+    )
+    _add_json(analyze_parser)
+
+    compare_parser = subparsers.add_parser(
+        "compare",
+        help="Compare analytics between a baseline and one or more experiments.",
+    )
+    _add_config_dir(compare_parser)
+    compare_parser.add_argument(
+        "baseline_experiment_id",
+        help="Baseline experiment identifier.",
+    )
+    compare_parser.add_argument(
+        "candidate_experiment_ids",
+        nargs="+",
+        help="One or more candidate experiment identifiers.",
+    )
+    compare_parser.add_argument(
+        "--profile",
+        default=None,
+        help="Scoring profile name; defaults to the configured default.",
+    )
+    compare_parser.add_argument(
+        "--run-profile",
+        default=None,
+        help="Only include stored runs with this inference profile.",
+    )
+    compare_parser.add_argument(
+        "--include-cold-start",
+        action="store_true",
+        help="Include cold-start runs; excluded by default.",
+    )
+    compare_parser.add_argument(
+        "--include-smoke",
+        action="store_true",
+        help="Include smoke runs; excluded by default.",
+    )
+    _add_json(compare_parser)
+
+    report_parser = subparsers.add_parser(
+        "report",
+        help="Generate CSV, JSON, HTML, and PDF reports for a completed experiment.",
+    )
+    _add_config_dir(report_parser)
+    report_parser.add_argument(
+        "experiment_id",
+        help="Experiment identifier to report.",
+    )
+    report_parser.add_argument(
+        "--database",
+        type=Path,
+        default=None,
+        help="Database path; defaults to storage/benchmark.db.",
+    )
+    report_parser.add_argument(
+        "--output-dir",
+        type=Path,
+        default=None,
+        help="Output directory; defaults to data/exports/<experiment_id>.",
+    )
+    report_parser.add_argument(
+        "--format",
+        action="append",
+        dest="formats",
+        type=str.lower,
+        choices=("csv", "json", "html", "pdf"),
+        default=None,
+        help="Report format to generate; repeatable. Defaults to all four.",
+    )
+    report_parser.add_argument(
+        "--profile",
+        default=None,
+        help="Scoring profile name; defaults to the configured default.",
+    )
+    report_parser.add_argument(
+        "--run-profile",
+        default=None,
+        help="Only include stored runs with this inference profile.",
+    )
+    report_parser.add_argument(
+        "--include-cold-start",
+        action="store_true",
+        help="Include cold-start runs; excluded by default.",
+    )
+    report_parser.add_argument(
+        "--include-smoke",
+        action="store_true",
+        help="Include smoke runs; excluded by default.",
+    )
+    report_parser.add_argument(
+        "--allow-incomplete",
+        action="store_true",
+        help="Export an experiment that is not completed, flagged as preliminary.",
+    )
+    _add_json(report_parser)
 
     monitor_parser = subparsers.add_parser(
         "monitor",
@@ -682,6 +817,210 @@ def _handle_monitor(args: argparse.Namespace, settings: AppSettings) -> int:
     return 0
 
 
+def _optional_score(value: float | None) -> str:
+    return "n/a" if value is None else f"{value:.2f}"
+
+
+def _optional_ratio(value: float | None) -> str:
+    return "n/a" if value is None else f"{value * 100:.1f}%"
+
+
+def _analytics_text(analysis: ExperimentAnalytics) -> str:
+    lines = [
+        f"Experiment: {analysis.experiment_id} ({analysis.experiment_status})",
+        (
+            f"Profile: {analysis.profile} | responses measured="
+            f"{analysis.measured_responses} evaluated={analysis.evaluated_responses}"
+        ),
+        "Weights: "
+        + ", ".join(
+            f"{name}={weight:g}" for name, weight in analysis.weights.items()
+        ),
+    ]
+    for model in analysis.models:
+        statistics = model.statistics
+        lines.append(
+            f"  {model.model_tag} | composite={_optional_score(model.composite_score)} "
+            f"quality={_optional_score(model.quality_score)} "
+            f"P95={_optional_seconds(statistics.latency.p95)} "
+            f"throughput={_optional_rate(statistics.output_tokens_per_second.mean)} "
+            f"success={_optional_ratio(statistics.success_rate)} "
+            f"failure={_optional_ratio(statistics.failure_rate)} "
+            f"evaluated={model.quality.evaluated_responses}/"
+            f"{statistics.measured_responses}"
+        )
+    if analysis.limitations:
+        lines.extend(f"Limitation: {item}" for item in analysis.limitations)
+    return "\n".join(lines)
+
+
+def _recommendation_text(result: RecommendationSet) -> str:
+    lines = [f"Recommendation profile: {result.workload}"]
+    if not result.available:
+        lines.append(f"  unavailable: {result.reason or 'insufficient data'}")
+        return "\n".join(lines)
+    for item in result.recommendations:
+        tie = f" | tied with {', '.join(item.tied_with)}" if item.tied else ""
+        lines.append(
+            f"  {item.rank}. {item.model_tag} | score={item.composite_score:.2f} "
+            f"| confidence={item.confidence}{tie}"
+        )
+        lines.append(f"     {item.rationale}")
+        if item.strengths:
+            lines.append(f"     Strengths: {'; '.join(item.strengths)}")
+        if item.weaknesses:
+            lines.append(f"     Weaknesses: {'; '.join(item.weaknesses)}")
+        if item.limitations:
+            lines.append(f"     Limitations: {'; '.join(item.limitations)}")
+    return "\n".join(lines)
+
+
+def _handle_analyze(args: argparse.Namespace, settings: AppSettings) -> int:
+    database = Database.from_settings(settings)
+    database.initialize()
+    try:
+        engine = AnalyticsEngine(database, settings=settings.benchmark)
+        names = (
+            list(engine.profile_names)
+            if args.all_profiles
+            else [args.profile or engine.default_profile]
+        )
+        results: list[tuple[ExperimentAnalytics, RecommendationSet]] = []
+        for name in names:
+            analysis = engine.analyze(
+                args.experiment_id,
+                profile=name,
+                run_profile=args.run_profile,
+                include_cold_start=args.include_cold_start,
+                include_smoke=args.include_smoke,
+            )
+            results.append((analysis, build_recommendation_set(analysis)))
+        if args.persist:
+            engine.persist_recommendations(
+                args.experiment_id,
+                [result for _, result in results],
+            )
+        if args.json:
+            _print_json(
+                {
+                    "experiment_id": args.experiment_id,
+                    "profiles": [
+                        {
+                            "analytics": analysis.model_dump(mode="json"),
+                            "recommendation": result.model_dump(mode="json"),
+                        }
+                        for analysis, result in results
+                    ],
+                }
+            )
+        else:
+            for analysis, result in results:
+                print(_analytics_text(analysis))
+                print(_recommendation_text(result))
+                print()
+        return 0
+    finally:
+        database.dispose()
+
+
+def _compare_text(comparison: Any) -> str:
+    lines = [f"Baseline: {comparison.baseline_experiment_id}"]
+    if comparison.limitations:
+        lines.extend(f"Limitation: {item}" for item in comparison.limitations)
+    for candidate in comparison.comparisons:
+        lines.append(
+            f"Candidate: {candidate.candidate_experiment_id} "
+            f"(profile {candidate.candidate_profile or 'unavailable'})"
+        )
+        if candidate.limitations:
+            lines.extend(f"  Limitation: {item}" for item in candidate.limitations)
+        for model in candidate.models:
+            lines.append(f"  {model.model_tag}:")
+            for metric in model.metrics:
+                if not metric.available:
+                    lines.append(f"    {metric.metric}: unavailable")
+                    continue
+                percent = (
+                    f", {metric.percent_change:+.1f}%"
+                    if metric.percent_change is not None
+                    else ""
+                )
+                lines.append(
+                    f"    {metric.metric}: {metric.baseline:.4g} -> "
+                    f"{metric.candidate:.4g} ({metric.delta:+.4g}{percent})"
+                )
+    return "\n".join(lines)
+
+
+def _handle_compare(args: argparse.Namespace, settings: AppSettings) -> int:
+    database = Database.from_settings(settings)
+    database.initialize()
+    try:
+        engine = AnalyticsEngine(database, settings=settings.benchmark)
+        comparison = engine.compare(
+            args.baseline_experiment_id,
+            args.candidate_experiment_ids,
+            profile=args.profile,
+            run_profile=args.run_profile,
+            include_cold_start=args.include_cold_start,
+            include_smoke=args.include_smoke,
+        )
+        if args.json:
+            _print_json(comparison.model_dump(mode="json"))
+        else:
+            print(_compare_text(comparison))
+        return 0
+    finally:
+        database.dispose()
+
+
+def _report_text(result: Any) -> str:
+    lines = [
+        f"Experiment: {result.experiment_id}",
+        f"Output directory: {result.output_dir}",
+        f"Preliminary: {'yes' if result.preliminary else 'no'}",
+    ]
+    if result.page_count is not None:
+        lines.append(f"PDF pages: {result.page_count}")
+    if result.warnings:
+        lines.extend(f"Warning: {item}" for item in result.warnings)
+    lines.append("Files:")
+    for generated in result.files:
+        lines.append(
+            f"  {generated.name} ({generated.format}, "
+            f"{format_bytes(generated.size_bytes)}, sha256 {generated.sha256[:12]}...)"
+        )
+    lines.append(f"Manifest: {result.manifest_path}")
+    return "\n".join(lines)
+
+
+def _handle_report(args: argparse.Namespace, settings: AppSettings) -> int:
+    from benchmark.reporting import DEFAULT_FORMATS, generate_reports
+
+    database = Database.from_settings(settings)
+    database.initialize()
+    try:
+        result = generate_reports(
+            database,
+            args.experiment_id,
+            settings=settings,
+            output_dir=args.output_dir,
+            formats=tuple(args.formats) if args.formats else DEFAULT_FORMATS,
+            profile=args.profile,
+            allow_incomplete=args.allow_incomplete,
+            run_profile=args.run_profile,
+            include_cold_start=args.include_cold_start,
+            include_smoke=args.include_smoke,
+        )
+        if args.json:
+            _print_json(result.as_dict())
+        else:
+            print(_report_text(result))
+        return 0
+    finally:
+        database.dispose()
+
+
 def _handle_models(args: argparse.Namespace, settings: AppSettings) -> int:
     manager = _create_model_manager(settings)
     try:
@@ -838,6 +1177,12 @@ def main(argv: Sequence[str] | None = None) -> int:
             return _handle_monitor(args, settings)
         if args.command == "infer":
             return _handle_infer(args, settings)
+        if args.command == "analyze":
+            return _handle_analyze(args, settings)
+        if args.command == "compare":
+            return _handle_compare(args, settings)
+        if args.command == "report":
+            return _handle_report(args, settings)
         raise BenchmarkError(f"Unknown command: {args.command}")
     except BenchmarkError as exc:
         print(f"ERROR: {exc}", file=sys.stderr)

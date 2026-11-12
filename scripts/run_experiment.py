@@ -46,6 +46,12 @@ def build_parser() -> argparse.ArgumentParser:
         default=None,
         help="Database path; defaults to storage/benchmark.db",
     )
+    parser.add_argument(
+        "--dataset",
+        type=Path,
+        default=None,
+        help="Dataset path; defaults to the configured canonical dataset.",
+    )
     parser.add_argument("--models", nargs="+", default=None)
     parser.add_argument(
         "--profile",
@@ -107,7 +113,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     own_client = None
     try:
         settings = load_settings(config_dir=args.config_dir)
-        dataset = load_dataset(settings.benchmark.dataset_path)
+        dataset = load_dataset(args.dataset or settings.benchmark.dataset_path)
         database = open_database(settings, args.database)
         if args.no_manager:
             own_client = OllamaClient(
@@ -152,6 +158,12 @@ def main(argv: Sequence[str] | None = None) -> int:
             print(json.dumps(report.model_dump(mode="json"), indent=2, sort_keys=True))
         else:
             _print_text(report)
+        if report.interrupted:
+            print(
+                "Interrupted; stored results were kept and the experiment can be resumed",
+                file=sys.stderr,
+            )
+            return 130
         return 0
     except BenchmarkError as exc:
         print(f"ERROR: {exc}", file=sys.stderr)

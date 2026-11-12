@@ -56,7 +56,7 @@ CLOSED_EXPERIMENT_STATUSES = {"completed", "failed", "cancelled"}
 
 
 class RegisteredModel(BaseSchema):
-    """Stored model identity used by callers instead of ORM objects."""
+    """Stored model identity and metadata used by callers instead of ORM objects."""
 
     id: int
     tag: str
@@ -65,8 +65,13 @@ class RegisteredModel(BaseSchema):
     installed: bool
     digest: str | None = None
     family: str | None = None
+    parameter_count: int | None = None
+    parameter_size: str | None = None
     quantization: str | None = None
     size_bytes: int | None = None
+    context_length: int | None = None
+    license: str | None = None
+    ollama_version: str | None = None
 
 
 class ExperimentView(BaseSchema):
@@ -86,6 +91,39 @@ class ExperimentView(BaseSchema):
     run_count: int
     response_count: int
     evaluation_count: int
+
+
+class RunDetailView(BaseSchema):
+    """One stored run with model metadata for report configuration sections."""
+
+    id: int
+    model_tag: str
+    model_name: str
+    role: str
+    profile: str
+    status: str
+    cold_start: bool
+    warmup_requests: int
+    repetitions: int
+    started_at: datetime | None = None
+    completed_at: datetime | None = None
+    error_message: str | None = None
+
+
+class ExperimentDetailView(BaseSchema):
+    """Full experiment snapshot used by reports and structured exports."""
+
+    experiment: ExperimentView
+    config: dict[str, Any] = Field(default_factory=dict)
+    host: dict[str, Any] = Field(default_factory=dict)
+    software: dict[str, Any] = Field(default_factory=dict)
+    notes: str | None = None
+    dataset_schema_version: str | None = None
+    dataset_item_count: int = 0
+    dataset_source_path: str | None = None
+    dataset_random_seed: int | None = None
+    runs: list[RunDetailView] = Field(default_factory=list)
+    models: list[RegisteredModel] = Field(default_factory=list)
 
 
 class RunView(BaseSchema):
@@ -139,11 +177,106 @@ class QuestionResultView(BaseSchema):
     composite_score: float | None = None
 
 
+class ResponseInspectionView(BaseSchema):
+    """One stored response with its prompt, timing, tokens, evaluation, and hardware."""
+
+    question_id: str
+    model_tag: str
+    model_name: str
+    run_profile: str
+    cold_start: bool
+    repetition: int
+    category: str | None = None
+    prompt: str
+    system_prompt: str | None = None
+    response_text: str
+    response_status: str
+    finish_reason: str | None = None
+    error_type: str | None = None
+    error_message: str | None = None
+    started_at: datetime
+    completed_at: datetime
+    stream_chunk_count: int = 0
+    latency_seconds: float | None = None
+    ttft_seconds: float | None = None
+    load_duration_seconds: float | None = None
+    prompt_eval_duration_seconds: float | None = None
+    eval_duration_seconds: float | None = None
+    prompt_eval_count: int | None = None
+    eval_count: int | None = None
+    output_tokens_per_second: float | None = None
+    prompt_tokens_per_second: float | None = None
+    evaluation_status: str | None = None
+    evaluation_type: str | None = None
+    deterministic_score: float | None = None
+    deterministic_max_score: float | None = None
+    deterministic_normalized_score: float | None = None
+    passed: bool | None = None
+    judge_status: str | None = None
+    judge_model_tag: str | None = None
+    judge_raw_score: float | None = None
+    judge_normalized_score: float | None = None
+    judge_missing: bool | None = None
+    composite_score: float | None = None
+    checks: list[dict[str, Any]] = Field(default_factory=list)
+    judge_dimensions: dict[str, Any] | None = None
+    evaluation_errors: list[dict[str, Any]] = Field(default_factory=list)
+    hardware_summary: dict[str, Any] | None = None
+
+
+class EvaluationBreakdownView(BaseSchema):
+    """Pass counts and score means grouped by model and evaluation type."""
+
+    model_tag: str
+    evaluation_type: str | None = None
+    evaluated_responses: int = Field(default=0, ge=0)
+    passed_responses: int = Field(default=0, ge=0)
+    deterministic_score: float | None = None
+    judge_score: float | None = None
+    composite_score: float | None = None
+
+
+class HardwareUsageRow(BaseSchema):
+    """Per-response average and peak hardware usage stored with one response."""
+
+    model_tag: str
+    question_id: str
+    repetition: int
+    cold_start: bool = False
+    sample_count: int = Field(default=0, ge=0)
+    baseline_sample_count: int = Field(default=0, ge=0)
+    inference_sample_count: int = Field(default=0, ge=0)
+    cpu_avg_percent: float | None = None
+    cpu_peak_percent: float | None = None
+    ram_avg_used_bytes: int | None = None
+    ram_peak_used_bytes: int | None = None
+    gpu_utilization_avg_percent: float | None = None
+    gpu_utilization_peak_percent: float | None = None
+    vram_avg_used_bytes: int | None = None
+    vram_peak_used_bytes: int | None = None
+    gpu_temperature_avg_c: float | None = None
+    gpu_temperature_peak_c: float | None = None
+    ollama_rss_avg_bytes: int | None = None
+    ollama_rss_peak_bytes: int | None = None
+    ollama_model_size_vram_bytes: int | None = None
+    gpu_name: str | None = None
+    gpu_available: bool = False
+    gpu_utilization_available: bool = False
+    gpu_memory_available: bool = False
+    gpu_temperature_available: bool = False
+    model_vram_available: bool = False
+    gpu_error: str | None = None
+    sampler_error: str | None = None
+    attribution_note: str | None = None
+
+
 class AnalyticsRow(BaseSchema):
-    """One measured response with metrics, evaluation, and hardware joined."""
+    """One measured response with metrics, evaluation, hardware, and run context."""
 
     model_tag: str
     model_name: str
+    run_profile: str | None = None
+    cold_start: bool = False
     question_id: str
     category: str | None = None
     response_status: str
@@ -164,6 +297,8 @@ class AnalyticsRow(BaseSchema):
     ram_avg_used_bytes: int | None = None
     gpu_utilization_avg_percent: float | None = None
     vram_avg_used_bytes: int | None = None
+    ollama_model_vram_bytes: int | None = None
+    ollama_model_vram_available: bool = False
     gpu_available: bool = False
     gpu_memory_available: bool = False
     gpu_name: str | None = None
@@ -188,6 +323,7 @@ class RecommendationInput(BaseSchema):
     score: float
     confidence: str = Field(min_length=1)
     weights: dict[str, float] = Field(default_factory=dict)
+    details: dict[str, Any] = Field(default_factory=dict)
     rationale: str = Field(min_length=1)
 
 
@@ -232,6 +368,26 @@ class BaseRepository:
 
     def __init__(self, database: Database) -> None:
         self.database = database
+
+
+def _registered_model(row: ModelRow) -> RegisteredModel:
+    """Map an ORM model row to the public read model."""
+    return RegisteredModel(
+        id=row.id,
+        tag=row.tag,
+        name=row.name,
+        role=row.role,
+        installed=row.installed,
+        digest=row.digest,
+        family=row.family,
+        parameter_count=row.parameter_count,
+        parameter_size=row.parameter_size,
+        quantization=row.quantization,
+        size_bytes=row.size_bytes,
+        context_length=row.context_length,
+        license=row.license,
+        ollama_version=row.ollama_version,
+    )
 
 
 class ModelRepository(BaseRepository):
@@ -280,17 +436,7 @@ class ModelRepository(BaseRepository):
                 row.model_info = metadata.model_info or row.model_info
                 row.last_seen_at = now
             session.flush()
-            return RegisteredModel(
-                id=row.id,
-                tag=row.tag,
-                name=row.name,
-                role=row.role,
-                installed=row.installed,
-                digest=row.digest,
-                family=row.family,
-                quantization=row.quantization,
-                size_bytes=row.size_bytes,
-            )
+            return _registered_model(row)
 
     def get_by_tag(self, tag: str) -> RegisteredModel | None:
         """Return a stored model by exact Ollama tag."""
@@ -298,36 +444,13 @@ class ModelRepository(BaseRepository):
             row = session.scalar(select(ModelRow).where(ModelRow.tag == tag))
             if row is None:
                 return None
-            return RegisteredModel(
-                id=row.id,
-                tag=row.tag,
-                name=row.name,
-                role=row.role,
-                installed=row.installed,
-                digest=row.digest,
-                family=row.family,
-                quantization=row.quantization,
-                size_bytes=row.size_bytes,
-            )
+            return _registered_model(row)
 
     def list(self) -> list[RegisteredModel]:
         """Return all registered models ordered by tag."""
         with self.database.session_scope() as session:
             rows = session.scalars(select(ModelRow).order_by(ModelRow.tag)).all()
-            return [
-                RegisteredModel(
-                    id=row.id,
-                    tag=row.tag,
-                    name=row.name,
-                    role=row.role,
-                    installed=row.installed,
-                    digest=row.digest,
-                    family=row.family,
-                    quantization=row.quantization,
-                    size_bytes=row.size_bytes,
-                )
-                for row in rows
-            ]
+            return [_registered_model(row) for row in rows]
 
 
 class DatasetRepository(BaseRepository):
@@ -551,6 +674,32 @@ class RunRepository(BaseRepository):
     def mark_cancelled(self, run_id: int) -> None:
         """Close a run that was cancelled by the operator."""
         self._close(run_id, "cancelled", None)
+
+    def reopen(self, run_id: int) -> RunView:
+        """Reopen a cancelled run so a resumable experiment can finish it."""
+        with self.database.session_scope() as session:
+            row = session.get(RunRow, run_id)
+            if row is None:
+                raise DatabaseError(f"run {run_id} does not exist")
+            if row.status == "cancelled":
+                row.status = "running"
+                row.completed_at = None
+                row.error_message = None
+            experiment = session.get(ExperimentRow, row.experiment_id)
+            model = session.get(ModelRow, row.model_id)
+            return RunView(
+                id=row.id,
+                experiment_id=experiment.experiment_id if experiment else "unknown",
+                model_tag=model.tag if model else "unknown",
+                profile=row.profile,
+                status=row.status,
+                cold_start=row.cold_start,
+                warmup_requests=row.warmup_requests,
+                repetitions=row.repetitions,
+                started_at=row.started_at,
+                completed_at=row.completed_at,
+                error_message=row.error_message,
+            )
 
     def _close(self, run_id: int, status: str, message: str | None) -> None:
         with self.database.session_scope() as session:
@@ -871,6 +1020,7 @@ class RecommendationRepository(BaseRepository):
                         score=item.score,
                         confidence=item.confidence,
                         weights_json=item.weights,
+                        details_json=item.details or None,
                         rationale=item.rationale,
                         created_at=utc_now(),
                     )
@@ -889,6 +1039,7 @@ class RecommendationRepository(BaseRepository):
                     RecommendationRow.score,
                     RecommendationRow.confidence,
                     RecommendationRow.weights_json,
+                    RecommendationRow.details_json,
                     RecommendationRow.rationale,
                 )
                 .join(ModelRow, ModelRow.id == RecommendationRow.model_id)
@@ -907,7 +1058,8 @@ class RecommendationRepository(BaseRepository):
                     "score": row[3],
                     "confidence": row[4],
                     "weights": row[5],
-                    "rationale": row[6],
+                    "details": row[6],
+                    "rationale": row[7],
                 }
                 for row in rows
             ]
@@ -980,6 +1132,57 @@ class ReadRepository(BaseRepository):
     def experiment_history(self, limit: int = 50) -> list[ExperimentView]:
         """Return recent experiments."""
         return ExperimentRepository(self.database).history(limit)
+
+    def experiment_detail(self, experiment_external_id: str) -> ExperimentDetailView:
+        """Return the experiment snapshot, dataset identity, runs, and used models."""
+        with self.database.session_scope() as session:
+            experiment = session.scalar(
+                select(ExperimentRow).where(
+                    ExperimentRow.experiment_id == experiment_external_id
+                )
+            )
+            if experiment is None:
+                raise DatabaseError(f"experiment {experiment_external_id} does not exist")
+            dataset = session.get(DatasetRow, experiment.dataset_id)
+            run_rows = session.scalars(
+                select(RunRow)
+                .join(ModelRow, ModelRow.id == RunRow.model_id)
+                .where(RunRow.experiment_id == experiment.id)
+                .order_by(ModelRow.tag, RunRow.cold_start)
+            ).all()
+            runs = [
+                RunDetailView(
+                    id=run.id,
+                    model_tag=run.model.tag,
+                    model_name=run.model.name,
+                    role=run.model.role,
+                    profile=run.profile,
+                    status=run.status,
+                    cold_start=run.cold_start,
+                    warmup_requests=run.warmup_requests,
+                    repetitions=run.repetitions,
+                    started_at=run.started_at,
+                    completed_at=run.completed_at,
+                    error_message=run.error_message,
+                )
+                for run in run_rows
+            ]
+            models: dict[str, RegisteredModel] = {}
+            for run in run_rows:
+                models.setdefault(run.model.tag, _registered_model(run.model))
+            return ExperimentDetailView(
+                experiment=_experiment_view(session, experiment),
+                config=dict(experiment.config_json or {}),
+                host=dict(experiment.host_json or {}),
+                software=dict(experiment.software_json or {}),
+                notes=experiment.notes,
+                dataset_schema_version=dataset.schema_version if dataset else None,
+                dataset_item_count=dataset.item_count if dataset else 0,
+                dataset_source_path=dataset.source_path if dataset else None,
+                dataset_random_seed=dataset.random_seed if dataset else None,
+                runs=runs,
+                models=[models[tag] for tag in sorted(models)],
+            )
 
     def model_results(self, experiment_external_id: str) -> list[ModelResultView]:
         """Aggregate measured performance and quality per model run."""
@@ -1054,8 +1257,16 @@ class ReadRepository(BaseRepository):
     def analytics_rows(
         self,
         experiment_external_id: str,
+        *,
+        run_profile: str | None = None,
+        include_cold_start: bool = False,
+        include_smoke: bool = False,
     ) -> list[AnalyticsRow]:
-        """Return measured responses with timing, evaluation, and hardware columns."""
+        """Return measured responses with timing, evaluation, and hardware columns.
+
+        Smoke and cold-start runs are excluded unless requested. An explicit
+        ``run_profile`` filter takes precedence over the smoke exclusion.
+        """
         with self.database.session_scope() as session:
             experiment = session.scalar(
                 select(ExperimentRow).where(
@@ -1064,10 +1275,12 @@ class ReadRepository(BaseRepository):
             )
             if experiment is None:
                 raise DatabaseError(f"experiment {experiment_external_id} does not exist")
-            rows = session.execute(
+            query = (
                 select(
                     ModelRow.tag.label("model_tag"),
                     ModelRow.name.label("model_name"),
+                    RunRow.profile.label("run_profile"),
+                    RunRow.cold_start.label("cold_start"),
                     ResponseRow.question_id.label("question_id"),
                     ResponseRow.category.label("category"),
                     ResponseRow.status.label("response_status"),
@@ -1100,6 +1313,12 @@ class ReadRepository(BaseRepository):
                     HardwareMeasurementRow.vram_avg_used_bytes.label(
                         "vram_avg_used_bytes"
                     ),
+                    HardwareMeasurementRow.ollama_model_size_vram_bytes.label(
+                        "ollama_model_vram_bytes"
+                    ),
+                    HardwareMeasurementRow.ollama_model_vram_available.label(
+                        "ollama_model_vram_available"
+                    ),
                     HardwareMeasurementRow.gpu_available.label("gpu_available"),
                     HardwareMeasurementRow.gpu_memory_available.label(
                         "gpu_memory_available"
@@ -1121,12 +1340,26 @@ class ReadRepository(BaseRepository):
                     RunRow.experiment_id == experiment.id,
                     ResponseRow.is_warmup.is_(False),
                 )
-                .order_by(ModelRow.tag, ResponseRow.question_id, ResponseRow.repetition)
+            )
+            if run_profile is not None:
+                query = query.where(RunRow.profile == run_profile)
+            elif not include_smoke:
+                query = query.where(RunRow.profile != "smoke")
+            if not include_cold_start:
+                query = query.where(RunRow.cold_start.is_(False))
+            rows = session.execute(
+                query.order_by(
+                    ModelRow.tag,
+                    ResponseRow.question_id,
+                    ResponseRow.repetition,
+                )
             ).all()
             return [
                 AnalyticsRow(
                     model_tag=row.model_tag,
                     model_name=row.model_name,
+                    run_profile=row.run_profile,
+                    cold_start=bool(row.cold_start),
                     question_id=row.question_id,
                     category=row.category,
                     response_status=row.response_status,
@@ -1147,9 +1380,324 @@ class ReadRepository(BaseRepository):
                     ram_avg_used_bytes=row.ram_avg_used_bytes,
                     gpu_utilization_avg_percent=row.gpu_utilization_avg_percent,
                     vram_avg_used_bytes=row.vram_avg_used_bytes,
+                    ollama_model_vram_bytes=row.ollama_model_vram_bytes,
+                    ollama_model_vram_available=bool(
+                        row.ollama_model_vram_available
+                    ),
                     gpu_available=bool(row.gpu_available),
                     gpu_memory_available=bool(row.gpu_memory_available),
                     gpu_name=row.gpu_name,
+                )
+                for row in rows
+            ]
+
+    def response_inspection(
+        self,
+        experiment_external_id: str,
+        *,
+        model_tag: str | None = None,
+        question_id: str | None = None,
+        category: str | None = None,
+        include_cold_start: bool = True,
+        include_smoke: bool = True,
+    ) -> list[ResponseInspectionView]:
+        """Return stored responses with prompt, timing, evaluation, and hardware detail."""
+        with self.database.session_scope() as session:
+            experiment = session.scalar(
+                select(ExperimentRow).where(
+                    ExperimentRow.experiment_id == experiment_external_id
+                )
+            )
+            if experiment is None:
+                raise DatabaseError(f"experiment {experiment_external_id} does not exist")
+            query = (
+                select(
+                    ResponseRow.question_id,
+                    ModelRow.tag,
+                    ModelRow.name,
+                    RunRow.profile,
+                    RunRow.cold_start,
+                    ResponseRow.repetition,
+                    ResponseRow.category,
+                    ResponseRow.prompt,
+                    ResponseRow.system_prompt,
+                    ResponseRow.response_text,
+                    ResponseRow.status,
+                    ResponseRow.finish_reason,
+                    ResponseRow.error_type,
+                    ResponseRow.error_message,
+                    ResponseRow.started_at,
+                    ResponseRow.completed_at,
+                    ResponseRow.stream_chunk_count,
+                    PerformanceMetricRow.total_latency_seconds,
+                    PerformanceMetricRow.ttft_seconds,
+                    PerformanceMetricRow.load_duration_seconds,
+                    PerformanceMetricRow.prompt_eval_duration_seconds,
+                    PerformanceMetricRow.eval_duration_seconds,
+                    PerformanceMetricRow.prompt_eval_count,
+                    PerformanceMetricRow.eval_count,
+                    PerformanceMetricRow.output_tokens_per_second,
+                    PerformanceMetricRow.prompt_tokens_per_second,
+                    EvaluationRow.status,
+                    EvaluationRow.evaluation_type,
+                    EvaluationRow.deterministic_score,
+                    EvaluationRow.deterministic_max_score,
+                    EvaluationRow.deterministic_normalized_score,
+                    EvaluationRow.passed,
+                    EvaluationRow.judge_status,
+                    EvaluationRow.judge_model_tag,
+                    EvaluationRow.judge_raw_score,
+                    EvaluationRow.judge_normalized_score,
+                    EvaluationRow.judge_missing,
+                    EvaluationRow.composite_score,
+                    EvaluationRow.checks_json,
+                    EvaluationRow.judge_dimensions_json,
+                    EvaluationRow.errors_json,
+                    HardwareMeasurementRow.summary_json,
+                )
+                .join(RunRow, RunRow.id == ResponseRow.run_id)
+                .join(ModelRow, ModelRow.id == RunRow.model_id)
+                .outerjoin(
+                    PerformanceMetricRow,
+                    PerformanceMetricRow.response_id == ResponseRow.id,
+                )
+                .outerjoin(EvaluationRow, EvaluationRow.response_id == ResponseRow.id)
+                .outerjoin(
+                    HardwareMeasurementRow,
+                    HardwareMeasurementRow.response_id == ResponseRow.id,
+                )
+                .where(
+                    RunRow.experiment_id == experiment.id,
+                    ResponseRow.is_warmup.is_(False),
+                )
+            )
+            if not include_smoke:
+                query = query.where(RunRow.profile != "smoke")
+            if not include_cold_start:
+                query = query.where(RunRow.cold_start.is_(False))
+            if model_tag is not None:
+                query = query.where(ModelRow.tag == model_tag)
+            if question_id is not None:
+                query = query.where(ResponseRow.question_id == question_id)
+            if category is not None:
+                query = query.where(ResponseRow.category == category)
+            rows = session.execute(
+                query.order_by(
+                    ResponseRow.question_id,
+                    ModelRow.tag,
+                    ResponseRow.repetition,
+                )
+            ).all()
+            return [
+                ResponseInspectionView(
+                    question_id=row[0],
+                    model_tag=row[1],
+                    model_name=row[2],
+                    run_profile=row[3],
+                    cold_start=bool(row[4]),
+                    repetition=row[5],
+                    category=row[6],
+                    prompt=row[7],
+                    system_prompt=row[8],
+                    response_text=row[9],
+                    response_status=row[10],
+                    finish_reason=row[11],
+                    error_type=row[12],
+                    error_message=row[13],
+                    started_at=row[14],
+                    completed_at=row[15],
+                    stream_chunk_count=row[16] or 0,
+                    latency_seconds=row[17],
+                    ttft_seconds=row[18],
+                    load_duration_seconds=row[19],
+                    prompt_eval_duration_seconds=row[20],
+                    eval_duration_seconds=row[21],
+                    prompt_eval_count=row[22],
+                    eval_count=row[23],
+                    output_tokens_per_second=row[24],
+                    prompt_tokens_per_second=row[25],
+                    evaluation_status=row[26],
+                    evaluation_type=row[27],
+                    deterministic_score=row[28],
+                    deterministic_max_score=row[29],
+                    deterministic_normalized_score=row[30],
+                    passed=row[31],
+                    judge_status=row[32],
+                    judge_model_tag=row[33],
+                    judge_raw_score=row[34],
+                    judge_normalized_score=row[35],
+                    judge_missing=row[36],
+                    composite_score=row[37],
+                    checks=list(row[38] or []),
+                    judge_dimensions=row[39],
+                    evaluation_errors=list(row[40] or []),
+                    hardware_summary=row[41],
+                )
+                for row in rows
+            ]
+
+    def evaluation_breakdown(
+        self,
+        experiment_external_id: str,
+        *,
+        run_profile: str | None = None,
+        include_cold_start: bool = False,
+        include_smoke: bool = False,
+    ) -> list[EvaluationBreakdownView]:
+        """Return evaluation pass counts and score means by model and method."""
+        passed = case((EvaluationRow.status == "passed", 1), else_=0)
+        with self.database.session_scope() as session:
+            experiment = session.scalar(
+                select(ExperimentRow).where(
+                    ExperimentRow.experiment_id == experiment_external_id
+                )
+            )
+            if experiment is None:
+                raise DatabaseError(f"experiment {experiment_external_id} does not exist")
+            query = (
+                select(
+                    ModelRow.tag,
+                    EvaluationRow.evaluation_type,
+                    func.count(EvaluationRow.id),
+                    func.coalesce(func.sum(passed), 0),
+                    func.avg(EvaluationRow.deterministic_normalized_score),
+                    func.avg(EvaluationRow.judge_normalized_score),
+                    func.avg(EvaluationRow.composite_score),
+                )
+                .join(ResponseRow, ResponseRow.id == EvaluationRow.response_id)
+                .join(RunRow, RunRow.id == ResponseRow.run_id)
+                .join(ModelRow, ModelRow.id == RunRow.model_id)
+                .where(
+                    RunRow.experiment_id == experiment.id,
+                    ResponseRow.is_warmup.is_(False),
+                )
+            )
+            if run_profile is not None:
+                query = query.where(RunRow.profile == run_profile)
+            elif not include_smoke:
+                query = query.where(RunRow.profile != "smoke")
+            if not include_cold_start:
+                query = query.where(RunRow.cold_start.is_(False))
+            rows = session.execute(
+                query.group_by(ModelRow.tag, EvaluationRow.evaluation_type).order_by(
+                    ModelRow.tag,
+                    EvaluationRow.evaluation_type,
+                )
+            ).all()
+            return [
+                EvaluationBreakdownView(
+                    model_tag=row[0],
+                    evaluation_type=row[1],
+                    evaluated_responses=int(row[2] or 0),
+                    passed_responses=int(row[3] or 0),
+                    deterministic_score=row[4],
+                    judge_score=row[5],
+                    composite_score=row[6],
+                )
+                for row in rows
+            ]
+
+    def hardware_usage(
+        self,
+        experiment_external_id: str,
+        *,
+        run_profile: str | None = None,
+        include_cold_start: bool = False,
+        include_smoke: bool = False,
+    ) -> list[HardwareUsageRow]:
+        """Return per-response average and peak hardware measurements."""
+        with self.database.session_scope() as session:
+            experiment = session.scalar(
+                select(ExperimentRow).where(
+                    ExperimentRow.experiment_id == experiment_external_id
+                )
+            )
+            if experiment is None:
+                raise DatabaseError(f"experiment {experiment_external_id} does not exist")
+            query = (
+                select(
+                    ModelRow.tag,
+                    ResponseRow.question_id,
+                    ResponseRow.repetition,
+                    RunRow.cold_start,
+                    HardwareMeasurementRow.sample_count,
+                    HardwareMeasurementRow.baseline_sample_count,
+                    HardwareMeasurementRow.inference_sample_count,
+                    HardwareMeasurementRow.cpu_avg_percent,
+                    HardwareMeasurementRow.cpu_peak_percent,
+                    HardwareMeasurementRow.ram_avg_used_bytes,
+                    HardwareMeasurementRow.ram_peak_used_bytes,
+                    HardwareMeasurementRow.gpu_utilization_avg_percent,
+                    HardwareMeasurementRow.gpu_utilization_peak_percent,
+                    HardwareMeasurementRow.vram_avg_used_bytes,
+                    HardwareMeasurementRow.vram_peak_used_bytes,
+                    HardwareMeasurementRow.gpu_temperature_avg_c,
+                    HardwareMeasurementRow.gpu_temperature_peak_c,
+                    HardwareMeasurementRow.ollama_rss_avg_bytes,
+                    HardwareMeasurementRow.ollama_rss_peak_bytes,
+                    HardwareMeasurementRow.ollama_model_size_vram_bytes,
+                    HardwareMeasurementRow.gpu_name,
+                    HardwareMeasurementRow.gpu_available,
+                    HardwareMeasurementRow.gpu_utilization_available,
+                    HardwareMeasurementRow.gpu_memory_available,
+                    HardwareMeasurementRow.gpu_temperature_available,
+                    HardwareMeasurementRow.ollama_model_vram_available,
+                    HardwareMeasurementRow.gpu_error,
+                    HardwareMeasurementRow.sampler_error,
+                    HardwareMeasurementRow.attribution_note,
+                )
+                .join(ResponseRow, ResponseRow.id == HardwareMeasurementRow.response_id)
+                .join(RunRow, RunRow.id == ResponseRow.run_id)
+                .join(ModelRow, ModelRow.id == RunRow.model_id)
+                .where(
+                    RunRow.experiment_id == experiment.id,
+                    ResponseRow.is_warmup.is_(False),
+                )
+            )
+            if run_profile is not None:
+                query = query.where(RunRow.profile == run_profile)
+            elif not include_smoke:
+                query = query.where(RunRow.profile != "smoke")
+            if not include_cold_start:
+                query = query.where(RunRow.cold_start.is_(False))
+            rows = session.execute(
+                query.order_by(
+                    ModelRow.tag,
+                    ResponseRow.question_id,
+                    ResponseRow.repetition,
+                )
+            ).all()
+            return [
+                HardwareUsageRow(
+                    model_tag=row[0],
+                    question_id=row[1],
+                    repetition=row[2],
+                    cold_start=bool(row[3]),
+                    sample_count=row[4] or 0,
+                    baseline_sample_count=row[5] or 0,
+                    inference_sample_count=row[6] or 0,
+                    cpu_avg_percent=row[7],
+                    cpu_peak_percent=row[8],
+                    ram_avg_used_bytes=row[9],
+                    ram_peak_used_bytes=row[10],
+                    gpu_utilization_avg_percent=row[11],
+                    gpu_utilization_peak_percent=row[12],
+                    vram_avg_used_bytes=row[13],
+                    vram_peak_used_bytes=row[14],
+                    gpu_temperature_avg_c=row[15],
+                    gpu_temperature_peak_c=row[16],
+                    ollama_rss_avg_bytes=row[17],
+                    ollama_rss_peak_bytes=row[18],
+                    ollama_model_size_vram_bytes=row[19],
+                    gpu_name=row[20],
+                    gpu_available=bool(row[21]),
+                    gpu_utilization_available=bool(row[22]),
+                    gpu_memory_available=bool(row[23]),
+                    gpu_temperature_available=bool(row[24]),
+                    model_vram_available=bool(row[25]),
+                    gpu_error=row[26],
+                    sampler_error=row[27],
+                    attribution_note=row[28],
                 )
                 for row in rows
             ]

@@ -4,10 +4,10 @@
 
 | Field | Value |
 |---|---|
-| Document version | 1.0.0 |
-| Status | Phase 06 implemented, pending user approval |
-| Date | 2026-11-10 |
-| Related documents | `PROJECT_REQUIREMENTS.md`, `EXPERIMENTAL_METHODOLOGY.md`, `METRICS_DEFINITIONS.md`, `ARCHITECTURE.md`, `DATASET_GUIDE.md` |
+| Document version | 1.1.0 |
+| Status | Phase 06 implemented; Phase 08 consumes its scores (pending approval) |
+| Date | 2026-11-11 |
+| Related documents | `PROJECT_REQUIREMENTS.md`, `EXPERIMENTAL_METHODOLOGY.md`, `METRICS_DEFINITIONS.md`, `SCORING_AND_RECOMMENDATIONS.md`, `ARCHITECTURE.md`, `DATASET_GUIDE.md` |
 
 ---
 
@@ -20,7 +20,7 @@ It produces two kinds of evidence that are deliberately kept separate:
 1. **Deterministic scores** — computed from the dataset item's authored expectations (exact answers, numeric values, unit tests, JSON Schemas, constraints, reference text, refusal targets). These are reproducible and auditable.
 2. **Subjective judge scores** — assigned by a separate local model against a fixed 1–5 rubric. These are recorded, never allowed to override a deterministic failure, and never substituted when the judge call fails.
 
-The engine does not rank models and does not produce a "best model" claim. Ranking is Phase 08 work, and it consumes these scores as inputs.
+The engine does not rank models and does not produce a "best model" claim. Phase 08 analytics consume these scores as quality inputs and apply the separately documented workload profiles and recommendation gates.
 
 ---
 
@@ -281,7 +281,7 @@ Weights are configuration, not constants of nature, and changing them changes re
 
 ### 6.4 Overall
 
-`overall_deterministic_score` and `overall_composite_score` are the unweighted mean of the **category** scores (equal category weight), so no category can dominate by having more items. Item-weighted sensitivity analysis belongs to Phase 08.
+`overall_deterministic_score` and `overall_composite_score` are the unweighted mean of the **category** scores (equal category weight), so no category can dominate by having more items. Phase 08 analytics retain that primary rule and add item-weighted and failure-as-zero sensitivity scores.
 
 ---
 
@@ -372,7 +372,7 @@ Every result is a validated Pydantic model, so a malformed record fails loudly a
 7. Judge scores cover only the nine judge-eligible summarization items.
 8. `composite` evaluation type is reserved but unsupported.
 9. Pairwise comparison is not implemented.
-10. Evaluation has no standalone CLI entry point; the Phase 07 experiment orchestrator calls the evaluation engine and persists each result to SQLite.
+10. Evaluation has no standalone CLI entry point; the Phase 07 experiment orchestrator calls the evaluation engine and persists each result to SQLite, and Phase 08 analytics read the stored scores.
 
 ---
 

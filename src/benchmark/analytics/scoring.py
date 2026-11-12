@@ -24,11 +24,15 @@ from pydantic import Field, model_validator
 
 from benchmark.analytics.models import DIMENSIONS, DimensionScore, QualityAnalysis
 from benchmark.analytics.normalization import weighted_average
-from benchmark.core.config import CATEGORY_NAMES
+from benchmark.core.config import (
+    CATEGORY_NAMES,
+    DEFAULT_PROFILE_NAME,
+    DEFAULT_WORKLOAD_PROFILES,
+    WorkloadProfileSettings,
+)
 from benchmark.core.exceptions import AnalyticsError
 from benchmark.models.base import BaseSchema
 
-DEFAULT_PROFILE_NAME = "general_purpose"
 WEIGHT_TOLERANCE = 1e-6
 
 
@@ -101,79 +105,31 @@ class ScoringProfile(BaseSchema):
         return value, coverage
 
 
-def build_profiles() -> dict[str, ScoringProfile]:
-    """Return the built-in scoring profiles keyed by workload name."""
-    return {
-        "general_purpose": ScoringProfile(
-            name="general_purpose",
-            description="Balanced profile for everyday local assistance.",
-            weights={
-                "quality": 40.0,
-                "latency": 20.0,
-                "throughput": 15.0,
-                "efficiency": 10.0,
-                "reliability": 15.0,
-            },
-        ),
-        "coding": ScoringProfile(
-            name="coding",
-            description="Code generation and editing with correctness emphasis.",
-            weights={
-                "quality": 45.0,
-                "latency": 15.0,
-                "throughput": 15.0,
-                "efficiency": 10.0,
-                "reliability": 15.0,
-            },
-            category_weights={
-                "coding": 0.7,
-                "instruction_following": 0.2,
-                "logical_reasoning": 0.1,
-            },
-        ),
-        "reasoning": ScoringProfile(
-            name="reasoning",
-            description="Analytical tasks that reward multi-step reasoning.",
-            weights={
-                "quality": 50.0,
-                "latency": 10.0,
-                "throughput": 10.0,
-                "efficiency": 10.0,
-                "reliability": 20.0,
-            },
-            category_weights={
-                "logical_reasoning": 0.45,
-                "mathematical_reasoning": 0.35,
-                "general_knowledge": 0.2,
-            },
-        ),
-        "json_generation": ScoringProfile(
-            name="json_generation",
-            description="Structured output tasks with schema compliance emphasis.",
-            weights={
-                "quality": 50.0,
-                "latency": 10.0,
-                "throughput": 20.0,
-                "efficiency": 5.0,
-                "reliability": 15.0,
-            },
-            category_weights={
-                "structured_json": 0.8,
-                "instruction_following": 0.2,
-            },
-        ),
-        "resource_constrained": ScoringProfile(
-            name="resource_constrained",
-            description="Memory- and compute-sensitive deployments.",
-            weights={
-                "quality": 30.0,
-                "latency": 20.0,
-                "throughput": 15.0,
-                "efficiency": 25.0,
-                "reliability": 10.0,
-            },
-        ),
-    }
+def build_profiles(
+    configured: Mapping[str, WorkloadProfileSettings | Mapping[str, object]] | None = None,
+) -> dict[str, ScoringProfile]:
+    """Build validated scoring profiles from configured weights.
+
+    The defaults mirror ``configs/benchmark.yaml``. Callers that loaded settings
+    should pass ``settings.workload_profiles`` so overrides take effect.
+    """
+    source = configured if configured is not None else DEFAULT_WORKLOAD_PROFILES
+    profiles: dict[str, ScoringProfile] = {}
+    for name, raw in source.items():
+        if isinstance(raw, WorkloadProfileSettings):
+            data = raw.model_dump()
+        else:
+            data = dict(raw)
+        profiles[name] = ScoringProfile(name=name, **data)
+    return profiles
+
+
+def build_profiles_from_settings(settings: object) -> dict[str, ScoringProfile]:
+    """Build profiles from an object exposing ``workload_profiles``."""
+    configured = getattr(settings, "workload_profiles", None)
+    if configured is None:
+        raise AnalyticsError("settings do not define workload_profiles")
+    return build_profiles(configured)
 
 
 PROFILES = build_profiles()

@@ -161,3 +161,7 @@ class AnalyticsError(BenchmarkError):
 
 class InsufficientDataError(AnalyticsError):
     """Raised when stored experiment data cannot support the requested analysis."""
+
+
+class ReportError(BenchmarkError):
+    """Raised when a report or export cannot be generated safely."""

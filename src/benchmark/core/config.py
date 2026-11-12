@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
 import re
 from pathlib import Path
 from typing import Any
@@ -36,7 +37,122 @@ CATEGORY_NAMES = (
     "summarization",
 )
 
+DIMENSION_NAMES = ("quality", "latency", "throughput", "efficiency", "reliability")
+
+DEFAULT_PROFILE_NAME = "general_purpose"
+
+DEFAULT_WORKLOAD_PROFILES: dict[str, dict[str, Any]] = {
+    "general_purpose": {
+        "description": "Balanced profile for everyday local assistance.",
+        "weights": {
+            "quality": 40.0,
+            "latency": 20.0,
+            "throughput": 15.0,
+            "efficiency": 10.0,
+            "reliability": 15.0,
+        },
+    },
+    "coding": {
+        "description": "Code generation and editing with correctness emphasis.",
+        "weights": {
+            "quality": 45.0,
+            "latency": 15.0,
+            "throughput": 15.0,
+            "efficiency": 10.0,
+            "reliability": 15.0,
+        },
+        "category_weights": {
+            "coding": 0.7,
+            "instruction_following": 0.2,
+            "logical_reasoning": 0.1,
+        },
+    },
+    "reasoning": {
+        "description": "Analytical tasks that reward multi-step reasoning.",
+        "weights": {
+            "quality": 50.0,
+            "latency": 10.0,
+            "throughput": 10.0,
+            "efficiency": 10.0,
+            "reliability": 20.0,
+        },
+        "category_weights": {
+            "logical_reasoning": 0.45,
+            "mathematical_reasoning": 0.35,
+            "general_knowledge": 0.2,
+        },
+    },
+    "json_generation": {
+        "description": "Structured output tasks with schema compliance emphasis.",
+        "weights": {
+            "quality": 50.0,
+            "latency": 10.0,
+            "throughput": 20.0,
+            "efficiency": 5.0,
+            "reliability": 15.0,
+        },
+        "category_weights": {
+            "structured_json": 0.8,
+            "instruction_following": 0.2,
+        },
+    },
+    "resource_constrained": {
+        "description": "Memory- and compute-sensitive deployments.",
+        "weights": {
+            "quality": 30.0,
+            "latency": 20.0,
+            "throughput": 15.0,
+            "efficiency": 25.0,
+            "reliability": 10.0,
+        },
+    },
+}
+
 DIGEST_PATTERN = re.compile(r"^(?:sha256:)?[0-9a-f]{64}$")
+WEIGHT_TOLERANCE = 1e-6
+
+
+class WorkloadProfileSettings(BaseSchema):
+    """Configured weights for one workload scoring profile."""
+
+    description: str = Field(min_length=1)
+    weights: dict[str, float]
+    category_weights: dict[str, float] = Field(default_factory=dict)
+
+    @model_validator(mode="after")
+    def validate_profile(self) -> "WorkloadProfileSettings":
+        unknown = set(self.weights) - set(DIMENSION_NAMES)
+        if unknown:
+            raise ValueError(f"unknown scoring dimensions: {sorted(unknown)}")
+        missing = set(DIMENSION_NAMES) - set(self.weights)
+        if missing:
+            raise ValueError(f"missing scoring dimensions: {sorted(missing)}")
+        if any(weight < 0 for weight in self.weights.values()):
+            raise ValueError("scoring weights must not be negative")
+        total = sum(self.weights.values())
+        if not math.isclose(total, 100.0, abs_tol=WEIGHT_TOLERANCE):
+            raise ValueError(f"scoring weights must total 100, got {total}")
+        if self.category_weights:
+            unknown_categories = set(self.category_weights) - set(CATEGORY_NAMES)
+            if unknown_categories:
+                raise ValueError(
+                    f"unknown quality categories: {sorted(unknown_categories)}"
+                )
+            if any(weight < 0 for weight in self.category_weights.values()):
+                raise ValueError("category weights must not be negative")
+            category_total = sum(self.category_weights.values())
+            if not math.isclose(category_total, 1.0, abs_tol=WEIGHT_TOLERANCE):
+                raise ValueError(
+                    f"category weights must total 1.0, got {category_total}"
+                )
+        return self
+
+
+def _default_workload_profiles() -> dict[str, WorkloadProfileSettings]:
+    return {
+        name: WorkloadProfileSettings(**data)
+        for name, data in DEFAULT_WORKLOAD_PROFILES.items()
+    }
 
 
 class BenchmarkSettings(BaseSchema):
@@ -67,6 +183,10 @@ class BenchmarkSettings(BaseSchema):
     results_dir: Path = Path("data/results")
     exports_dir: Path = Path("data/exports")
     log_dir: Path = Path("storage/logs")
+    default_scoring_profile: str = DEFAULT_PROFILE_NAME
+    workload_profiles: dict[str, WorkloadProfileSettings] = Field(
+        default_factory=_default_workload_profiles
+    )
 
     @field_validator("dataset_path")
     @classmethod
@@ -74,6 +194,17 @@ class BenchmarkSettings(BaseSchema):
         if value.suffix.lower() not in {".json", ".jsonl"}:
             raise ValueError("dataset_path must point to a .json or .jsonl file")
         return value
+
+    @model_validator(mode="after")
+    def validate_workload_profiles(self) -> "BenchmarkSettings":
+        if not self.workload_profiles:
+            raise ValueError("at least one workload profile must be configured")
+        if self.default_scoring_profile not in self.workload_profiles:
+            raise ValueError(
+                f"default_scoring_profile {self.default_scoring_profile!r} is not "
+                "configured in workload_profiles"
+            )
+        return self
 
 
 class ModelSpec(BaseSchema):

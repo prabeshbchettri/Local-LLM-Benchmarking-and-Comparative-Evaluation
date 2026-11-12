@@ -330,6 +330,7 @@ class RecommendationRow(Base):
     score: Mapped[float] = mapped_column(Float)
     confidence: Mapped[str] = mapped_column(String(20))
     weights_json: Mapped[dict[str, float]] = mapped_column(JSON)
+    details_json: Mapped[dict[str, Any] | None] = mapped_column(JSON)
     rationale: Mapped[str] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
 

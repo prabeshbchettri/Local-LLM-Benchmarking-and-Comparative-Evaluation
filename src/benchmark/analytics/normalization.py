@@ -27,17 +27,27 @@ def normalize_value(
     *,
     higher_is_better: bool = True,
 ) -> float | None:
-    """Normalize one value to 0-100; return None if it cannot be scaled."""
+    """Normalize one value to 0-100; return None if it cannot be scaled.
+
+    When all models share the same value, min-max scaling cannot distinguish them.
+    Returning the neutral midpoint avoids awarding an artificial 100 to every model.
+    """
     if value is None or minimum is None or maximum is None:
         return None
     if maximum < minimum:
         raise ValueError("maximum must be greater than or equal to minimum")
     if maximum == minimum:
-        return 100.0
+        return 50.0
     ratio = (value - minimum) / (maximum - minimum)
     if not higher_is_better:
         ratio = 1.0 - ratio
     return round(ratio * 100.0, 6)
+
+
+def has_discrimination(values: Mapping[str, float | None]) -> bool:
+    """Return whether the observed values contain more than one distinct value."""
+    present = [value for value in values.values() if value is not None]
+    return bool(present) and max(present) > min(present)
 
 
 def min_max_scale(

@@ -4,10 +4,10 @@
 
 | Field | Value |
 |---|---|
-| Document version | 1.4.0 |
-| Status | Phase 07 implemented (pending approval) |
-| Date | 2026-11-10 |
-| Related documents | `PROJECT_REQUIREMENTS.md`, `EXPERIMENTAL_METHODOLOGY.md`, `METRICS_DEFINITIONS.md`, `DATASET_GUIDE.md` |
+| Document version | 1.5.0 |
+| Status | Phase 08 implemented (pending approval) |
+| Date | 2026-11-11 |
+| Related documents | `PROJECT_REQUIREMENTS.md`, `EXPERIMENTAL_METHODOLOGY.md`, `METRICS_DEFINITIONS.md`, `SCORING_AND_RECOMMENDATIONS.md`, `DATASET_GUIDE.md` |
 
 ---
 
@@ -62,7 +62,10 @@ The dashboard is a read-mostly client. Long experiments run in a separate CLI pr
 
 ---
 
-## 4. Repository structure (implemented through Phase 05)
+## 4. Repository structure (target layout; implemented through Phase 08)
+
+The tree retains planned dashboard and reporting modules for phase mapping. Modules
+from Phase 09 onward are not implemented yet.
 
 ```text
 Local LLM Benchmarking and Comparative Evaluation/
@@ -86,7 +89,9 @@ Local LLM Benchmarking and Comparative Evaluation/
 │   ├── PROJECT_REQUIREMENTS.md
 │   ├── EXPERIMENTAL_METHODOLOGY.md
 │   ├── METRICS_DEFINITIONS.md
+│   ├── SCORING_AND_RECOMMENDATIONS.md
 │   ├── DATASET_GUIDE.md
+│   ├── REPORTING_GUIDE.md
 │   ├── ARCHITECTURE.md
 │   └── DEVELOPMENT_ROADMAP.md
 ├── scripts/
@@ -156,33 +161,47 @@ Local LLM Benchmarking and Comparative Evaluation/
 │       │   ├── tables.py
 │       │   ├── repositories.py
 │       │   └── migrations.py
-│       ├── analytics/
-│       │   ├── __init__.py
-│       │   ├── aggregates.py
-│       │   ├── normalization.py
-│       │   └── recommendations.py
+│   ├── analytics/
+│   │   ├── __init__.py
+│   │   ├── models.py
+│   │   ├── statistics.py
+│   │   ├── quality.py
+│   │   ├── resources.py
+│   │   ├── normalization.py
+│   │   ├── scoring.py
+│   │   ├── recommendations.py
+│   │   ├── comparison.py
+│   │   └── engine.py
 │       ├── reporting/
 │       │   ├── __init__.py
+│       │   ├── bundle.py
 │       │   ├── csv_export.py
 │       │   ├── json_export.py
 │       │   ├── html_report.py
 │       │   ├── pdf_report.py
+│       │   ├── presentation.py
+│       │   ├── service.py
 │       │   └── templates/
+│       │       └── report.html.j2
 │       └── dashboard/
 │           ├── __init__.py
 │           ├── app.py
-│           ├── components/
-│           └── pages/
-│               ├── 01_Overview.py
-│               ├── 02_Model_Comparison.py
-│               ├── 03_Performance.py
-│               ├── 04_Quality.py
-│               ├── 05_Hardware.py
-│               ├── 06_Response_Inspector.py
-│               ├── 07_Experiment_History.py
-│               ├── 08_Recommendations.py
-│               ├── 09_New_Experiment.py
-│               └── 10_Reports.py
+│           ├── charts.py
+│           ├── data.py
+│           ├── exports.py
+│           ├── runner.py
+│           ├── ui.py
+│           └── views/
+│               ├── overview.py
+│               ├── comparison.py
+│               ├── performance.py
+│               ├── quality.py
+│               ├── hardware.py
+│               ├── inspection.py
+│               ├── history.py
+│               ├── reports.py
+│               ├── recommendations.py
+│               └── run_experiment.py
 ├── storage/
 │   ├── benchmark.db
 │   ├── model_metadata.json
@@ -191,6 +210,7 @@ Local LLM Benchmarking and Comparative Evaluation/
 │   ├── conftest.py
 │   ├── unit/
 │   ├── integration/
+│   ├── analytics/
 │   ├── evaluation/
 │   └── performance/
 ├── .env.example
@@ -199,7 +219,7 @@ Local LLM Benchmarking and Comparative Evaluation/
 └── README.md
 ```
 
-Phase 04 adds `src/benchmark/models/inference.py` for response, timing, token, and run-summary schemas; `src/benchmark/execution/streaming.py` for NDJSON chat-chunk parsing; and `src/benchmark/execution/engine.py` for request execution, batch controls, cancellation, and interim JSONL logging. Phase 05 adds `src/benchmark/models/hardware.py` for sample and summary schemas plus `src/benchmark/monitoring/` for system, GPU, summary, and sampler responsibilities. The inference engine attaches a hardware summary and optional hardware error to each response record.
+Phase 04 adds `src/benchmark/models/inference.py` for response, timing, token, and run-summary schemas; `src/benchmark/execution/streaming.py` for NDJSON chat-chunk parsing; and `src/benchmark/execution/engine.py` for request execution, batch controls, cancellation, and interim JSONL logging. Phase 05 adds `src/benchmark/models/hardware.py` for sample and summary schemas plus `src/benchmark/monitoring/` for system, GPU, summary, and sampler responsibilities. The inference engine attaches a hardware summary and optional hardware error to each response record. Phase 07 adds `src/benchmark/database/` and `src/benchmark/execution/orchestrator.py`. Phase 08 adds `src/benchmark/analytics/`, the `analyze` and `compare` CLI commands, and `docs/SCORING_AND_RECOMMENDATIONS.md`.
 
 ### 4.1 Structure rules
 
@@ -232,7 +252,7 @@ Phase 04 adds `src/benchmark/models/inference.py` for response, timing, token, a
 | `models.yaml` | Ollama base URL, keep-alive value, candidate tags, judge tag, expected digests, and expected quantization |
 | `evaluation.yaml` | Judge settings, rubric version, sample rates, reliability settings, and category judge weights |
 
-Workload profile weights are introduced in Phase 08 as an additive section of `benchmark.yaml`; the Phase 01 schema deliberately contains only fields required by the implemented phases.
+Workload profile weights are implemented as a validated section of `benchmark.yaml`. The five profiles (`general_purpose`, `coding`, `reasoning`, `json_generation`, `resource_constrained`) must total 100; optional category weights must total 1.0, and `default_scoring_profile` must name a configured profile.
 
 ### 5.2 Ollama client (`benchmark.execution.ollama_client`)
 
@@ -323,7 +343,7 @@ stateDiagram-v2
 - Execute selected models and prompts sequentially with warm-up, repeats, and cold-start unload controls.
 - Distinguish success, empty, timeout, error, and cancelled outcomes.
 - Support cooperative cancellation and graceful keyboard interruption.
-- Append interim response records to JSONL until Phase 07 storage exists.
+- Persist response records to SQLite and retain JSONL as an append-only inspection/export format.
 - Use `benchmark.execution.streaming` for NDJSON parsing and `benchmark.execution.timing` for formulas.
 - Start and stop the hardware sampler around each measured request, attach a `HardwareSummary`, and record monitoring failures without failing inference.
 - Read Ollama model VRAM from `/api/ps` after the request and attach it to the hardware summary when available.
@@ -375,12 +395,16 @@ stateDiagram-v2
 
 **Responsibilities:**
 
-- Aggregate latency, throughput, quality, reliability, and hardware metrics.
-- Normalize metrics across models.
-- Apply workload profiles and configurable weights defined in `METRICS_DEFINITIONS.md` section 8.
-- Handle missing metrics and failed requests.
-- Compute confidence labels.
-- Store recommendations with rationale.
+- Aggregate latency, throughput, quality, reliability, and hardware metrics from stored rows.
+- Exclude warm-up, smoke, and cold-start data by default; support inference-profile and inclusion filters.
+- Normalize relative metrics across models with a neutral zero-range guard and `no_discrimination` flag.
+- Apply the five configured workload profiles and validated weights from `benchmark.yaml`.
+- Handle missing metrics by dropping a relative dimension for every compared model and renormalizing; never impute missing values.
+- Apply the >20% failure gate, report timeout warnings and practical ties, and compute evidence confidence.
+- Store recommendations with sub-scores, metrics, coverage, missing dimensions, limitations, and rationale in `recommendations.details_json`.
+- Compare historical experiments on a consistent profile and filter basis.
+
+Canonical formulas and rules are in `docs/SCORING_AND_RECOMMENDATIONS.md`.
 
 ### 5.11 Dashboard (`src/benchmark/dashboard/`)
 
@@ -749,7 +773,7 @@ Rules:
 | 05 | Hardware sampler, NVML/nvidia-smi, Ollama model VRAM, summaries |
 | 06 | Deterministic evaluators, sandbox, judge, scoring |
 | 07 | SQLAlchemy tables, repositories, orchestrator, resumability |
-| 08 | Aggregates, normalization, recommendations |
+| 08 | Stored-result statistics, quality/resource aggregates, normalization, configurable scoring, recommendations, comparison, persistence |
 | 09 | Streamlit dashboard pages |
 | 10 | CSV/JSON/HTML/PDF exporters |
 | 11 | Test suite, integration, reliability validation |

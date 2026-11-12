@@ -39,15 +39,23 @@ class DescriptiveStats(BaseSchema):
 
 
 class ResponseStatistics(BaseSchema):
-    """Latency, throughput, outcome, and consistency statistics for one model."""
+    """Latency, throughput, outcome, and consistency statistics for one model.
+
+    Throughput and timing statistics use successful responses only. Outcome rates
+    exclude cancelled requests from their denominator because cancellation is a
+    harness action rather than a model failure.
+    """
 
     measured_responses: int = Field(default=0, ge=0)
+    attempted_responses: int = Field(default=0, ge=0)
     successful_responses: int = Field(default=0, ge=0)
     failed_responses: int = Field(default=0, ge=0)
     timed_out_responses: int = Field(default=0, ge=0)
+    cancelled_responses: int = Field(default=0, ge=0)
     success_rate: float | None = Field(default=None, ge=0.0, le=1.0)
     failure_rate: float | None = Field(default=None, ge=0.0, le=1.0)
     timeout_rate: float | None = Field(default=None, ge=0.0, le=1.0)
+    cancellation_rate: float | None = Field(default=None, ge=0.0, le=1.0)
     latency: DescriptiveStats = Field(default_factory=DescriptiveStats)
     ttft: DescriptiveStats = Field(default_factory=DescriptiveStats)
     output_tokens_per_second: DescriptiveStats = Field(default_factory=DescriptiveStats)
@@ -59,23 +67,46 @@ class CategoryQuality(BaseSchema):
     """Deterministic, judge, and composite quality for one category."""
 
     category: str = Field(min_length=1)
+    measured_responses: int = Field(default=0, ge=0)
     evaluated_responses: int = Field(default=0, ge=0)
     judge_evaluated_responses: int = Field(default=0, ge=0)
+    quality_coverage: float = Field(default=0.0, ge=0.0, le=1.0)
     judge_coverage: float = Field(default=0.0, ge=0.0, le=1.0)
+    category_weight: float = Field(default=0.0, ge=0.0, le=1.0)
     deterministic_score: float | None = Field(default=None, ge=0.0, le=100.0)
     judge_score: float | None = Field(default=None, ge=0.0, le=100.0)
     composite_score: float | None = Field(default=None, ge=0.0, le=100.0)
 
 
 class QualityAnalysis(BaseSchema):
-    """Overall and per-category quality with explicit judge coverage."""
+    """Overall and per-category quality with explicit coverage.
 
+    ``composite_score`` is the equal-category mean, so every measured category has
+    the same influence regardless of how many prompts it contains. The item-weighted
+    mean is retained as a sensitivity check. ``failure_as_zero_composite_score``
+    treats failed responses as zero and excludes successful but unevaluated responses
+    from its denominator, preventing missing evaluations from being mistaken for
+    failures.
+    """
+
+    measured_responses: int = Field(default=0, ge=0)
     evaluated_responses: int = Field(default=0, ge=0)
     judge_evaluated_responses: int = Field(default=0, ge=0)
+    quality_coverage: float = Field(default=0.0, ge=0.0, le=1.0)
     judge_coverage: float = Field(default=0.0, ge=0.0, le=1.0)
     deterministic_score: float | None = Field(default=None, ge=0.0, le=100.0)
     judge_score: float | None = Field(default=None, ge=0.0, le=100.0)
     composite_score: float | None = Field(default=None, ge=0.0, le=100.0)
+    item_weighted_composite_score: float | None = Field(
+        default=None,
+        ge=0.0,
+        le=100.0,
+    )
+    failure_as_zero_composite_score: float | None = Field(
+        default=None,
+        ge=0.0,
+        le=100.0,
+    )
     categories: list[CategoryQuality] = Field(default_factory=list)
     limitations: list[str] = Field(default_factory=list)
 
@@ -88,13 +119,16 @@ class ResourceUsage(BaseSchema):
     ram_avg_mib: float | None = Field(default=None, ge=0.0)
     gpu_utilization_avg_percent: float | None = Field(default=None, ge=0.0)
     vram_avg_mib: float | None = Field(default=None, ge=0.0)
+    model_vram_avg_mib: float | None = Field(default=None, ge=0.0)
     cpu_available: bool = False
     ram_available: bool = False
     gpu_available: bool = False
     vram_available: bool = False
+    model_vram_available: bool = False
     quality_per_cpu_point: float | None = Field(default=None, ge=0.0)
     quality_per_ram_gib: float | None = Field(default=None, ge=0.0)
     quality_per_vram_gib: float | None = Field(default=None, ge=0.0)
+    quality_per_model_vram_gib: float | None = Field(default=None, ge=0.0)
     limitations: list[str] = Field(default_factory=list)
 
 
@@ -106,6 +140,7 @@ class DimensionScore(BaseSchema):
     normalized_score: float | None = Field(default=None, ge=0.0, le=100.0)
     weight_percent: float = Field(default=0.0, ge=0.0, le=100.0)
     available: bool = False
+    no_discrimination: bool = False
 
 
 class ModelAnalytics(BaseSchema):
@@ -137,6 +172,9 @@ class ExperimentAnalytics(BaseSchema):
     models: list[ModelAnalytics] = Field(default_factory=list)
     measured_responses: int = Field(default=0, ge=0)
     evaluated_responses: int = Field(default=0, ge=0)
+    run_profile: str | None = None
+    include_cold_start: bool = False
+    include_smoke: bool = False
     generated_at: datetime
     limitations: list[str] = Field(default_factory=list)
 
@@ -154,9 +192,16 @@ class Recommendation(BaseSchema):
     composite_score: float = Field(ge=0.0, le=100.0)
     confidence: str = Field(min_length=1)
     tied: bool = False
+    tied_with: list[str] = Field(default_factory=list)
     strengths: list[str] = Field(default_factory=list)
     weaknesses: list[str] = Field(default_factory=list)
     metrics: dict[str, float | None] = Field(default_factory=dict)
+    sub_scores: dict[str, float | None] = Field(default_factory=dict)
+    missing_dimensions: list[str] = Field(default_factory=list)
+    evidence_responses: int = Field(default=0, ge=0)
+    quality_coverage: float = Field(default=0.0, ge=0.0, le=1.0)
+    failure_rate: float | None = Field(default=None, ge=0.0, le=1.0)
+    timeout_rate: float | None = Field(default=None, ge=0.0, le=1.0)
     rationale: str = Field(min_length=1)
     limitations: list[str] = Field(default_factory=list)
 
@@ -170,6 +215,10 @@ class RecommendationSet(BaseSchema):
     recommendations: list[Recommendation] = Field(default_factory=list)
     weights: dict[str, float] = Field(default_factory=dict)
     category_weights: dict[str, float] = Field(default_factory=dict)
+    evaluated_models: int = Field(default=0, ge=0)
+    comparable_models: int = Field(default=0, ge=0)
+    excluded_models: dict[str, str] = Field(default_factory=dict)
+    methodology_version: str = "1.0.0"
     limitations: list[str] = Field(default_factory=list)
 
 
@@ -197,6 +246,8 @@ class ExperimentComparison(BaseSchema):
 
     baseline_experiment_id: str = Field(min_length=1)
     candidate_experiment_id: str = Field(min_length=1)
+    baseline_profile: str | None = None
+    candidate_profile: str | None = None
     models: list[ModelComparison] = Field(default_factory=list)
     limitations: list[str] = Field(default_factory=list)
 

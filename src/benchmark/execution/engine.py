@@ -10,7 +10,7 @@ Responsibilities:
 - Capture Ollama token counts, durations, and final raw metadata.
 - Record empty, timed-out, failed, and cancelled requests without retrying.
 - Execute selected models and prompts sequentially with warm-up and cold-start controls.
-- Append response records to an interim JSONL log until Phase 07 storage exists.
+- Append response records to an optional JSONL inspection log in addition to SQLite.
 """
 
 from __future__ import annotations
@@ -23,7 +23,6 @@ from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
 
 from benchmark.core.config import AppSettings
 from benchmark.core.exceptions import (

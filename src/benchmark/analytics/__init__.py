@@ -30,6 +30,7 @@ from benchmark.analytics.models import (
     ResponseStatistics,
 )
 from benchmark.analytics.normalization import (
+    has_discrimination,
     min_max_scale,
     normalize_value,
     percentage,
@@ -41,6 +42,7 @@ from benchmark.analytics.scoring import (
     PROFILES,
     ScoringProfile,
     build_profiles,
+    build_profiles_from_settings,
     composite_score,
     get_profile,
 )
@@ -71,10 +73,12 @@ __all__ = [
     "ResponseStatistics",
     "ScoringProfile",
     "build_profiles",
+    "build_profiles_from_settings",
     "build_recommendation_set",
     "composite_score",
     "describe",
     "get_profile",
+    "has_discrimination",
     "min_max_scale",
     "normalize_value",
     "percentage",

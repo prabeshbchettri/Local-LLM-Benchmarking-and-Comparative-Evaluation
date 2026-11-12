@@ -4,10 +4,10 @@
 
 | Field | Value |
 |---|---|
-| Document version | 1.1.0 |
-| Status | Phase 00 baseline; Phase 05 hardware implementation aligned |
-| Date | 2026-11-10 |
-| Related documents | `EXPERIMENTAL_METHODOLOGY.md`, `PROJECT_REQUIREMENTS.md`, `ARCHITECTURE.md` |
+| Document version | 1.2.0 |
+| Status | Phase 00 baseline; Phase 05 hardware and Phase 08 analytics aligned |
+| Date | 2026-11-11 |
+| Related documents | `EXPERIMENTAL_METHODOLOGY.md`, `PROJECT_REQUIREMENTS.md`, `ARCHITECTURE.md`, `SCORING_AND_RECOMMENDATIONS.md` |
 
 ---
 
@@ -398,7 +398,7 @@ item_weighted_quality = (Σ item_score_i / Σ max_score_i) × 100
 
 Both are reported. The equal-category-weight score is primary because it prevents categories with more items from dominating. The item-weighted score is a sensitivity check.
 
-**Coverage rule:** Quality scores are conditional on successful responses. Report `quality_coverage = evaluated_items / expected_items` per model and per category. Failed items are not imputed as 0 in the primary quality score. A failure-as-zero sensitivity score is reported separately. If quality coverage is below 80%, flag the quality comparison as incomplete; below 50%, do not rank quality. The reliability subscore remains the primary measure of failure behavior.
+**Coverage rule:** Quality scores are conditional on successful responses. Report `quality_coverage = evaluated_items / expected_items` per model and per category. Failed items are not imputed as 0 in the primary quality score. A failure-as-zero sensitivity score is reported separately. If quality coverage is below 80%, flag the quality comparison as incomplete and lower confidence; a model with no evaluated responses is excluded from recommendations. The reliability subscore remains the primary measure of failure behavior.
 
 ### 6.4 Judge dimension score
 
@@ -654,183 +654,51 @@ throughput_per_cpu_percent = output_tps / max(cpu_mean, 1)
 
 ## 8. Recommendation methodology
 
-Recommendations are comparative and workload-specific. They are not a claim that one model is universally best. The scoring is implemented in Phase 08 and must follow these definitions.
+The canonical, implemented definition is `docs/SCORING_AND_RECOMMENDATIONS.md`. This section summarizes the scoring contract; the analytics package and that document take precedence over any earlier six-profile design notes.
 
 ### 8.1 Dimensions
 
-Five dimensions are scored on a 0–100 scale:
-
-| Dimension | Meaning | Primary inputs |
+| Dimension | Meaning | Inputs |
 |---|---|---|
-| Quality | Task-relevant response quality | Category composites from deterministic plus judge scoring |
-| Speed | Generation throughput | `output_tps`, `prompt_tps` |
-| Responsiveness | User-perceived latency | Mean TTFT, mean total latency |
-| Reliability | Ability to complete requests consistently | Success rate, timeout rate, consistency |
-| Efficiency | Resource cost on this host | Peak system VRAM, peak system RAM, mean CPU |
+| Quality | Task-relevant response quality | Stored deterministic/judge/composite evaluation scores |
+| Latency | User-perceived completion time | Successful-response P95 total latency, lower is better |
+| Throughput | Generation speed | Mean output tokens per second, higher is better |
+| Efficiency | Resource cost on this host | Comparable CPU, RAM, and VRAM components, lower is better |
+| Reliability | Ability to complete requests | Attempted-response success rate, absolute 0-100 |
 
-### 8.2 Quality subscore
+Quality and reliability are absolute. Latency, throughput, and efficiency are min-max normalized across the models in the same experiment and profile. A zero-range dimension gives every compared model 50 and sets `no_discrimination`.
 
-The quality subscore uses category composites, not raw item counts. Category composites are defined in section 6.6.
+### 8.2 Quality
 
-| Workload profile | Category weights for the quality subscore |
-|---|---|
-| `balanced` | Overall composite (equal category weights) |
-| `interactive_chat` | General knowledge 0.40, instruction following 0.30, logical reasoning 0.30 |
-| `coding_assistant` | Coding 0.60, structured JSON 0.20, instruction following 0.20 |
-| `document_summarization` | Summarization 0.60, instruction following 0.20, general knowledge 0.20 |
-| `constrained_hardware` | Overall composite |
-| `batch_throughput` | Overall composite |
+The primary quality score is the equal-category mean. Item-weighted and failure-as-zero scores are sensitivity checks and are never substituted for the primary score. Quality and judge coverage are always reported. Category weights can be configured per profile; they must total 1.0 and are renormalized when a category is missing.
 
-If a category is missing for a profile, the remaining category weights are renormalized and the missing coverage is disclosed.
+### 8.3 Profiles and weights
 
-### 8.3 Speed subscore
-
-Normalize `output_tps` and `prompt_tps` across the compared models:
-
-```
-speed = 0.70 × norm_higher(output_tps) + 0.30 × norm_higher(prompt_tps)
-```
-
-`output_tps` is weighted more because it dominates user-perceived generation speed for this workload.
-
-### 8.4 Responsiveness subscore
-
-Normalize mean TTFT and mean total latency; lower is better:
-
-```
-responsiveness = 0.60 × norm_lower(mean_ttft) + 0.40 × norm_lower(mean_latency)
-```
-
-TTFT is weighted more because it dominates perceived responsiveness in interactive use.
-
-### 8.5 Reliability subscore
-
-Reliability uses absolute rates, not min-max normalization, because a 100% success rate should score 100 regardless of the other models.
-
-```
-reliability_base = 100 × success_rate − 20 × timeout_rate
-reliability = clip(reliability_base, 0, 100)
-```
-
-If the consistency probe is available:
-
-```
-reliability_with_consistency = 0.70 × reliability_base + 0.30 × (100 × consistency)
-reliability = clip(reliability_with_consistency, 0, 100)
-```
-
-If consistency is unavailable, `reliability_base` is used and `consistency_missing = true` is recorded. Timeouts are already excluded from success; the explicit penalty prevents a model with many timeouts from scoring highly merely because other failures are rare.
-
-### 8.6 Efficiency subscore
-
-Normalize peak system VRAM, peak system RAM, and mean CPU; lower is better:
-
-```
-efficiency = 0.50 × norm_lower(vram_used_peak)
-           + 0.30 × norm_lower(ram_used_peak)
-           + 0.20 × norm_lower(cpu_mean)
-```
-
-Notes:
-
-- `vram_used_peak` is system-wide, not model-only. `delta_vram_peak` and Ollama `size_vram` are reported separately as sensitivity checks.
-- If `vram_used_peak` is unavailable for any candidate, use `delta_vram_peak`; if that is also unavailable, drop the VRAM component and renormalize.
-- CPU and RAM are system-wide and include the application overhead.
-
-### 8.7 Normalization
-
-For a metric where higher is better:
-
-```
-norm_higher(x) = 100 × (x − min) / (max − min)
-```
-
-For a metric where lower is better:
-
-```
-norm_lower(x) = 100 × (max − x) / (max − min)
-```
-
-Rules:
-
-- If `max == min`, all candidates receive 50 and the dimension is flagged `no_discrimination`.
-- Normalization is computed only across the models being compared in the same run and workload.
-- Do not normalize across runs with different hardware, datasets, or settings.
-- Absolute quality and reliability scores are not min-max normalized; they already use a meaningful 0–100 scale.
-- With three candidates, the best and worst values receive 100 and 0 by construction. Normalized scores are relative ranking aids, not absolute measures, and a score of 0 does not mean the model is unusable.
-- Min-max normalization is sensitive to outliers. Report raw values alongside normalized scores, use the specified robust aggregates, and flag any result driven by a single extreme observation.
-
-### 8.8 Workload profiles and weights
-
-Weights sum to 1.00 for every profile.
-
-| Profile | Quality | Speed | Responsiveness | Reliability | Efficiency |
+| Profile | Quality | Latency | Throughput | Efficiency | Reliability |
 |---|---:|---:|---:|---:|---:|
-| `balanced` | 0.35 | 0.20 | 0.15 | 0.15 | 0.15 |
-| `interactive_chat` | 0.25 | 0.15 | 0.30 | 0.15 | 0.15 |
-| `coding_assistant` | 0.45 | 0.15 | 0.10 | 0.20 | 0.10 |
-| `document_summarization` | 0.40 | 0.20 | 0.10 | 0.15 | 0.15 |
-| `constrained_hardware` | 0.25 | 0.10 | 0.10 | 0.20 | 0.35 |
-| `batch_throughput` | 0.30 | 0.35 | 0.05 | 0.15 | 0.15 |
+| `general_purpose` | 40 | 20 | 15 | 10 | 15 |
+| `coding` | 45 | 15 | 15 | 10 | 15 |
+| `reasoning` | 50 | 10 | 10 | 10 | 20 |
+| `json_generation` | 50 | 10 | 20 | 5 | 15 |
+| `resource_constrained` | 30 | 20 | 15 | 25 | 10 |
 
-The weights are configuration data, not constants in code. Changing a weight creates a new recommendation configuration and is disclosed in the report.
+Weights are percentages and must total 100. They are configuration data, not code constants. The configured `default_scoring_profile` must exist.
 
-### 8.9 Weighted score
+### 8.4 Missing data and failures
 
-```
-weighted_score = Σ (weight_d × subscore_d)
-```
+- A relative dimension is dropped for every compared model if any model lacks it, then remaining weights are renormalized.
+- A model without quality is excluded from recommendations rather than assigned an imputed score.
+- Failed and timed-out responses are excluded from latency and throughput; they remain in reliability denominators.
+- Cancellations are disclosed but excluded from success/failure denominators.
+- A model above a 20% failure rate cannot rank first. If all models exceed the gate, no recommendation is produced.
+- Timeout rates above 10% receive an explicit warning.
 
-Report the weighted score, every subscore, the weights used, and the sample sizes behind each input.
+### 8.5 Ties, confidence, and records
 
-### 8.10 Missing metrics
-
-- If a dimension is unavailable for one candidate, drop that dimension for all candidates and renormalize the remaining profile weights. This preserves comparability.
-- If more than 30% of the original weight is dropped, mark the recommendation `insufficient_data` and do not present a confident rank.
-- If a candidate has no data for a dimension because every request failed, do not impute a score; treat the dimension as missing and apply the reliability gate.
-- Report the dropped dimensions and the renormalized weights.
-
-### 8.11 Failed requests
-
-- Failed and timed-out requests reduce the reliability subscore.
-- Failed requests are excluded from latency, throughput, and hardware aggregates; they are never imputed as fast.
-- A model with a failure rate above 20% on the relevant workload is not eligible for rank 1. It is still listed with a reliability warning.
-- A model with a timeout rate above 10% receives an explicit warning even if its success rate remains acceptable.
-- Cancellations are disclosed but are not counted as model failures.
-
-### 8.12 Confidence
-
-| Confidence | Conditions |
-|---|---|
-| High | At least 3 independent full runs; failure rate ≤ 5%; no missing dimensions; judge coverage ≥ 90% |
-| Medium | 1–2 full runs, or failure rate 5–20%, or one dropped dimension, or judge coverage 70–90% |
-| Low | Failure rate > 20%, or >30% missing weight, or judge coverage < 70%, or smoke-only data |
-
-Judge coverage is the fraction of judge-eligible responses that produced a valid judge evaluation. Smoke runs never receive a recommendation. Confidence is reported next to the rank, not hidden in a tooltip.
-
-### 8.13 Ties and stability
-
-- A weighted-score difference of 2 points or less is reported as a practical tie.
-- Report the score range across repeated runs when available.
-- If the rank order changes across runs, report the instability instead of choosing one run.
-- Do not claim statistical significance from three models and a small number of runs.
-- Optional bootstrap confidence intervals are exploratory and must be labeled as such.
-
-### 8.14 Recommendation record
-
-Each stored recommendation includes:
-
-- Experiment run ID.
-- Workload profile.
-- Model ID, tag, and digest.
-- Rank.
-- Weighted score.
-- All dimension subscores.
-- Weights used, including renormalization.
-- Confidence label.
-- Missing dimensions and failure rates.
-- Human-readable rationale.
-- Methodology version.
+- Scores within 2.0 points are practical ties, disclosed with `tied` and `tied_with`; ranks remain unique.
+- Confidence is `high`, `medium`, or `low` based on model count, evaluated-response count, dimension availability, judge coverage, quality coverage, failure rate, and ties.
+- Each stored recommendation includes the workload, model, rank, score, confidence, all sub-scores, missing dimensions, evidence counts, failure/timeout rates, limitations, rationale, methodology version, and a `details_json` evidence payload.
+- Recommendations are comparative and workload-specific. They are not statistical-significance claims.
 
 ---
 
@@ -864,8 +732,9 @@ Each stored recommendation includes:
 
 - A missing metric is `null`, never zero.
 - Aggregates report valid `n`.
-- If a model has no valid samples for a metric, it is excluded from that metric's comparison and the recommendation renormalizes weights.
-- If more than 30% of a profile's weight is missing, the recommendation is marked "insufficient data."
+- A relative dimension is dropped for every compared model when any model lacks it, and remaining profile weights are renormalized.
+- A model without a quality score is excluded from recommendations; no score is imputed.
+- If fewer than two models have a comparable composite score, recommendations are unavailable with an explicit reason.
 
 ---
 

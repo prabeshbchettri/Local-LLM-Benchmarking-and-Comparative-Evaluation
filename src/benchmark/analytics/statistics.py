@@ -63,8 +63,9 @@ def response_consistency(rows: Sequence[AnalyticsRow]) -> float | None:
     """
     grouped: dict[str, list[str]] = defaultdict(list)
     for row in rows:
-        if row.response_status == "success" and row.response_text.strip():
-            grouped[row.question_id].append(row.response_text)
+        normalized = " ".join(row.response_text.split())
+        if row.response_status == "success" and normalized:
+            grouped[row.question_id].append(normalized)
     scores: list[float] = []
     for texts in grouped.values():
         for index, first in enumerate(texts):
@@ -76,26 +77,38 @@ def response_consistency(rows: Sequence[AnalyticsRow]) -> float | None:
 
 
 def response_statistics(rows: Sequence[AnalyticsRow]) -> ResponseStatistics:
-    """Compute outcome, timing, throughput, and consistency statistics."""
+    """Compute outcome, timing, throughput, and consistency statistics.
+
+    Timing and throughput include only successful responses, because partial
+    generations and failed requests do not represent normal inference performance.
+    Cancelled requests are excluded from success/failure denominators; timeouts are
+    failures and are also reported separately.
+    """
     measured = len(rows)
-    successful = sum(1 for row in rows if row.response_status == "success")
+    successful_rows = [row for row in rows if row.response_status == "success"]
     timed_out = sum(1 for row in rows if row.response_status == "timeout")
-    failed = measured - successful - timed_out
+    cancelled = sum(1 for row in rows if row.response_status == "cancelled")
+    attempted = measured - cancelled
+    successful = len(successful_rows)
+    failed = max(attempted - successful, 0)
     return ResponseStatistics(
         measured_responses=measured,
+        attempted_responses=attempted,
         successful_responses=successful,
-        failed_responses=max(failed, 0),
+        failed_responses=failed,
         timed_out_responses=timed_out,
-        success_rate=_rate(successful, measured),
-        failure_rate=_rate(max(failed, 0), measured),
-        timeout_rate=_rate(timed_out, measured),
-        latency=describe(row.latency_seconds for row in rows),
-        ttft=describe(row.ttft_seconds for row in rows),
+        cancelled_responses=cancelled,
+        success_rate=_rate(successful, attempted),
+        failure_rate=_rate(failed, attempted),
+        timeout_rate=_rate(timed_out, attempted),
+        cancellation_rate=_rate(cancelled, measured),
+        latency=describe(row.latency_seconds for row in successful_rows),
+        ttft=describe(row.ttft_seconds for row in successful_rows),
         output_tokens_per_second=describe(
-            row.output_tokens_per_second for row in rows
+            row.output_tokens_per_second for row in successful_rows
         ),
         prompt_tokens_per_second=describe(
-            row.prompt_tokens_per_second for row in rows
+            row.prompt_tokens_per_second for row in successful_rows
         ),
-        response_consistency=response_consistency(rows),
+        response_consistency=response_consistency(successful_rows),
     )

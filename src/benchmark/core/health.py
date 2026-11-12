@@ -1,4 +1,4 @@
-﻿"""
+"""
 File: health.py
 
 Description:

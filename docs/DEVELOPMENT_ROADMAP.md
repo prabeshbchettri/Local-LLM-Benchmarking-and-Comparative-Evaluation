@@ -4,9 +4,9 @@
 
 | Field | Value |
 |---|---|
-| Document version | 1.4.0 |
-| Status | Phase 00 complete; Phase 01 complete; Phase 02 complete; Phase 03 complete (pending approval); Phase 04 complete (pending approval); Phase 05 complete (pending approval); Phase 06 complete (pending approval); Phase 07 complete (pending approval) |
-| Date | 2026-11-10 |
+| Document version | 1.5.0 |
+| Status | Phase 00 complete; Phase 01 complete; Phase 02 complete; Phase 03 complete (pending approval); Phase 04 complete (pending approval); Phase 05 complete (pending approval); Phase 06 complete (pending approval); Phase 07 complete (pending approval); Phase 08 complete (pending approval); Phase 09 complete (pending approval); Phase 10 complete (pending approval) |
+| Date | 2026-11-11 |
 | Related documents | `PROJECT_REQUIREMENTS.md`, `EXPERIMENTAL_METHODOLOGY.md`, `METRICS_DEFINITIONS.md`, `ARCHITECTURE.md`, `DATASET_GUIDE.md` |
 
 ---
@@ -47,10 +47,10 @@
 | 04 | Inference engine development | Complete (pending approval) | Streaming inference with timing |
 | 05 | Hardware monitoring engine | Complete (pending approval) | CPU/RAM/GPU/VRAM sampler, Ollama model VRAM, summaries |
 | 06 | Evaluation engine development | Complete (pending approval) | Deterministic evaluators, sandbox, blind judge, scoring |
-| 07 | Database and experiment management | Planned | SQLite schema, repositories, orchestrator, resume |
-| 08 | Analytics and recommendation engine | Planned | Aggregates, normalization, workload profiles |
-| 09 | Interactive Streamlit dashboard | Planned | Ten dashboard pages |
-| 10 | Automated reporting and exports | Planned | CSV, JSON, HTML, PDF |
+| 07 | Database and experiment management | Complete (pending approval) | SQLite schema, repositories, orchestrator, resume |
+| 08 | Analytics and recommendation engine | Complete (pending approval) | Stored-result analytics, workload scoring, recommendations, comparison |
+| 09 | Interactive Streamlit dashboard | Complete (pending approval) | Nine dashboard pages |
+| 10 | Automated reporting and exports | Complete (pending approval) | CSV, JSON, HTML, PDF, manifest, Reports page |
 | 11 | Testing, integration, reliability validation | Planned | Full test suite and reliability checks |
 | 12 | Final experiments and documentation | Planned | Real results, analysis, final reports |
 
@@ -377,7 +377,7 @@ Implement streaming inference with client-side timing, Ollama metadata capture, 
 
 - `src/benchmark/execution/engine.py`, `streaming.py`, `timing.py`.
 - Response record model.
-- Interim JSONL response log (until Phase 07 database).
+- JSONL response log for inspection and export; SQLite became the system of record in Phase 07.
 - Unit tests with mock streaming responses.
 - Optional live smoke test with an installed model.
 
@@ -663,30 +663,29 @@ Compute aggregates, normalize metrics, apply workload profiles, handle missing d
 
 ### Deliverables
 
-- `src/benchmark/analytics/aggregates.py`, `normalization.py`, `recommendations.py`.
+- `src/benchmark/analytics/{statistics,quality,resources,normalization,scoring,recommendations,engine,comparison,models}.py`.
 - Workload profile section in `configs/benchmark.yaml`.
+- `analyze` and `compare` CLI commands.
+- Recommendation persistence in schema `1.1.0`.
+- `docs/SCORING_AND_RECOMMENDATIONS.md`.
 - Analytics tests with hand-calculated fixtures.
 - Recommendation tests for missing metrics, failures, and ties.
 
-### Key decisions to implement
+### Key decisions implemented
 
-- Mean, median, P95 with linear interpolation.
-- Separate warm and cold aggregates.
-- Equal-category-weight quality and item-weighted sensitivity.
-- Quality coverage and failure-as-zero sensitivity.
-- Min-max normalization with zero-range guard.
-- Absolute reliability scores.
-- Workload profiles:
-  - balanced
-  - interactive chat
-  - coding assistant
-  - document summarization
-  - constrained hardware
-  - batch throughput
-- Missing-weight renormalization.
-- Failure-rate gates.
-- Confidence labels.
-- Ties within 2 points.
+- Mean, median, minimum, maximum, population standard deviation, and P95 with linear interpolation.
+- Warm, cold-start, smoke, and inference-profile filters; smoke and cold-start runs are excluded by default.
+- Successful-only timing and throughput; cancellations excluded from outcome denominators; timeouts counted as failures and reported separately.
+- Equal-category-weight quality, item-weighted sensitivity, failure-as-zero sensitivity, and quality/judge coverage.
+- Min-max normalization with a neutral 50 and `no_discrimination` flag for zero-range metrics.
+- Absolute quality and reliability scores.
+- Workload profiles: `general_purpose`, `coding`, `reasoning`, `json_generation`, `resource_constrained`.
+- Profile weights validated as percentages totaling 100; category weights validated to total 1.0.
+- Missing relative metrics dropped for every compared model and weights renormalized; quality remains absolute.
+- Model VRAM preferred when available for every compared model, otherwise system VRAM; only resources common to all models contribute.
+- Failure-rate gate above 20%; timeout warning above 10%; confidence labels.
+- Ties within 2 points disclosed while ranks remain unique.
+- Recommendation details persisted as JSON evidence.
 
 ### Acceptance criteria
 
@@ -697,8 +696,17 @@ Compute aggregates, normalize metrics, apply workload profiles, handle missing d
 - A model with >20% failure rate cannot rank first.
 - Ties are reported as practical ties.
 - Recommendations include sub-scores, weights, and rationale.
+- `analyze` and `compare` render text and JSON without mutating data unless `--persist` is requested.
 - Tests pass.
 - Full project scan performed.
+
+### Phase 08 implementation notes
+
+- The analytics package uses `statistics.py`, `quality.py`, and `resources.py` rather than a single `aggregates.py`; this keeps the three evidence domains independently testable.
+- Recommendation evidence is stored in nullable `recommendations.details_json`, added by the additive `1.0.0 -> 1.1.0` migration.
+- The engine computes from stored rows only. It does not run inference or evaluation and does not fabricate missing metrics.
+- The five configured profiles differ from the earlier six-profile design draft; the configured profiles are authoritative.
+- Historical comparison is descriptive and does not claim statistical significance.
 
 ### Dependencies
 
@@ -784,9 +792,24 @@ Build the ten required dashboard pages and connect them to the database and anal
 - Use subprocess with PID tracking.
 - Label axes, units, sample sizes, and missing data.
 
+### Phase 09 implementation notes
+
+- Implemented `src/benchmark/dashboard/{app,data,charts,ui,runner,exports}.py` and nine views under `src/benchmark/dashboard/views/`: Overview, Model Comparison, Performance Analysis, Quality Evaluation, Hardware Monitoring, Response Inspection, Experiment History, Recommendations, and Run New Experiment. Phase 10 adds Reports as the tenth view.
+- Navigation uses one explicit sidebar radio in `app.py`; the folder is named `views` rather than `pages` to avoid Streamlit's automatic multipage routing and keep every page discoverable in a single control.
+- `data.py` is the single read seam: repositories for stored rows plus `AnalyticsEngine` for profiles, recommendations, and comparisons. Every cache key includes the SQLite file version so rows written by a running experiment appear without restarting Streamlit.
+- `runner.py` starts `scripts/run_experiment.py` in a child process with an atomic lock file, PID create-time liveness check, and per-run log, so the dashboard never runs inference in-process and duplicate submissions are refused.
+- `exports.py` prepares in-memory CSV/JSON/HTML/PDF payloads from the Phase 10 reporting package; Phase 10 wires it into the Reports page and adds CLI/script/export tests.
+- `data.db_version(context)` is the public cache-key helper used by export payloads.
+- Tests: `tests/dashboard/` uses real Streamlit `AppTest` runs plus engine-versus-database value parity, empty and populated databases, missing metrics, cold-start exclusion, model selection, historical comparison, runner duplicate-guard behavior, and chart trace accuracy.
+- Full suite at phase close: 285 passed, 1 skipped (the opt-in live Ollama test).
+- Phase 09 delivered nine pages as prompted; the original ten-page target is completed in Phase 10 by adding Reports without changing the data layer.
+- The Phase 09 limitation that `exports.py` had no page or test coverage is resolved in Phase 10.
+
 ---
 
 ## 15. Phase 10 — Automated reporting and exports
+
+**Status:** Complete pending user approval.
 
 ### Objective
 
@@ -842,6 +865,19 @@ Generate CSV, JSON, HTML, and PDF reports from stored experiment data.
 - Escape HTML.
 - Stream large exports.
 - Snapshot metrics used in reports.
+
+### Phase 10 implementation notes
+
+- The Phase 10 backend already existed as `src/benchmark/reporting/` (`bundle.py`, `csv_export.py`, `json_export.py`, `html_report.py`, `pdf_report.py`, `presentation.py`, `service.py`, and the packaged template). This phase added the missing entry points and verification: `scripts/generate_report.py`, the `benchmark report` CLI command, and the dashboard Reports page.
+- `scripts/generate_report.py` and `benchmark report` both call `generate_reports`, so the CLI and dashboard produce identical files from the same bundle. The CLI supports `--format` (repeatable), `--database`, `--output-dir`, `--profile`, `--run-profile`, `--include-cold-start`, `--include-smoke`, `--allow-incomplete`, and `--json`.
+- Default output is `data/exports/<experiment_id>/`; every run writes `manifest.json` with the report schema version, experiment status, preliminary flag, filters, PDF page count, warnings, and each file's format, byte size, and SHA-256.
+- Non-completed experiments are refused unless `--allow-incomplete` is passed; then every format carries the preliminary flag (`preliminary` CSV column, JSON key, `PRELIMINARY DATA` HTML/PDF banner, and manifest field).
+- The dashboard Reports page selects an experiment, shows run/response/evaluation/dataset counts, and builds downloads in memory through `dashboard/exports.py`. Preparing exports writes nothing to the database. `PAGES` now contains ten pages and the dashboard page list test was updated.
+- `ReportError` is exported from `benchmark.reporting`; it subclasses `BenchmarkError`, so CLI failures exit `1` with an `ERROR:` message.
+- Bug fixed during verification: `html_report.py` used extension-based `select_autoescape`, which silently disabled autoescaping for `report.html.j2`. Autoescaping is now explicit, so stored model output cannot inject HTML. Chart SVG remains marked safe.
+- `tests/reporting/` adds 18 tests with a self-contained fixture project: CSV headers/units/parity/Unicode/missing-value blanks, JSON structure/nulls/Unicode, HTML sections and escaping, PDF readability and all ten sections via `pypdf`, manifest hash-size integrity, format normalization and rejection, preliminary handling, missing/incomplete refusals, output-directory overrides, the `benchmark report` command, and the standalone script. The dashboard Reports page adds one AppTest.
+- Manual end-to-end verification on the real demo experiment `20261110T082938Z-6225fa` wrote six CSVs, JSON, HTML, a 5-page PDF, and `manifest.json` to a temporary directory outside the project; the database was not modified.
+- Full suite at phase close: 304 passed, 1 skipped (the opt-in live Ollama test).
 
 ---
 
@@ -1045,6 +1081,6 @@ A phase is done only when:
 
 ## 22. Immediate next step
 
-Phases 03, 04, 05, and 06 are complete pending user approval.
+Phases 03-10 are complete pending user approval.
 
-When approved, provide the Phase 07 prompt. Phase 07 will implement SQLite persistence, repositories, the experiment orchestrator, resumability, and migration of interim JSONL records into the database. Model pulls remain a separate explicit action and are not started automatically by any phase.
+When approved, provide the Phase 11 prompt. Phase 11 will expand failure-injection and end-to-end reliability testing across the full application. Model pulls remain a separate explicit action and are not started automatically by any phase.

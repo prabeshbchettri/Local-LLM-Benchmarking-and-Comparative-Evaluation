@@ -23,3 +23,56 @@ storage_dir: storage
 results_dir: data/results
 exports_dir: data/exports
 log_dir: storage/logs
+default_scoring_profile: general_purpose
+workload_profiles:
+  general_purpose:
+    description: Balanced profile for everyday local assistance.
+    weights:
+      quality: 40
+      latency: 20
+      throughput: 15
+      efficiency: 10
+      reliability: 15
+  coding:
+    description: Code generation and editing with correctness emphasis.
+    weights:
+      quality: 45
+      latency: 15
+      throughput: 15
+      efficiency: 10
+      reliability: 15
+    category_weights:
+      coding: 0.7
+      instruction_following: 0.2
+      logical_reasoning: 0.1
+  reasoning:
+    description: Analytical tasks that reward multi-step reasoning.
+    weights:
+      quality: 50
+      latency: 10
+      throughput: 10
+      efficiency: 10
+      reliability: 20
+    category_weights:
+      logical_reasoning: 0.45
+      mathematical_reasoning: 0.35
+      general_knowledge: 0.2
+  json_generation:
+    description: Structured output tasks with schema compliance emphasis.
+    weights:
+      quality: 50
+      latency: 10
+      throughput: 20
+      efficiency: 5
+      reliability: 15
+    category_weights:
+      structured_json: 0.8
+      instruction_following: 0.2
+  resource_constrained:
+    description: Memory- and compute-sensitive deployments.
+    weights:
+      quality: 30
+      latency: 20
+      throughput: 15
+      efficiency: 25
+      reliability: 10

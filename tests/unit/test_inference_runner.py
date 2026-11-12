@@ -21,7 +21,6 @@ from benchmark.execution.engine import (
 )
 from benchmark.models.inference import (
     GenerationOptions,
-    InferenceProfile,
     PromptSpec,
     ResponseRecord,
     ResponseStatus,

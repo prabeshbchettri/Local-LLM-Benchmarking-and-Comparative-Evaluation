@@ -20,17 +20,28 @@ from __future__ import annotations
 from collections.abc import Callable
 from datetime import datetime, timezone
 
-from sqlalchemy import Engine, select
+from sqlalchemy import Engine, select, text
 from sqlalchemy.orm import Session
 
 from benchmark.core.exceptions import DatabaseError
 from benchmark.database.tables import Base, SchemaVersionRow
 
-SCHEMA_VERSION = "1.0.0"
+SCHEMA_VERSION = "1.1.0"
+
+
+def _add_recommendation_details(engine: Engine) -> None:
+    """Add persisted recommendation evidence columns without rewriting history."""
+    with engine.begin() as connection:
+        connection.execute(
+            text("ALTER TABLE recommendations ADD COLUMN details_json JSON")
+        )
+
 
 # Future additive migrations keyed by the version they produce. Each callable
 # receives a live connection and must only add tables, indexes, or nullable columns.
-MIGRATIONS: dict[str, Callable[[Engine], None]] = {}
+MIGRATIONS: dict[str, Callable[[Engine], None]] = {
+    "1.0.0": _add_recommendation_details,
+}
 
 
 def utc_now() -> datetime:
