@@ -177,7 +177,7 @@ def score_results(
             judge_score=judge,
             composite_score=round(composite, 6) if composite is not None else None,
             judge_weight=weight,
-            judge_missing=judge is None,
+            judge_missing=any(result.judge_missing for result in category_results),
         )
 
     deterministic_scores = [

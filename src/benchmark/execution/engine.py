@@ -188,6 +188,10 @@ class InferenceEngine:
         """Return whether a keyboard interruption was captured."""
         return self._interrupted
 
+    def reset_interruption(self) -> None:
+        """Clear the captured interrupt flag before a new independent run."""
+        self._interrupted = False
+
     def _configured_name(self, tag: str) -> str | None:
         for spec in [*self.settings.models.candidates, self.settings.models.judge]:
             if spec.tag == tag:
@@ -419,6 +423,9 @@ class InferenceEngine:
         finish_reason: str | None = None
         started_at = utc_now()
         start_ns = self._clock_ns()
+        deadline_ns = start_ns + int(
+            self.settings.benchmark.request_timeout_seconds * 1_000_000_000
+        )
 
         try:
             for chunk in self.client.stream_chat(
@@ -428,6 +435,10 @@ class InferenceEngine:
                 keep_alive=effective_keep_alive,
             ):
                 now_ns = self._clock_ns()
+                if now_ns > deadline_ns:
+                    raise OllamaTimeoutError(
+                        f"Request exceeded {self.settings.benchmark.request_timeout_seconds}s"
+                    )
                 chunk_count += 1
                 metadata_chunk = chunk
                 content = chunk.message.content if chunk.message is not None else ""
@@ -602,6 +613,7 @@ class InferenceRunner:
         run_id = experiment_id or (
             f"{utc_now():%Y%m%dT%H%M%SZ}-{os.urandom(4).hex()}"
         )
+        self.engine.reset_interruption()
         started_at = utc_now()
         effective_warmup = 0 if cold_start else warmup_requests
         records: list[ResponseRecord] = []
@@ -611,9 +623,9 @@ class InferenceRunner:
             if cancelled or self.cancellation.is_cancelled or self.engine.interrupted:
                 cancelled = True
                 break
-            if self.manager is not None and not cold_start:
-                self.manager.load(model_tag)
             try:
+                if self.manager is not None and not cold_start:
+                    self.manager.load(model_tag)
                 for warmup_index in range(effective_warmup):
                     if self.cancellation.is_cancelled or self.engine.interrupted:
                         cancelled = True
@@ -625,7 +637,7 @@ class InferenceRunner:
                         experiment_id=run_id,
                         item_id=prompt.item_id,
                         category=prompt.category,
-                        repetition=1,
+                        repetition=warmup_index + 1,
                         profile=profile_value,
                         system_instruction=prompt.system_instruction,
                         max_tokens=prompt.maximum_output_tokens,

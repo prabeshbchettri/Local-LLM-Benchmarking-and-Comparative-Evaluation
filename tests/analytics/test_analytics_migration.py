@@ -45,3 +45,5 @@ def test_schema_1_0_0_migrates_recommendation_details(tmp_path) -> None:
     assert "details_json" in {
         column["name"] for column in inspect(engine).get_columns("recommendations")
     }
+    assert apply_schema(engine) == SCHEMA_VERSION
+    assert current_schema_version(engine) == SCHEMA_VERSION

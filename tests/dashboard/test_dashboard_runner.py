@@ -186,3 +186,58 @@ def test_start_run_rejects_empty_model_selection(dashboard_context) -> None:
             warmup=1,
             cold_start=False,
         )
+
+
+def test_fresh_empty_lock_blocks_concurrent_start(dashboard_context) -> None:
+    settings = dashboard_context.settings
+    lock = runner.lock_path(settings)
+    lock.write_text("", encoding="utf-8")
+    try:
+        with pytest.raises(runner.RunGuardError, match="starting"):
+            runner.start_run(
+                settings,
+                project_root=settings.project_root,
+                models=["llama3.1:8b"],
+                profile="quality",
+                dataset_path=settings.benchmark.dataset_path,
+                dataset_question_count=100,
+                limit=5,
+                repetitions=1,
+                warmup=1,
+                cold_start=False,
+            )
+    finally:
+        runner.clear_run(settings)
+
+
+def test_stale_empty_lock_is_replaced(dashboard_context, monkeypatch) -> None:
+    settings = dashboard_context.settings
+    lock = runner.lock_path(settings)
+    lock.write_text("", encoding="utf-8")
+    old = 1.0
+    os.utime(lock, (old, old))
+
+    class FakeProcess:
+        pid = 424242
+
+        def create_time(self) -> float:
+            return 1000.0
+
+    monkeypatch.setattr(runner.subprocess, "Popen", lambda *args, **kwargs: FakeProcess())
+    monkeypatch.setattr(runner.psutil, "Process", lambda _pid: FakeProcess())
+    try:
+        run = runner.start_run(
+            settings,
+            project_root=settings.project_root,
+            models=["llama3.1:8b"],
+            profile="quality",
+            dataset_path=settings.benchmark.dataset_path,
+            dataset_question_count=100,
+            limit=5,
+            repetitions=1,
+            warmup=1,
+            cold_start=False,
+        )
+        assert runner.read_run(settings) == run
+    finally:
+        runner.clear_run(settings)

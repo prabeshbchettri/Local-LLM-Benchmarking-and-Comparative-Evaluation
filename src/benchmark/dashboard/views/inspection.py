@@ -96,16 +96,34 @@ def render(context: data.DashboardContext) -> None:
         )
         return
 
-    repetitions = sorted({detail.repetition for detail in details})
-    repetition = st.selectbox(
+    selections = sorted(
+        {
+            (detail.repetition, bool(detail.cold_start), detail.run_profile)
+            for detail in details
+        }
+    )
+    selection = st.selectbox(
         "Repetition",
-        options=repetitions,
+        options=selections,
         key="inspection_repetition",
-        help="Repetition numbers come from the stored response rows.",
+        format_func=lambda option: (
+            f"repetition {option[0]} - {'cold start' if option[1] else 'warm start'}"
+            f" - {option[2]}"
+        ),
+        help="Repetition, start mode, and inference profile come from the stored rows.",
     )
+    repetition, cold_start, run_profile = selection
     detail = next(
-        item for item in details if item.repetition == repetition
+        item
+        for item in details
+        if (
+            item.repetition,
+            bool(item.cold_start),
+            item.run_profile,
+        )
+        == selection
     )
+    selection_key = f"{repetition}_{int(cold_start)}_{run_profile}"
     item = data.dataset_items(context).get(question_id)
 
     body = st.columns(2)
@@ -116,7 +134,7 @@ def render(context: data.DashboardContext) -> None:
             value=detail.prompt,
             height=180,
             disabled=True,
-            key=f"inspection_prompt_{question_id}_{repetition}",
+            key=f"inspection_prompt_{question_id}_{selection_key}",
             label_visibility="collapsed",
         )
         if detail.system_prompt:
@@ -138,7 +156,7 @@ def render(context: data.DashboardContext) -> None:
                 value=expected,
                 height=120,
                 disabled=True,
-                key=f"inspection_expected_{question_id}_{repetition}",
+                key=f"inspection_expected_{question_id}_{selection_key}",
                 label_visibility="collapsed",
             )
             st.caption(expected_kind)
@@ -156,7 +174,7 @@ def render(context: data.DashboardContext) -> None:
             value=detail.response_text or "(empty response)",
             height=180,
             disabled=True,
-            key=f"inspection_answer_{question_id}_{repetition}",
+            key=f"inspection_answer_{question_id}_{selection_key}",
             label_visibility="collapsed",
         )
         if detail.error_message:
@@ -310,6 +328,8 @@ def render(context: data.DashboardContext) -> None:
                 [
                     {
                         "Repetition": item.repetition,
+                        "Run profile": item.run_profile,
+                        "Start mode": "cold" if item.cold_start else "warm",
                         "Status": item.response_status,
                         "Latency (s)": item.latency_seconds,
                         "TTFT (s)": item.ttft_seconds,

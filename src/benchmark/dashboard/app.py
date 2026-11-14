@@ -82,9 +82,10 @@ def _sidebar(context: data.DashboardContext) -> str:
         if st.button(
             "Refresh data",
             width="stretch",
-            help="Clear cached queries and rerun the current page.",
+            help="Clear cached settings, dataset, and queries, then rerun.",
         ):
             st.cache_data.clear()
+            st.cache_resource.clear()
             st.rerun()
         st.caption(
             "Every figure is computed from stored responses by the analytics engine."

@@ -105,6 +105,22 @@ def test_nvml_failure_falls_back_to_nvidia_smi() -> None:
     assert reading.temperature_c == pytest.approx(45.0)
 
 
+def test_nvidia_smi_selects_the_configured_device_index() -> None:
+    sampler = GpuSampler(
+        device_index=1,
+        nvml_module=FakeNvml(fail_init=True),
+        smi_runner=lambda: (
+            "0, First GPU, 10, 5, 4096, 512, 3584, 30\n"
+            "1, Second GPU, 90, 45, 8192, 4096, 4096, 60\n"
+        ),
+    )
+    reading = sampler.sample()
+    assert reading.index == 1
+    assert reading.name == "Second GPU"
+    assert reading.utilization_percent == pytest.approx(90.0)
+    assert reading.vram_total_bytes == 8192 * MIB
+
+
 def test_missing_pynvml_uses_nvidia_smi(monkeypatch) -> None:
     monkeypatch.setattr(gpu_module, "_PYNVML", None)
     sampler = GpuSampler(

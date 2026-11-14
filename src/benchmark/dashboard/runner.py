@@ -24,6 +24,7 @@ import json
 import os
 import subprocess
 import sys
+import time
 from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from pathlib import Path
@@ -37,6 +38,7 @@ from benchmark.core.exceptions import BenchmarkError
 
 RUN_DIRECTORY = "dashboard_runs"
 LOCK_FILENAME = "active_run.json"
+LOCK_START_GRACE_SECONDS = 60.0
 
 
 class RunGuardError(BenchmarkError):
@@ -147,6 +149,16 @@ def _acquire_lock(settings: AppSettings) -> Path:
                     f"({existing.experiment_name}). Wait for it to finish before "
                     "starting another."
                 )
+            if existing is None:
+                try:
+                    age = time.time() - path.stat().st_mtime
+                except OSError:
+                    age = 0.0
+                if age < LOCK_START_GRACE_SECONDS:
+                    raise RunGuardError(
+                        "Another experiment is starting. Wait for it to finish "
+                        "before starting another."
+                    )
             path.unlink(missing_ok=True)
     raise RunGuardError("Could not acquire the experiment run lock.")
 
@@ -275,8 +287,17 @@ def start_run(
         ),
     )
     temporary = lock.with_name(f".{lock.name}.tmp")
-    temporary.write_text(json.dumps(run.as_dict(), indent=2), encoding="utf-8")
-    temporary.replace(lock)
+    try:
+        temporary.write_text(json.dumps(run.as_dict(), indent=2), encoding="utf-8")
+        temporary.replace(lock)
+    except Exception:
+        lock.unlink(missing_ok=True)
+        temporary.unlink(missing_ok=True)
+        try:
+            process.terminate()
+        except Exception:
+            pass
+        raise
     return run
 
 

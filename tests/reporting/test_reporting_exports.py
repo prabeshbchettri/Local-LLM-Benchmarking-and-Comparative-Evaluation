@@ -31,6 +31,7 @@ from benchmark.reporting import (
     json_payload,
     render_html,
 )
+from benchmark.reporting.csv_export import _frame
 
 SECTION_HEADINGS = (
     "1. Executive summary",
@@ -124,6 +125,18 @@ def test_csv_missing_measurements_are_blank_not_zero(
     evaluations = _rows(payloads["evaluation_results.csv"])
     assert evaluations
     assert evaluations[0]["judge_normalized_score_0_100"] == ""
+
+
+def test_csv_exports_neutralize_spreadsheet_formulas() -> None:
+    frame = _frame(
+        [{"text": "=2+2", "plus": "+cmd", "minus": "-cmd", "at": "@cmd", "safe": "ok"}],
+        ["text", "plus", "minus", "at", "safe"],
+    )
+    assert frame.loc[0, "text"] == "'=2+2"
+    assert frame.loc[0, "plus"] == "'+cmd"
+    assert frame.loc[0, "minus"] == "'-cmd"
+    assert frame.loc[0, "at"] == "'@cmd"
+    assert frame.loc[0, "safe"] == "ok"
 
 
 def test_json_export_is_versioned_and_complete(completed_bundle) -> None:

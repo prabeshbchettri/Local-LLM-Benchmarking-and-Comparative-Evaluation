@@ -193,9 +193,16 @@ def _mib(value: int | None) -> float | None:
     return None if value is None else value / BYTES_PER_MIB
 
 
+def _neutralize_formula(value: Any) -> Any:
+    """Prefix spreadsheet formula triggers in text cells to prevent execution."""
+    if isinstance(value, str) and value[:1] in {"=", "+", "-", "@"}:
+        return "'" + value
+    return value
+
+
 def _frame(rows: list[dict[str, Any]], columns: list[str]) -> pd.DataFrame:
     """Build a DataFrame with the exact declared columns."""
-    return pd.DataFrame(rows, columns=columns)
+    return pd.DataFrame(rows, columns=columns).map(_neutralize_formula)
 
 
 def csv_frames(bundle: ReportBundle) -> dict[str, pd.DataFrame]:

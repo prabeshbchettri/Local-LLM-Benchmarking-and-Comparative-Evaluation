@@ -148,6 +148,7 @@ def build_bundle(
         ),
         inspections=repos.reads.response_inspection(
             experiment_id,
+            run_profile=run_profile,
             include_cold_start=include_cold_start,
             include_smoke=include_smoke,
         ),

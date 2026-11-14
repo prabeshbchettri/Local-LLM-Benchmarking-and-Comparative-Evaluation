@@ -263,10 +263,18 @@ class GpuSampler:
 
     def _sample_nvidia_smi(self) -> GpuReading:
         output = self._smi_runner()
-        line = next((item for item in output.splitlines() if item.strip()), None)
-        if line is None:
+        rows = [item for item in output.splitlines() if item.strip()]
+        if not rows:
             raise RuntimeError("nvidia-smi returned no GPU rows")
-        row = next(csv.reader([line]))
+        parsed = [next(csv.reader([line])) for line in rows]
+        row = next(
+            (
+                candidate
+                for candidate in parsed
+                if _safe_int(candidate[0]) == self.device_index
+            ),
+            parsed[0],
+        )
         if len(row) < len(SMI_FIELDS):
             raise RuntimeError(f"nvidia-smi returned {len(row)} fields, expected {len(SMI_FIELDS)}")
         return GpuReading(

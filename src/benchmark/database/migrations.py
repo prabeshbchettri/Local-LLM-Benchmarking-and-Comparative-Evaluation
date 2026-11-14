@@ -21,6 +21,7 @@ from collections.abc import Callable
 from datetime import datetime, timezone
 
 from sqlalchemy import Engine, select, text
+from sqlalchemy.engine import Connection
 from sqlalchemy.orm import Session
 
 from benchmark.core.exceptions import DatabaseError
@@ -29,18 +30,22 @@ from benchmark.database.tables import Base, SchemaVersionRow
 SCHEMA_VERSION = "1.1.0"
 
 
-def _add_recommendation_details(engine: Engine) -> None:
+def _add_recommendation_details(connection: Connection) -> None:
     """Add persisted recommendation evidence columns without rewriting history."""
-    with engine.begin() as connection:
+    columns = {
+        str(row[1]).lower()
+        for row in connection.execute(text("PRAGMA table_info(recommendations)"))
+    }
+    if "details_json" not in columns:
         connection.execute(
             text("ALTER TABLE recommendations ADD COLUMN details_json JSON")
         )
 
 
-# Future additive migrations keyed by the version they produce. Each callable
-# receives a live connection and must only add tables, indexes, or nullable columns.
-MIGRATIONS: dict[str, Callable[[Engine], None]] = {
-    "1.0.0": _add_recommendation_details,
+# Additive migrations keyed by the version they upgrade from. Each entry names
+# the version it produces and receives a live connection inside a transaction.
+MIGRATIONS: dict[str, tuple[str, Callable[[Connection], None]]] = {
+    "1.0.0": ("1.1.0", _add_recommendation_details),
 }
 
 
@@ -59,7 +64,7 @@ def current_schema_version(engine: Engine) -> str | None:
 
 
 def apply_schema(engine: Engine) -> str:
-    """Create missing tables and verify that the stored schema version is usable."""
+    """Create missing tables and apply every migration needed for this build."""
     Base.metadata.create_all(engine)
     stored = current_schema_version(engine)
     if stored is None:
@@ -67,20 +72,22 @@ def apply_schema(engine: Engine) -> str:
             session.add(SchemaVersionRow(version=SCHEMA_VERSION, applied_at=utc_now()))
             session.commit()
         return SCHEMA_VERSION
-    if stored == SCHEMA_VERSION:
-        return stored
-    if stored not in MIGRATIONS:
-        raise DatabaseError(
-            f"database schema version {stored} is not supported by this build "
-            f"(expected {SCHEMA_VERSION}); back up the database before upgrading"
-        )
-    MIGRATIONS[stored](engine)
-    with Session(engine) as session:
-        row = session.scalar(
-            select(SchemaVersionRow).order_by(SchemaVersionRow.id.desc()).limit(1)
-        )
-        if row is None:
-            raise DatabaseError("database schema version record disappeared")
-        row.version = SCHEMA_VERSION
-        session.commit()
+    while stored != SCHEMA_VERSION:
+        step = MIGRATIONS.get(stored)
+        if step is None:
+            raise DatabaseError(
+                f"database schema version {stored} is not supported by this build "
+                f"(expected {SCHEMA_VERSION}); back up the database before upgrading"
+            )
+        target, migrate = step
+        with engine.begin() as connection:
+            migrate(connection)
+            connection.execute(
+                text(
+                    "UPDATE schema_versions SET version = :version "
+                    "WHERE id = (SELECT MAX(id) FROM schema_versions)"
+                ),
+                {"version": target},
+            )
+        stored = target
     return SCHEMA_VERSION

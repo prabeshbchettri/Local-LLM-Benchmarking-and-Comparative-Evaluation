@@ -29,9 +29,10 @@ NUMBER_TOKEN = re.compile(
     r")(?!\w)"
 )
 ANSWER_MARKER = re.compile(
-    r"\b(?:final\s+answer|answer\s+is|answer\s*:|result\s+is|therefore)\b",
+    r"\b(?:final\s+answer|answer\s+is|result\s+is|therefore)\b|\banswer\s*:",
     re.IGNORECASE,
 )
+SENTENCE_END = re.compile(r"[.!?](?=\s|$)")
 UNIT_ALIASES: dict[str, tuple[str, ...]] = {
     "dollars": ("dollars", "dollar", "usd", "$"),
     "kilometers": ("kilometers", "kilometer", "km"),
@@ -75,7 +76,16 @@ def extract_final_number(text: str) -> tuple[float | None, int]:
         marker_start = marker_matches[-1].end()
         after_marker = [value for start, value in candidates if start >= marker_start]
         if after_marker:
-            return after_marker[-1], len(candidates)
+            sentence_end = SENTENCE_END.search(text, marker_start)
+            if sentence_end is not None:
+                in_sentence = [
+                    value
+                    for start, value in candidates
+                    if marker_start <= start < sentence_end.start()
+                ]
+                if in_sentence:
+                    return in_sentence[-1], len(candidates)
+            return after_marker[0], len(candidates)
     return candidates[-1][1], len(candidates)
 
 

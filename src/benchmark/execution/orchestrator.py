@@ -205,6 +205,11 @@ class ExperimentOrchestrator:
                     f"experiment {resume_experiment} used dataset "
                     f"{view.dataset_hash[:12]}, not the loaded dataset"
                 )
+            if view.config_hash != self.settings.config_hash:
+                raise ExperimentStateError(
+                    f"experiment {resume_experiment} was created with a different "
+                    "configuration; restore the original configs before resuming"
+                )
             if view.status in CLOSED_STATUSES:
                 raise ExperimentStateError(
                     f"experiment {resume_experiment} is already {view.status}"
@@ -412,6 +417,11 @@ class ExperimentOrchestrator:
         )
         if run.status == "cancelled":
             run = self.repos.runs.reopen(run.id)
+        if run.status == "failed":
+            raise ExperimentStateError(
+                f"run {run.id} for {tag} previously failed; the experiment must be "
+                "restarted rather than resumed"
+            )
         if run.status in CLOSED_STATUSES:
             return
         existing = self.repos.responses.existing_keys(run.id)
@@ -423,14 +433,15 @@ class ExperimentOrchestrator:
                     self.repos.runs.mark_cancelled(run.id)
                     return
                 item = items[index % len(items)]
-                if (item.id, 1, True) in existing:
+                sequence = index + 1
+                if (item.id, sequence, True) in existing:
                     continue
                 record = self._request(
                     experiment_id,
                     tag,
                     item,
                     profile,
-                    1,
+                    sequence,
                     is_warmup=True,
                     cold_start=False,
                 )
@@ -482,7 +493,7 @@ class ExperimentOrchestrator:
         family: str | None,
         items: list[DatasetItem],
     ) -> None:
-        by_id = {item.id: item for item in items}
+        by_id = {item.id: item for item in self.dataset.items}
         for pending in self.repos.responses.pending_evaluations(run_id):
             item = by_id.get(pending.question_id)
             if item is None:

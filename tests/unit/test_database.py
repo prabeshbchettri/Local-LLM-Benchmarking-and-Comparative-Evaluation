@@ -21,6 +21,7 @@ from sqlalchemy.exc import IntegrityError
 from benchmark.core.exceptions import (
     DatabaseConflictError,
     DatabaseDuplicateError,
+    DatabaseError,
     ExperimentStateError,
 )
 from benchmark.database.db import Database
@@ -367,3 +368,75 @@ def test_errors_are_appended_with_their_stage(repos, dataset) -> None:
     assert len(errors) == 1
     assert errors[0]["stage"] == "orchestrator"
     assert errors[0]["error_type"] == "ModelLifecycleError"
+
+
+def test_closed_runs_and_experiments_cannot_change_terminal_state(
+    repos, dataset, temp_settings
+) -> None:
+    run = _run(repos, dataset, temp_settings)
+    repos.runs.mark_failed(run.id, "boom")
+    with pytest.raises(ExperimentStateError):
+        repos.runs.mark_completed(run.id)
+    repos.runs.mark_failed(run.id, "ignored duplicate")
+
+    repos.experiments.mark_failed("exp-001", "experiment boom")
+    with pytest.raises(ExperimentStateError):
+        repos.experiments.mark_completed("exp-001")
+    repos.experiments.mark_failed("exp-001", "ignored duplicate")
+    assert repos.experiments.get("exp-001").status == "failed"
+
+
+def test_cancelled_run_rejects_new_responses_while_experiment_is_open(
+    repos, dataset, temp_settings
+) -> None:
+    run = _run(repos, dataset, temp_settings)
+    repos.runs.mark_cancelled(run.id)
+    with pytest.raises(ExperimentStateError, match="run"):
+        repos.responses.save(_record(), run.id)
+
+
+def test_error_record_derives_experiment_and_rejects_mismatch(
+    repos, dataset, temp_settings
+) -> None:
+    run = _run(repos, dataset, temp_settings)
+    _experiment(repos, dataset, experiment_id="exp-002")
+
+    repos.errors.record(
+        stage="orchestrator",
+        error_type="ModelLifecycleError",
+        message="derived",
+        run_id=run.id,
+    )
+    assert repos.errors.list_for_experiment("exp-001")[0]["message"] == "derived"
+
+    with pytest.raises(DatabaseError, match="does not belong"):
+        repos.errors.record(
+            stage="orchestrator",
+            error_type="ModelLifecycleError",
+            message="wrong owner",
+            experiment_external_id="exp-002",
+            run_id=run.id,
+        )
+
+
+def test_response_inspection_filters_by_run_profile(
+    repos, dataset, temp_settings
+) -> None:
+    _experiment(repos, dataset)
+    model = _model(repos, temp_settings)
+    quality = repos.runs.create(
+        experiment_external_id="exp-001",
+        model_id=model.id,
+        profile="quality",
+    )
+    consistency = repos.runs.create(
+        experiment_external_id="exp-001",
+        model_id=model.id,
+        profile="consistency",
+    )
+    repos.responses.save(_record(item_id="gk-001"), quality.id)
+    repos.responses.save(_record(item_id="mr-001"), consistency.id)
+
+    rows = repos.reads.response_inspection("exp-001", run_profile="consistency")
+    assert [row.question_id for row in rows] == ["mr-001"]
+    assert rows[0].run_profile == "consistency"

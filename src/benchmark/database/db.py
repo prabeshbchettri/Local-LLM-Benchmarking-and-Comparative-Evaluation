@@ -118,13 +118,17 @@ class Database:
 
 def open_database(settings: AppSettings, path: Path | None = None) -> Database:
     """Open and initialize a database, raising a typed error on failure."""
-    database = Database.from_settings(settings) if path is None else Database(path)
+    database: Database | None = None
+    target = path or (settings.benchmark.storage_dir / DATABASE_FILENAME)
     try:
+        database = Database.from_settings(settings) if path is None else Database(path)
         database.initialize()
     except DatabaseError:
-        database.dispose()
+        if database is not None:
+            database.dispose()
         raise
     except Exception as exc:  # pragma: no cover - defensive wrapper
-        database.dispose()
-        raise DatabaseError(f"Could not initialize database {database.path}: {exc}") from exc
+        if database is not None:
+            database.dispose()
+        raise DatabaseError(f"Could not initialize database {target}: {exc}") from exc
     return database

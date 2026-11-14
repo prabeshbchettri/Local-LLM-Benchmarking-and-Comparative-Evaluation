@@ -93,3 +93,18 @@ def test_numeric_rejects_missing_number(item_for) -> None:
 def test_numeric_item_requires_numeric_expected_answer() -> None:
     with pytest.raises(ValidationError):
         _numeric_item(expected_answer="ninety-six")
+
+
+def test_numeric_answer_colon_marker_is_recognized(item_for) -> None:
+    result = NumericEvaluator().evaluate(item_for("mr-001"), "The answer: 96")
+    assert result.passed is True
+    assert result.checks[0].metadata["actual"] == 96.0
+
+
+def test_numeric_uses_last_number_in_first_sentence_after_marker(item_for) -> None:
+    result = NumericEvaluator().evaluate(
+        item_for("mr-001"),
+        "We multiply 12 by 8. The final answer is 96. Both factors were used.",
+    )
+    assert result.passed is True
+    assert result.checks[0].metadata["actual"] == 96.0

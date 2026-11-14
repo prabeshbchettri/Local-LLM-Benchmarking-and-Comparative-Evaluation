@@ -352,8 +352,10 @@ class EvaluationEngine:
         purpose: str,
     ) -> list[EvaluationRequest]:
         """Select a reproducible sample of judge-eligible successful responses."""
-        if not 0.0 < fraction <= 1.0:
-            raise ValueError(f"{purpose} fraction must be in (0, 1]")
+        if not 0.0 <= fraction <= 1.0:
+            raise ValueError(f"{purpose} fraction must be in [0, 1]")
+        if fraction == 0.0:
+            return []
         eligible = [
             request
             for request in requests

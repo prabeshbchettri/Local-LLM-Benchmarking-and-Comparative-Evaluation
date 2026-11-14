@@ -285,7 +285,9 @@ def build_verification(metadata: ModelMetadata, spec: ModelSpec) -> ModelVerific
         if metadata.digest is None:
             problems.append("installed digest is unavailable")
         else:
-            digest_match = metadata.digest.lower() == spec.expected_digest.lower()
+            installed = metadata.digest.lower().removeprefix("sha256:")
+            expected = spec.expected_digest.lower().removeprefix("sha256:")
+            digest_match = installed == expected
             if not digest_match:
                 problems.append(
                     f"digest mismatch: expected {spec.expected_digest}, found {metadata.digest}"

@@ -17,7 +17,7 @@ from pathlib import Path
 import pytest
 import yaml
 
-from benchmark.core.config import AppSettings, load_settings
+from benchmark.core.config import AppSettings, EvaluationSettings, ModelSpec, load_settings
 from benchmark.core.exceptions import ConfigurationError
 
 pytestmark = pytest.mark.unit
@@ -145,3 +145,34 @@ def test_relative_paths_resolve_against_project_root(tmp_path: Path, config_dir:
         tmp_path / "data" / "datasets" / "benchmark_v1.json"
     ).resolve()
     assert loaded.benchmark.storage_dir == (tmp_path / "storage").resolve()
+
+
+def test_digest_sha256_prefix_is_normalized() -> None:
+    spec = ModelSpec(
+        name="Prefixed",
+        tag="prefixed:1b",
+        expected_digest="sha256:" + "a" * 64,
+    )
+    assert spec.expected_digest == "a" * 64
+
+
+def test_non_utf8_configuration_raises_configuration_error(
+    temp_config_dir: Path,
+) -> None:
+    (temp_config_dir / "benchmark.yaml").write_bytes(b"\xff\xfe\x00broken")
+    with pytest.raises(ConfigurationError, match="Could not read"):
+        load_settings(config_dir=temp_config_dir)
+
+
+def test_category_judge_weights_have_non_empty_defaults() -> None:
+    weights = EvaluationSettings().category_judge_weights
+    assert weights["summarization"] == pytest.approx(0.40)
+    assert set(weights) == {
+        "general_knowledge",
+        "logical_reasoning",
+        "mathematical_reasoning",
+        "coding",
+        "instruction_following",
+        "structured_json",
+        "summarization",
+    }

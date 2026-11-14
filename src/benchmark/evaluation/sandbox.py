@@ -152,7 +152,7 @@ class CodeSandbox:
         stdout = completed.stdout if completed is not None else ""
         stderr = completed.stderr if completed is not None else ""
         output_truncated = len(stdout) > self.output_limit or len(stderr) > self.output_limit
-        passed = bool(result and result.get("passed") is True)
+        passed = not timed_out and bool(result and result.get("passed") is True)
         error = None
         if timed_out:
             error = "test timed out"

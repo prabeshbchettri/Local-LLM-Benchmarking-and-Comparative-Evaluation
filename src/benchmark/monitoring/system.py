@@ -157,7 +157,7 @@ class SystemSampler:
                 rss = None
                 try:
                     rss = _safe_int(process.memory_info().rss)
-                except (AttributeError, OSError, RuntimeError):
+                except Exception:
                     rss = None
                 found.append(
                     OllamaProcess(
@@ -166,6 +166,6 @@ class SystemSampler:
                         rss_bytes=rss,
                     )
                 )
-            except (AttributeError, KeyError, OSError, RuntimeError, TypeError):
+            except Exception:
                 continue
         return tuple(found)

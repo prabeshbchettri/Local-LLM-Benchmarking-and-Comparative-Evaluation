@@ -39,7 +39,7 @@ def _read_text(path: Path) -> str:
         raise DatasetError(f"Dataset file not found: {path}")
     try:
         return path.read_text(encoding="utf-8")
-    except OSError as exc:
+    except (OSError, UnicodeError) as exc:
         raise DatasetError(f"Could not read dataset file {path}: {exc}") from exc
 
 

@@ -296,6 +296,30 @@ def test_interrupt_captured_inside_engine_leaves_experiment_resumable(
         database.dispose()
 
 
+def test_warmup_sequences_exceed_question_count_without_collisions(
+    temp_settings, dataset_path
+) -> None:
+    dataset = load_dataset(dataset_path)
+    database = open_database(temp_settings)
+    try:
+        engine = FakeEngine()
+        report = _orchestrator(temp_settings, database, dataset, engine).run(
+            ["llama3.1:8b"],
+            item_ids=["gk-001", "mr-001"],
+            warmup_requests=3,
+            repetitions=1,
+        )
+        assert report.status == "completed"
+        assert report.responses == 5
+        assert [call for call in engine.calls if call[2]] == [
+            ("gk-001", 1, True),
+            ("mr-001", 2, True),
+            ("gk-001", 3, True),
+        ]
+    finally:
+        database.dispose()
+
+
 def test_completed_experiment_cannot_be_resumed(temp_settings, dataset_path) -> None:
     dataset = load_dataset(dataset_path)
     database = open_database(temp_settings)
@@ -311,6 +335,40 @@ def test_completed_experiment_cannot_be_resumed(temp_settings, dataset_path) -> 
                 warmup_requests=0,
                 resume_experiment=report.experiment_id,
             )
+    finally:
+        database.dispose()
+
+
+def test_resume_rejects_a_changed_configuration(
+    temp_settings, dataset_path
+) -> None:
+    dataset = load_dataset(dataset_path)
+    database = open_database(temp_settings)
+    try:
+        with pytest.raises(KeyboardInterrupt):
+            _orchestrator(
+                temp_settings,
+                database,
+                dataset,
+                FakeEngine(interrupt_on_call=1),
+            ).run(["llama3.1:8b"], item_ids=ITEM_IDS, warmup_requests=0)
+
+        open_view = Repositories(database).experiments.history(1)[0]
+        assert open_view.status == "running"
+        changed_settings = temp_settings.model_copy(
+            update={"config_hash": "0" * 64}
+        )
+        resumed_engine = FakeEngine()
+        with pytest.raises(ExperimentStateError, match="different configuration"):
+            _orchestrator(
+                changed_settings, database, dataset, resumed_engine
+            ).run(
+                ["llama3.1:8b"],
+                item_ids=ITEM_IDS,
+                warmup_requests=0,
+                resume_experiment=open_view.experiment_id,
+            )
+        assert resumed_engine.calls == []
     finally:
         database.dispose()
 

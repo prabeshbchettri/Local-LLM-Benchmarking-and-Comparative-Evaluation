@@ -66,6 +66,8 @@ class HardwareSampler:
         self._started_at: float | None = None
         self._request_started_at: float | None = None
         self._sampler_error: str | None = None
+        self._closing = False
+        self._gpu_closed = False
 
     @property
     def is_running(self) -> bool:
@@ -117,24 +119,25 @@ class HardwareSampler:
         """Stop the worker, take a final sample, and return the summary."""
         if not self._started or self._started_at is None:
             raise RuntimeError("hardware sampler is not running")
+        self._closing = True
         self._stop_event.set()
         thread = self._thread
+        alive = False
         if thread is not None:
             thread.join(timeout=max(5.0, self.interval_seconds * 3))
-            if thread.is_alive():
+            alive = thread.is_alive()
+            if alive:
                 self._note_error(
                     "Hardware sampler thread did not stop within the timeout"
                 )
             else:
                 self._capture()
-        try:
-            self._gpu.close()
-        except Exception as exc:
-            self._note_error(f"GPU sensor close failed: {exc}")
+        if not alive:
+            self._close_gpu()
         with self._lock:
             samples = list(self._samples)
         self._started = False
-        self._thread = None
+        self._thread = thread if alive else None
         return build_hardware_summary(
             samples,
             sampling_interval_ms=round(self.interval_seconds * 1000),
@@ -143,9 +146,22 @@ class HardwareSampler:
             sampler_error=self._sampler_error,
         )
 
+    def _close_gpu(self) -> None:
+        if self._gpu_closed:
+            return
+        self._gpu_closed = True
+        try:
+            self._gpu.close()
+        except Exception as exc:
+            self._note_error(f"GPU sensor close failed: {exc}")
+
     def _run(self) -> None:
-        while not self._stop_event.wait(self.interval_seconds):
-            self._capture()
+        try:
+            while not self._stop_event.wait(self.interval_seconds):
+                self._capture()
+        finally:
+            if self._closing:
+                self._close_gpu()
 
     def _capture(self) -> None:
         sample_started = self._clock()

@@ -238,6 +238,18 @@ def test_timeout_is_recorded_distinctly(settings) -> None:
     assert record.timing.total_latency_seconds == pytest.approx(1.0)
 
 
+def test_stream_exceeding_total_deadline_is_a_timeout(settings) -> None:
+    engine, _ = _engine(
+        settings,
+        [_chunk("A"), _chunk("B", True)],
+        clock_values=[0, 50_000_000, 301_000_000_000, 301_000_000_000],
+    )
+    record = engine.run_request("llama3.1:8b", "prompt", experiment_id="exp-1")
+    assert record.status is ResponseStatus.TIMEOUT
+    assert record.error_type == "InferenceTimeoutError"
+    assert record.response_text == "A"
+
+
 def test_connection_and_stream_errors_are_recorded(settings) -> None:
     engine, _ = _engine(
         settings,

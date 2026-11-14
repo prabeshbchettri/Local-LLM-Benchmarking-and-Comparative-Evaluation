@@ -12,11 +12,13 @@ Responsibilities:
 
 from __future__ import annotations
 
+import subprocess
+
 import pytest
 
 from benchmark.dataset.models import DatasetItem
 from benchmark.evaluation.deterministic.code_tests import CodeTestsEvaluator
-from benchmark.evaluation.sandbox import CodeSandbox
+from benchmark.evaluation.sandbox import CodeSandbox, CodeTestCase
 
 pytestmark = [pytest.mark.unit, pytest.mark.evaluation]
 
@@ -98,6 +100,25 @@ def test_timeout_is_recorded() -> None:
     test_check = next(check for check in result.checks if check.name == "test_timeout")
     assert test_check.passed is False
     assert test_check.metadata["timed_out"] is True
+
+
+def test_timeout_never_counts_as_passed_even_with_stale_result() -> None:
+    sandbox = CodeSandbox(per_test_timeout_seconds=0.2, total_timeout_seconds=1.0)
+    completed = subprocess.CompletedProcess(
+        args=["python"],
+        returncode=None,
+        stdout="",
+        stderr="",
+    )
+    outcome = sandbox._outcome_from_result(
+        CodeTestCase(name="timeout", args=[], expected=None),
+        duration=0.2,
+        completed=completed,
+        result={"passed": True},
+        timed_out=True,
+    )
+    assert outcome.passed is False
+    assert outcome.timed_out is True
 
 
 def test_output_is_capped() -> None:

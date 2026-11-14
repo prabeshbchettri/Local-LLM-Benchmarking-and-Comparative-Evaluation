@@ -230,7 +230,7 @@ class ModelSpec(BaseSchema):
         normalized = value.lower()
         if not DIGEST_PATTERN.fullmatch(normalized):
             raise ValueError("expected_digest must be a 64-character SHA-256 hex digest")
-        return normalized
+        return normalized.removeprefix("sha256:")
 
 
 class ModelsSettings(BaseSchema):
@@ -265,7 +265,17 @@ class EvaluationSettings(BaseSchema):
     manual_validation_fraction: float = Field(default=0.1, ge=0.0, le=1.0)
     reliability_sample_fraction: float = Field(default=0.1, ge=0.0, le=1.0)
     reliability_temperature: float = Field(default=0.7, ge=0.0, le=2.0)
-    category_judge_weights: dict[str, float] = Field(default_factory=dict)
+    category_judge_weights: dict[str, float] = Field(
+        default_factory=lambda: {
+            "general_knowledge": 0.30,
+            "logical_reasoning": 0.30,
+            "mathematical_reasoning": 0.10,
+            "coding": 0.10,
+            "instruction_following": 0.10,
+            "structured_json": 0.10,
+            "summarization": 0.40,
+        }
+    )
 
     @field_validator("category_judge_weights")
     @classmethod
@@ -298,7 +308,7 @@ def _load_yaml(path: Path) -> dict[str, Any]:
         raise ConfigurationError(f"Configuration file not found: {path}")
     try:
         raw = yaml.safe_load(path.read_text(encoding="utf-8"))
-    except OSError as exc:
+    except (OSError, UnicodeError) as exc:
         raise ConfigurationError(f"Could not read configuration file {path}: {exc}") from exc
     except yaml.YAMLError as exc:
         raise ConfigurationError(f"Invalid YAML in {path}: {exc}") from exc

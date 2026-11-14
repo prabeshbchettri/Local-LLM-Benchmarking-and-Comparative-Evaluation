@@ -166,6 +166,12 @@ def _dataset_check(settings: AppSettings) -> CheckResult:
         dataset = load_dataset(dataset_path)
     except DatasetError as exc:
         return CheckResult("dataset_file", "fail", str(exc))
+    except Exception as exc:  # keep health reporting instead of crashing the CLI
+        return CheckResult(
+            "dataset_file",
+            "fail",
+            f"Could not validate dataset: {type(exc).__name__}: {exc}",
+        )
     return CheckResult(
         "dataset_file",
         "ok",

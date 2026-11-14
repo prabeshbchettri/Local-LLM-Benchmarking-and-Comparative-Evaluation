@@ -997,7 +997,11 @@ def _report_text(result: Any) -> str:
 def _handle_report(args: argparse.Namespace, settings: AppSettings) -> int:
     from benchmark.reporting import DEFAULT_FORMATS, generate_reports
 
-    database = Database.from_settings(settings)
+    database = (
+        Database.from_settings(settings)
+        if args.database is None
+        else Database(args.database)
+    )
     database.initialize()
     try:
         result = generate_reports(

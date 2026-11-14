@@ -115,6 +115,15 @@ def test_judge_missing_falls_back_to_deterministic() -> None:
     assert category.composite_score == 50.0
 
 
+def test_category_judge_missing_when_any_result_lacks_a_judge() -> None:
+    results = [
+        _result("sum-001", score=1.0, judge=_judge(75.0)),
+        _result("sum-002", score=0.5, judge=None),
+    ]
+    summary = score_results(results)
+    assert summary.categories["summarization"].judge_missing is True
+
+
 def test_quality_coverage() -> None:
     results = [
         _result("sum-001"),

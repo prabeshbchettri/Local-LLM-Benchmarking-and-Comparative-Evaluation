@@ -53,6 +53,7 @@ from benchmark.models.inference import ResponseRecord
 
 OPEN_EXPERIMENT_STATUSES = {"created", "running"}
 CLOSED_EXPERIMENT_STATUSES = {"completed", "failed", "cancelled"}
+CLOSED_RUN_STATUSES = {"completed", "failed", "cancelled"}
 
 
 class RegisteredModel(BaseSchema):
@@ -569,6 +570,12 @@ class ExperimentRepository(BaseRepository):
         """Close an experiment after all runs finish."""
         with self.database.session_scope() as session:
             row = self._require(session, experiment_id)
+            if row.status in CLOSED_EXPERIMENT_STATUSES:
+                if row.status == "completed":
+                    return
+                raise ExperimentStateError(
+                    f"experiment {experiment_id} is {row.status} and cannot be completed"
+                )
             row.status = "completed"
             row.completed_at = utc_now()
 
@@ -576,6 +583,12 @@ class ExperimentRepository(BaseRepository):
         """Record a failed experiment without deleting any stored results."""
         with self.database.session_scope() as session:
             row = self._require(session, experiment_id)
+            if row.status in CLOSED_EXPERIMENT_STATUSES:
+                if row.status == "failed":
+                    return
+                raise ExperimentStateError(
+                    f"experiment {experiment_id} is {row.status} and cannot be marked failed"
+                )
             row.status = "failed"
             row.completed_at = utc_now()
             row.notes = f"{row.notes}\n{message}".strip() if row.notes else message
@@ -706,6 +719,12 @@ class RunRepository(BaseRepository):
             row = session.get(RunRow, run_id)
             if row is None:
                 raise DatabaseError(f"run {run_id} does not exist")
+            if row.status in CLOSED_RUN_STATUSES:
+                if row.status == status:
+                    return
+                raise ExperimentStateError(
+                    f"run {run_id} is {row.status} and cannot become {status}"
+                )
             row.status = status
             row.completed_at = utc_now()
             row.error_message = message
@@ -742,9 +761,16 @@ class ResponseRepository(BaseRepository):
             run = session.get(RunRow, run_id)
             if run is None:
                 raise DatabaseError(f"run {run_id} does not exist")
-            if run.status == "completed":
+            if run.status in CLOSED_RUN_STATUSES:
                 raise ExperimentStateError(
-                    f"run {run_id} is completed; responses are append-only"
+                    f"run {run_id} is {run.status}; responses are append-only "
+                    "and the run is closed"
+                )
+            experiment = session.get(ExperimentRow, run.experiment_id)
+            if experiment is not None and experiment.status in CLOSED_EXPERIMENT_STATUSES:
+                raise ExperimentStateError(
+                    f"experiment {experiment.experiment_id} is {experiment.status}; "
+                    "responses are append-only"
                 )
             question_id = record.item_id or f"unlabelled-{record.response_id[:8]}"
             existing = session.scalar(
@@ -1089,6 +1115,16 @@ class ErrorRepository(BaseRepository):
                 if experiment is None:
                     raise DatabaseError(f"experiment {experiment_external_id} does not exist")
                 experiment_id = experiment.id
+            if run_id is not None:
+                run = session.get(RunRow, run_id)
+                if run is None:
+                    raise DatabaseError(f"run {run_id} does not exist")
+                if experiment_id is not None and run.experiment_id != experiment_id:
+                    raise DatabaseError(
+                        f"run {run_id} does not belong to experiment "
+                        f"{experiment_external_id}"
+                    )
+                experiment_id = run.experiment_id
             row = ErrorRow(
                 experiment_id=experiment_id,
                 run_id=run_id,
@@ -1398,6 +1434,7 @@ class ReadRepository(BaseRepository):
         model_tag: str | None = None,
         question_id: str | None = None,
         category: str | None = None,
+        run_profile: str | None = None,
         include_cold_start: bool = True,
         include_smoke: bool = True,
     ) -> list[ResponseInspectionView]:
@@ -1475,6 +1512,8 @@ class ReadRepository(BaseRepository):
                 query = query.where(RunRow.profile != "smoke")
             if not include_cold_start:
                 query = query.where(RunRow.cold_start.is_(False))
+            if run_profile is not None:
+                query = query.where(RunRow.profile == run_profile)
             if model_tag is not None:
                 query = query.where(ModelRow.tag == model_tag)
             if question_id is not None:

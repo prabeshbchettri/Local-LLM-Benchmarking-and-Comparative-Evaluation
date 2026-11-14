@@ -26,7 +26,7 @@ from benchmark.dataset.loader import (
 )
 from benchmark.dataset.models import Category, EvaluationType
 from benchmark.dataset.validation import validate_dataset
-from benchmark.core.exceptions import DatasetValidationError
+from benchmark.core.exceptions import DatasetError, DatasetValidationError
 
 pytestmark = pytest.mark.unit
 
@@ -207,3 +207,10 @@ def test_every_item_has_a_primary_evaluation_method(dataset_path: Path) -> None:
         item.evaluation_type is not EvaluationType.COMPOSITE for item in dataset.items
     )
     assert all(item.evaluation_type for item in dataset.items)
+
+
+def test_non_utf8_dataset_raises_dataset_error(tmp_path: Path) -> None:
+    path = tmp_path / "bad.json"
+    path.write_bytes(b"\xff\xfe\x00not utf-8")
+    with pytest.raises(DatasetError, match="Could not read"):
+        load_dataset(path)

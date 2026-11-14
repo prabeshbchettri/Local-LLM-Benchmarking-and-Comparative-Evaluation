@@ -57,6 +57,11 @@ class FakeEngine:
         self.calls: list[dict] = []
         self.cancellation = cancellation
         self.cancel_after = cancel_after
+        self.reset_calls = 0
+
+    def reset_interruption(self) -> None:
+        self.interrupted = False
+        self.reset_calls += 1
 
     def run_request(self, model_tag, prompt, **kwargs) -> ResponseRecord:
         self.calls.append({"model_tag": model_tag, "prompt": prompt, **kwargs})
@@ -141,6 +146,22 @@ def test_warmup_is_stored_but_excluded_from_measured_counts() -> None:
     assert result.summary.measured_requests == 2
     assert result.summary.warmup_count == 1
     assert result.summary.success_count == 2
+
+
+def test_runner_resets_a_sticky_interrupt_before_starting() -> None:
+    engine = FakeEngine()
+    engine.interrupted = True
+    runner = InferenceRunner(engine)
+    result = runner.run(
+        ["a:1b"],
+        _prompts(),
+        experiment_id="exp-1",
+        warmup_requests=1,
+        repetitions=1,
+    )
+    assert engine.reset_calls == 1
+    assert engine.interrupted is False
+    assert result.summary.total_requests == 3
 
 
 def test_cold_start_unloads_before_each_measured_request() -> None:
