@@ -14,7 +14,8 @@ Responsibilities:
 from __future__ import annotations
 
 import json
-from collections.abc import Callable, Iterator, Sequence
+import time
+from collections.abc import Callable, Iterable, Iterator, Sequence
 from dataclasses import dataclass
 from typing import Any, TypeVar
 
@@ -61,6 +62,28 @@ class PullResult:
     def success(self) -> bool:
         """Return whether Ollama reported a successful pull."""
         return self.status == "success"
+
+
+def _deadline_lines(
+    lines: Iterable[str],
+    timeout_seconds: float,
+    tag: str,
+    *,
+    clock: Callable[[], float] = time.monotonic,
+) -> Iterator[str]:
+    """Reject a stream that exceeds its wall-clock deadline on any line.
+
+    Ollama can send blank keep-alive lines while a request is stalled. Those
+    lines reset httpx's per-read timeout, so the deadline must be checked before
+    every line, including blank ones, not only when a parsed chunk is yielded.
+    """
+    deadline = clock() + timeout_seconds
+    for line in lines:
+        if clock() > deadline:
+            raise OllamaTimeoutError(
+                f"Ollama chat stream exceeded {timeout_seconds}s for {tag}"
+            )
+        yield line
 
 
 class OllamaClient:
@@ -251,12 +274,13 @@ class OllamaClient:
             payload["options"] = options
         if keep_alive is not None:
             payload["keep_alive"] = keep_alive
+        effective_timeout = timeout if timeout is not None else self.timeout_seconds
         try:
             with self._client.stream(
                 "POST",
                 "/api/chat",
                 json=payload,
-                timeout=timeout if timeout is not None else self.timeout_seconds,
+                timeout=effective_timeout,
             ) as response:
                 if response.status_code >= 400:
                     response.read()
@@ -264,7 +288,12 @@ class OllamaClient:
                         response.status_code,
                         self._error_detail(response),
                     )
-                yield from iter_chat_chunks(response.iter_lines(), tag)
+                lines = _deadline_lines(
+                    response.iter_lines(),
+                    effective_timeout,
+                    tag,
+                )
+                yield from iter_chat_chunks(lines, tag)
         except httpx.TimeoutException as exc:
             raise OllamaTimeoutError(f"Ollama chat stream timed out for {tag}") from exc
         except httpx.ConnectError as exc:

@@ -291,6 +291,12 @@ def build_parser() -> argparse.ArgumentParser:
         help="Compute stored-result analytics and workload recommendations.",
     )
     _add_config_dir(analyze_parser)
+    analyze_parser.add_argument(
+        "--database",
+        type=Path,
+        default=None,
+        help="Database path; defaults to storage/benchmark.db.",
+    )
     analyze_parser.add_argument("experiment_id", help="Experiment identifier.")
     profile_group = analyze_parser.add_mutually_exclusive_group()
     profile_group.add_argument(
@@ -330,6 +336,12 @@ def build_parser() -> argparse.ArgumentParser:
         help="Compare analytics between a baseline and one or more experiments.",
     )
     _add_config_dir(compare_parser)
+    compare_parser.add_argument(
+        "--database",
+        type=Path,
+        default=None,
+        help="Database path; defaults to storage/benchmark.db.",
+    )
     compare_parser.add_argument(
         "baseline_experiment_id",
         help="Baseline experiment identifier.",
@@ -876,7 +888,11 @@ def _recommendation_text(result: RecommendationSet) -> str:
 
 
 def _handle_analyze(args: argparse.Namespace, settings: AppSettings) -> int:
-    database = Database.from_settings(settings)
+    database = (
+        Database.from_settings(settings)
+        if args.database is None
+        else Database(args.database)
+    )
     database.initialize()
     try:
         engine = AnalyticsEngine(database, settings=settings.benchmark)
@@ -953,7 +969,11 @@ def _compare_text(comparison: Any) -> str:
 
 
 def _handle_compare(args: argparse.Namespace, settings: AppSettings) -> int:
-    database = Database.from_settings(settings)
+    database = (
+        Database.from_settings(settings)
+        if args.database is None
+        else Database(args.database)
+    )
     database.initialize()
     try:
         engine = AnalyticsEngine(database, settings=settings.benchmark)

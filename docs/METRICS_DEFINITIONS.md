@@ -5,8 +5,8 @@
 | Field | Value |
 |---|---|
 | Document version | 1.2.0 |
-| Status | Phase 00 baseline; Phase 05 hardware and Phase 08 analytics aligned |
-| Date | 2026-11-11 |
+| Status | Phase 12 complete; metrics exercised on the final stored results |
+| Date | 2026-11-14 |
 | Related documents | `EXPERIMENTAL_METHODOLOGY.md`, `PROJECT_REQUIREMENTS.md`, `ARCHITECTURE.md`, `SCORING_AND_RECOMMENDATIONS.md` |
 
 ---

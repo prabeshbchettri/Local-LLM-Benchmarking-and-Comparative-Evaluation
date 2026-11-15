@@ -4,10 +4,12 @@
 
 | Field | Value |
 |---|---|
-| Document version | 1.5.0 |
-| Status | Phase 00 complete; Phase 01 complete; Phase 02 complete; Phase 03 complete (pending approval); Phase 04 complete (pending approval); Phase 05 complete (pending approval); Phase 06 complete (pending approval); Phase 07 complete (pending approval); Phase 08 complete (pending approval); Phase 09 complete (pending approval); Phase 10 complete (pending approval) |
-| Date | 2026-11-11 |
+| Document version | 1.6.0 |
+| Status | Phases 00-12 complete; final reduced workload executed, reported, and validated |
+| Date | 2026-11-14 |
 | Related documents | `PROJECT_REQUIREMENTS.md`, `EXPERIMENTAL_METHODOLOGY.md`, `METRICS_DEFINITIONS.md`, `ARCHITECTURE.md`, `DATASET_GUIDE.md` |
+
+> **Phase 12 completion note:** The final workload was reduced by explicit user choice to 435 measured responses: 300 quality responses (3 models x 100 items x 1 repetition), 45 cold-start responses (3 models x 5 items x 3 repetitions), and 90 consistency responses (3 models x 10 items x 3 repetitions). The 9-prompt x 5-repeat performance probe, the planned three full repetitions, and the long soak were not executed. All final artifacts are in `storage/phase12/phase12.db` and `data/exports/phase12-*`. The keep-alive deadline defect was fixed and covered by a regression test. See `docs/PHASE12_RESULTS.md` and `docs/TESTING_REPORT.md`.
 
 ---
 
@@ -43,16 +45,16 @@
 | 00 | Requirements and experimental design | Complete | Five baseline documents |
 | 01 | Project structure and environment setup | Complete | Installable skeleton, config, logging, preflight |
 | 02 | Model setup and metadata collection | Complete | Ollama client, registry, metadata, pull workflow |
-| 03 | Benchmark dataset development | Complete (pending approval) | Validated 100-item dataset and probes |
-| 04 | Inference engine development | Complete (pending approval) | Streaming inference with timing |
-| 05 | Hardware monitoring engine | Complete (pending approval) | CPU/RAM/GPU/VRAM sampler, Ollama model VRAM, summaries |
-| 06 | Evaluation engine development | Complete (pending approval) | Deterministic evaluators, sandbox, blind judge, scoring |
-| 07 | Database and experiment management | Complete (pending approval) | SQLite schema, repositories, orchestrator, resume |
-| 08 | Analytics and recommendation engine | Complete (pending approval) | Stored-result analytics, workload scoring, recommendations, comparison |
-| 09 | Interactive Streamlit dashboard | Complete (pending approval) | Nine dashboard pages |
-| 10 | Automated reporting and exports | Complete (pending approval) | CSV, JSON, HTML, PDF, manifest, Reports page |
-| 11 | Testing, integration, reliability validation | Planned | Full test suite and reliability checks |
-| 12 | Final experiments and documentation | Planned | Real results, analysis, final reports |
+| 03 | Benchmark dataset development | Complete | Validated 100-item dataset and probes |
+| 04 | Inference engine development | Complete | Streaming inference with timing |
+| 05 | Hardware monitoring engine | Complete | CPU/RAM/GPU/VRAM sampler, Ollama model VRAM, summaries |
+| 06 | Evaluation engine development | Complete | Deterministic evaluators, sandbox, blind judge, scoring |
+| 07 | Database and experiment management | Complete | SQLite schema, repositories, orchestrator, resume |
+| 08 | Analytics and recommendation engine | Complete | Stored-result analytics, workload scoring, recommendations, comparison |
+| 09 | Interactive Streamlit dashboard | Complete | Ten dashboard pages |
+| 10 | Automated reporting and exports | Complete | CSV, JSON, HTML, PDF, manifest, Reports page |
+| 11 | Testing, integration, reliability validation | Complete | 329 passing tests, 3 opt-in live tests, health/dataset/DB checks |
+| 12 | Final experiments and documentation | Complete | 435 measured responses, three report bundles, final docs |
 
 ---
 
@@ -953,9 +955,9 @@ Run the real benchmark, analyze results, validate judge scores, generate reports
 
 ### Deliverables
 
-- Three complete final runs, if time and thermal conditions permit.
-- Cold-start run.
-- Consistency run.
+- One full quality pass of 100 items x 3 models, approved as the reduced final suite.
+- Cold-start subset of 5 items x 3 repeats x 3 models.
+- Consistency subset of 10 items x 3 repeats x 3 models.
 - Judge manual validation sample.
 - Analytics and recommendations.
 - CSV, JSON, HTML, and PDF reports.
@@ -1081,6 +1083,6 @@ A phase is done only when:
 
 ## 22. Immediate next step
 
-Phases 03-10 are complete pending user approval.
+Phases 00-12 are complete. The final reduced workload has been executed, analyzed, reported, and validated. No further phase is required by the original roadmap.
 
-When approved, provide the Phase 11 prompt. Phase 11 will expand failure-injection and end-to-end reliability testing across the full application. Model pulls remain a separate explicit action and are not started automatically by any phase.
+Recommended follow-up work, if requested: three full repetitions per model, the 9-prompt x 5-repeat performance probe, a second judge or human review sample, and a consistency run at the intended temperature 0.7. Model pulls remain a separate explicit action and are not started automatically by any phase.

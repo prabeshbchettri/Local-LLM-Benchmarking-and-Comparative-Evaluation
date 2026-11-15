@@ -8,8 +8,8 @@
 | Dataset version | `1.0.0` |
 | Item schema version | `1.0.0` |
 | Random seed | `42` |
-| Status | Phase 03 implemented (pending approval) |
-| Date | 2026-11-10 |
+| Status | Phase 12 complete; dataset and probes validated in the final runs |
+| Date | 2026-11-14 |
 
 ---
 

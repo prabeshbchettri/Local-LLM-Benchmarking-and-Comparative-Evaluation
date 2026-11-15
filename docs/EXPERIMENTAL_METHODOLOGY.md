@@ -5,9 +5,11 @@
 | Field | Value |
 |---|---|
 | Document version | 1.4.0 |
-| Status | Phases 03-08 implemented: dataset, inference engine, hardware monitoring, evaluation, persistence, analytics, and recommendations (pending approval) |
-| Date | 2026-11-11 |
+| Status | Phase 12 complete; final reduced workload executed and documented |
+| Date | 2026-11-14 |
 | Related documents | `PROJECT_REQUIREMENTS.md`, `METRICS_DEFINITIONS.md`, `ARCHITECTURE.md`, `DATASET_GUIDE.md` |
+
+> **Phase 12 execution note:** The user approved a reduced final workload: 300 measured responses for the 100-item quality pass (3 models x 100 items x 1 repetition), 45 measured responses for the cold-start subset (3 models x 5 items x 3 repetitions), and 90 measured responses for the consistency subset (3 models x 10 items x 3 repetitions). The 9-prompt x 5-repeat performance probe and the planned three full repetitions were not executed. The consistency subset used the global benchmark temperature of 0.0 because the experiment CLI does not load per-probe overrides; it therefore measures determinism/runtime stability rather than sampled-output robustness. Full results are in `docs/PHASE12_RESULTS.md`.
 
 ---
 
@@ -281,11 +283,13 @@ The consistency probe uses a nonzero temperature to measure response variability
 
 | Setting | Value |
 |---|---|
-| Temperature | 0.7 |
+| Temperature | 0.7 (probe design value; Phase 12 executed at 0.0) |
 | Top-p | 0.9 |
 | Top-k | 40 |
 | Seed | 42 |
 | Repeat penalty | 1.1 |
+
+The consistency probe file records 0.7, but `scripts/run_experiment.py` uses the global `configs/benchmark.yaml` generation settings. The Phase 12 consistency run therefore used temperature 0.0. This is disclosed in the results and should be corrected before a sampled-output robustness study.
 | Context length | 4096 |
 | Maximum output | 512 |
 | Repeats | 3 per selected item |
@@ -373,7 +377,7 @@ Cold start is a separate experiment run. It must not be mixed with warm-start ag
 | Purpose | Measure response variability under sampling |
 | Items | 10 items stratified across categories |
 | Repeats per item | 3 |
-| Temperature | 0.7 |
+| Temperature | 0.7 design value; Phase 12 used 0.0 |
 | Model state | Warm; after P and Q |
 | Requests per model | 30 |
 | Requests for three models | 90 |

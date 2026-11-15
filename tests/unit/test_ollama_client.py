@@ -24,7 +24,7 @@ from benchmark.core.exceptions import (
     OllamaResponseError,
     OllamaTimeoutError,
 )
-from benchmark.execution.ollama_client import OllamaClient
+from benchmark.execution.ollama_client import OllamaClient, _deadline_lines
 from benchmark.models.ollama import OllamaPullEvent
 
 pytestmark = pytest.mark.unit
@@ -260,6 +260,19 @@ def test_stream_chat_timeout_is_typed() -> None:
             list(client.stream_chat("llama3.1:8b", [{"role": "user", "content": "hi"}]))
     finally:
         client.close()
+
+
+def test_blank_keepalive_lines_respect_total_deadline() -> None:
+    ticks = iter([0.0, 1.0, 2.0, 301.0])
+    with pytest.raises(OllamaTimeoutError, match="exceeded 300"):
+        list(
+            _deadline_lines(
+                iter(["", "", ""]),
+                300.0,
+                "llama3.1:8b",
+                clock=lambda: next(ticks),
+            )
+        )
 
 
 def test_pull_stream_forwards_progress() -> None:

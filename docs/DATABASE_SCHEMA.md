@@ -1,8 +1,9 @@
 # Database Schema
 
-**Status:** Phase 08 implementation (schema version `1.1.0`)
+**Status:** Phase 12 complete (schema version `1.1.0`)
 **Engine:** SQLite 3 through SQLAlchemy 2.0 ORM
 **Default file:** `storage/benchmark.db`
+**Phase 12 database:** `storage/phase12/phase12.db` (gitignored)
 
 ## Purpose
 
@@ -16,6 +17,12 @@ JSONL files remain useful for streaming inspection, but they are no longer the
 system of record. Historical rows are never overwritten: a completed run rejects
 new responses, a completed or failed experiment rejects new runs, and re-inserting
 an identical record is idempotent while a conflicting payload raises an error.
+
+Phase 12 validation of `storage/phase12/phase12.db` reported `integrity_check` as
+`ok`, `foreign_key_check` with no rows, and these totals: 3 experiments, 438
+responses (including 3 warm-ups), 435 evaluations, and 0 stored errors. The main
+experiment has 303 responses and 300 evaluations; the cold-start and consistency
+experiments have 45 and 90 measured responses respectively.
 
 ## Connection Behavior
 

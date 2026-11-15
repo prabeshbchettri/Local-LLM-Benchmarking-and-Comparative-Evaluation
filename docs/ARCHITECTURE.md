@@ -5,8 +5,8 @@
 | Field | Value |
 |---|---|
 | Document version | 1.5.0 |
-| Status | Phase 08 implemented (pending approval) |
-| Date | 2026-11-11 |
+| Status | Phase 12 complete; final three-model experiments and documentation delivered |
+| Date | 2026-11-14 |
 | Related documents | `PROJECT_REQUIREMENTS.md`, `EXPERIMENTAL_METHODOLOGY.md`, `METRICS_DEFINITIONS.md`, `SCORING_AND_RECOMMENDATIONS.md`, `DATASET_GUIDE.md` |
 
 ---

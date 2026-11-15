@@ -1,6 +1,8 @@
 # Reporting Guide
 
-Phase 10 turns a completed experiment in SQLite into reproducible CSV, JSON, HTML, and PDF reports. Every number is computed from stored rows by the analytics engine; no report value is hardcoded, and missing measurements are exported as missing rather than zero.
+Phase 12 turns a completed experiment in SQLite into reproducible CSV, JSON, HTML, and PDF reports. Every number is computed from stored rows by the analytics engine; no report value is hardcoded, and missing measurements are exported as missing rather than zero.
+
+The final Phase 12 bundles are `data/exports/phase12-main/`, `data/exports/phase12-coldstart/`, and `data/exports/phase12-consistency/`. Each contains six CSV files, versioned JSON, self-contained HTML, a nine-page PDF, and `manifest.json` with SHA-256 hashes. The full result narrative is in `docs/PHASE12_RESULTS.md`.
 
 ## Commands
 

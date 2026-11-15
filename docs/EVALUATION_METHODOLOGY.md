@@ -5,8 +5,8 @@
 | Field | Value |
 |---|---|
 | Document version | 1.1.0 |
-| Status | Phase 06 implemented; Phase 08 consumes its scores (pending approval) |
-| Date | 2026-11-11 |
+| Status | Phase 12 complete; evaluator and judge behavior validated on final stored results |
+| Date | 2026-11-14 |
 | Related documents | `PROJECT_REQUIREMENTS.md`, `EXPERIMENTAL_METHODOLOGY.md`, `METRICS_DEFINITIONS.md`, `SCORING_AND_RECOMMENDATIONS.md`, `ARCHITECTURE.md`, `DATASET_GUIDE.md` |
 
 ---
@@ -415,3 +415,19 @@ To attach the judge, build it with `benchmark.evaluation.judge.build_ollama_judg
 | Version | Date | Change |
 |---|---|---|
 | 1.0.0 | 2026-11-10 | Initial Phase 06 methodology: seven deterministic evaluators, blind Qwen 2.5 3B judge, category weighting, reliability and manual validation protocol |
+
+---
+
+## 13. Phase 12 validation findings
+
+The final 100-item run produced 300 evaluation records (299 scored; one Qwen timeout was recorded but not scored). The judge ran on 27 summarization responses, nine per model, which is 9% of each model's measured responses.
+
+| Finding | Evidence |
+|---|---|
+| Exact-match floor effect | Exact-match passed 0/27 for every model. General-knowledge and logical-reasoning category scores were identical across models and should not be used for ranking. |
+| Reference-overlap strictness | Reference-overlap passed 0/9 for every model. A correct two-sentence water-cycle summary (`llama3.1:8b`, `sum-005`) scored 14.94/100 on deterministic overlap because lexical key-fact matching found 0/5 facts. |
+| Judge leniency and low correlation | Judge mean 87.96 vs deterministic overlap mean 20.91; Pearson correlation 0.172; mean gap +67.05 points. |
+| Judge false negative | Manual spot-check found one clear false negative: `llama3.1:8b` `sum-005` received 18.75/100 for a correct summary. One Qwen completeness score was borderline low. No clear false positive was found in the ten-response spot-check. |
+| Discriminating checks | Code tests, JSON Schema, instruction constraints, numeric checks, and refusal checks did discriminate. Qwen led code tests (9/15) and JSON Schema (13/15); Llama led refusal checks (5/6). |
+
+These findings are why the final report treats quality scores as conservative and low-confidence, while treating latency, throughput, and reliability as the more stable comparison dimensions. See `docs/PHASE12_RESULTS.md` for the full result set.

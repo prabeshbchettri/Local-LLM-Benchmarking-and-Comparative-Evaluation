@@ -35,8 +35,18 @@ from benchmark.models.inference import (
 pytestmark = pytest.mark.integration
 
 
-def _seed(temp_settings, dataset_path, experiment_id: str, latency: float) -> None:
-    database = Database.from_settings(temp_settings)
+def _seed(
+    temp_settings,
+    dataset_path,
+    experiment_id: str,
+    latency: float,
+    database_path=None,
+) -> None:
+    database = (
+        Database.from_settings(temp_settings)
+        if database_path is None
+        else Database(database_path)
+    )
     database.initialize()
     repos = Repositories(database)
     dataset = load_dataset(dataset_path)
@@ -142,6 +152,41 @@ def test_analyze_cli_outputs_and_persists(
         assert stored[0]["details"] is not None
     finally:
         database.dispose()
+
+
+def test_analyze_cli_honors_database_path(
+    temp_settings,
+    temp_config_dir,
+    dataset_path,
+    tmp_path,
+    capsys,
+) -> None:
+    other_database = tmp_path / "other.db"
+    _seed(
+        temp_settings,
+        dataset_path,
+        "exp-cli-db",
+        latency=2.0,
+        database_path=other_database,
+    )
+
+    exit_code = main(
+        [
+            "analyze",
+            "exp-cli-db",
+            "--database",
+            str(other_database),
+            "--json",
+            "--config-dir",
+            str(temp_config_dir),
+        ]
+    )
+    captured = capsys.readouterr()
+
+    assert exit_code == 0, captured.err
+    payload = json.loads(captured.out)
+    assert payload["experiment_id"] == "exp-cli-db"
+    assert payload["profiles"][0]["analytics"]["measured_responses"] == 2
 
 
 def test_compare_cli_reports_deltas(

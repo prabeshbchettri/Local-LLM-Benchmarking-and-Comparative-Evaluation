@@ -1,10 +1,12 @@
 # Scoring and Recommendations
 
-**Status:** Phase 08 implemented  
+**Status:** Phase 12 complete  
 **Methodology version:** `1.0.0`  
 **Schema version:** `1.1.0`
 
-This document is the canonical definition of the Phase 08 analytics, scoring, workload profiles, confidence rules, and recommendation behavior. Where an older design note disagrees with this document or the code, this document and `src/benchmark/analytics/` take precedence.
+This document is the canonical definition of the analytics, scoring, workload profiles, confidence rules, and recommendation behavior. Where an older design note disagrees with this document or the code, this document and `src/benchmark/analytics/` take precedence.
+
+Phase 12 applied these rules to the final stored experiments. The general-purpose ranking was Mistral 77.13, Qwen 65.29, and Llama 34.92, all with medium confidence. Mistral also ranked first in every workload-specific profile. The quality component is the least stable part of the composite because the judge covered only 9% of measured responses and produced at least one clear false negative. See `docs/PHASE12_RESULTS.md` for the full result set.
 
 ## 1. Evidence Source and Filters
 
